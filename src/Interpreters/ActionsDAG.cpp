@@ -175,11 +175,24 @@ const ActionsDAG::Node & ActionsDAG::addFunction(
         argument.column = child.column;
         argument.type = child.result_type;
         argument.name = child.result_name;
-
         if (!argument.column || !isColumnConst(*argument.column))
             all_const = false;
 
         arguments[i] = std::move(argument);
+    }
+
+    if(num_arguments > 1 && arguments[0].type != arguments[1].type)
+    {
+        const auto * arg_0_type_ptr=typeid_cast<const DataTypeLowCardinality *>(arguments[0].type.get());
+        const auto * arg_1_type_ptr=typeid_cast<const DataTypeLowCardinality *>(arguments[1].type.get());
+        if (arg_0_type_ptr != nullptr & arg_1_type_ptr == nullptr)
+        {
+            arguments[0].type=arguments[1].type;
+        }
+        else if(arg_0_type_ptr == nullptr & arg_1_type_ptr != nullptr)
+        {
+            arguments[1].type=arguments[0].type;
+        }
     }
 
     node.function_base = function->build(arguments);
