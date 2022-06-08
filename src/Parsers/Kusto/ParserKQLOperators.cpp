@@ -230,7 +230,6 @@ bool KQLOperators::convert(std::vector<String> &tokens,IParser::Pos &pos)
 
             case KQLOperatorValue::not_equal:
                 break;
-
             case KQLOperatorValue::equal_cs:
                 new_expr = "==";
                 break;
@@ -321,7 +320,6 @@ bool KQLOperators::convert(std::vector<String> &tokens,IParser::Pos &pos)
             case KQLOperatorValue::in_cs:
                 new_expr = genInOpExpr(pos,op,"in");
                 break;
-
             case KQLOperatorValue::not_in_cs:
                 new_expr = genInOpExpr(pos,op,"not in");
                 break;
