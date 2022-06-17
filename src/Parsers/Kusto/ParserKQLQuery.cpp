@@ -14,6 +14,7 @@
 #include <Parsers/ASTTablesInSelectQuery.h>
 #include <Parsers/ASTSubquery.h>
 #include <Parsers/Kusto/ParserKQLOperators.h>
+#include <Parsers/Kusto/KustoFunctions/KQLFunctionFactory.h>
 
 namespace DB
 {
@@ -52,6 +53,7 @@ String ParserKQLBase :: getExprFromToken(Pos & pos)
 {
     String res;
     std::vector<String> tokens;
+    std::unique_ptr<IParserKQLFunction> kql_function;
     String alias;
 
     while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
@@ -70,6 +72,14 @@ String ParserKQLBase :: getExprFromToken(Pos & pos)
         }
         else if (!KQLOperators().convert(tokens,pos))
         {
+            if (pos->type == TokenType::BareWord)
+            {
+                String new_token;
+                kql_function = KQLFunctionFactory::get(token);
+                if (kql_function && kql_function->convert(new_token,pos))
+                    token = new_token;
+            }
+
             tokens.push_back(token);
         }
 
