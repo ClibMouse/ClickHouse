@@ -3,6 +3,8 @@
 #include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/Kusto/ParserKQLStatement.h>
 #include <Parsers/CommonParsers.h>
+#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
+#include <Parsers/Kusto/KustoFunctions/KQLFunctionFactory.h>
 
 namespace DB
 {
@@ -112,6 +114,13 @@ String KQLOperators::genHaystackOpExpr(std::vector<String> &tokens,IParser::Pos 
     else if (!tokens.empty() && ((token_pos)->type == TokenType::BareWord))
     {
         auto tmp_arg = String(token_pos->begin, token_pos->end);
+        if (token_pos->type == TokenType::BareWord )
+        {
+            String new_arg;
+            auto fun = KQLFunctionFactory::get(tmp_arg);
+            if (fun && fun->convert(new_arg,token_pos))
+                tmp_arg = new_arg;
+        }
         new_expr = ch_op +"(" + tokens.back() +", concat('" + left_wildcards + left_space + "', " + tmp_arg +", '"+ right_space + right_wildcards + "'))";
     }
     else
@@ -351,7 +360,6 @@ bool KQLOperators::convert(std::vector<String> &tokens,IParser::Pos &pos)
         }
         return true;
     }
-    pos = begin;
     return false;
 }
 
