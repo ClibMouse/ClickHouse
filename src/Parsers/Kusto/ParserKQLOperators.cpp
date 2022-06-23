@@ -358,6 +358,7 @@ bool KQLOperators::convert(std::vector<String> &tokens,IParser::Pos &pos)
         }
         return true;
     }
+    pos = begin;
     return false;
 }
 
