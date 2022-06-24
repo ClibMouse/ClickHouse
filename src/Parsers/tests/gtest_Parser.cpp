@@ -335,10 +335,6 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery, ParserTest,
             "SELECT\n    FirstName,\n    LastName\nFROM\n(\n    SELECT\n        FirstName,\n        LastName,\n        Occupation\n    FROM Customers\n    LIMIT 3\n)"
         },
         {
-            "Customers | project FirstName,LastName,Occupation | take 3 | project FirstName,LastName,Education",
-            "SELECT\n    FirstName,\n    LastName,\n    Education\nFROM\n(\n    SELECT\n        FirstName,\n        LastName,\n        Occupation\n    FROM Customers\n    LIMIT 3\n)"
-        },
-        {
             "Customers | sort by FirstName desc",
             "SELECT *\nFROM Customers\nORDER BY FirstName DESC"
         },
