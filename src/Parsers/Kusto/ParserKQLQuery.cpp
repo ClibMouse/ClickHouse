@@ -16,9 +16,13 @@
 #include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/Kusto/KustoFunctions/KQLFunctionFactory.h>
 
-#include <iostream>
 namespace DB
 {
+
+namespace ErrorCodes
+{
+    extern const int UNKNOWN_FUNCTION;
+}
 
 String ParserKQLBase :: getExprFromToken(const String & text, const uint32_t & max_depth)
 {
@@ -56,7 +60,7 @@ String ParserKQLBase :: getExprFromToken(Pos & pos)
     std::vector<String> tokens;
     std::unique_ptr<IParserKQLFunction> kql_function;
     String alias;
-    
+
     while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
     {
         String token = String(pos->begin,pos->end);
@@ -77,28 +81,26 @@ String ParserKQLBase :: getExprFromToken(Pos & pos)
             {
                 String new_token;
                 kql_function = KQLFunctionFactory::get(token);
-                if (kql_function && kql_function->convert(new_token,pos)){
+                if (kql_function && kql_function->convert(new_token,pos))
                     token = new_token;
-                }
-                    
+             /*   else if (!kql_function)
+                { 
+                    if ((++pos)->type == TokenType::OpeningRoundBracket)
+                        throw Exception("Unknown function  " + token, ErrorCodes::UNKNOWN_FUNCTION);
+                    --pos;
+                }*/
             }
 
             tokens.push_back(token);
         }
 
-        if (!alias.empty())
+        if (pos->type == TokenType::Comma && !alias.empty())
         {
-            if(pos->type == TokenType::Comma || token == "FROM")
-            {
-                tokens.pop_back();
-                tokens.push_back("AS");
-                tokens.push_back(alias);
-                if(pos->type == TokenType::Comma)
-                    tokens.push_back(",");
-                else
-                    tokens.push_back("FROM");
-                alias.clear();
-            }
+            tokens.pop_back();
+            tokens.push_back("AS");
+            tokens.push_back(alias);
+            tokens.push_back(",");
+            alias.clear();
         }
         ++pos;
     }
@@ -192,6 +194,7 @@ bool ParserKQLQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
                 return false;
             ++pos;
             operation_pos.push_back(std::make_pair(kql_operator, pos));
+            kql_parser[kql_operator]->getExprFromToken(pos);
         }
         else
             ++pos;
