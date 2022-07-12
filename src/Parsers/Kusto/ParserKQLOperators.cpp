@@ -5,6 +5,8 @@
 #include <Parsers/CommonParsers.h>
 #include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
 #include <Parsers/Kusto/KustoFunctions/KQLFunctionFactory.h>
+#include <Parsers/Kusto/ParserKQLStatement.h>
+#include <Parsers/CommonParsers.h>
 
 namespace DB
 {
@@ -48,6 +50,7 @@ String KQLOperators::genHasAnyAllOpExpr(std::vector<String> &tokens, IParser::Po
 
 String KQLOperators::genInOpExpr(IParser::Pos &token_pos, String kql_op, String ch_op)
 {
+    ParserKQLTaleFunction kqlfun_p;
     String new_expr;
 
     ParserToken s_lparen(TokenType::OpeningRoundBracket);
@@ -58,6 +61,24 @@ String KQLOperators::genInOpExpr(IParser::Pos &token_pos, String kql_op, String 
     ++token_pos;
     if (!s_lparen.ignore(token_pos, expected))
         throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", kql_op);
+
+    auto pos = token_pos;
+    if (kqlfun_p.parse(pos,select,expected))
+    {
+        new_expr = ch_op + " kql";
+        auto tmp_pos = token_pos;
+        while (tmp_pos != pos) 
+        {
+            new_expr = new_expr + " " + String(tmp_pos->begin,tmp_pos->end);
+            ++tmp_pos;
+        }
+
+        if (pos->type != TokenType::ClosingRoundBracket)
+            throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", kql_op);
+
+        token_pos = pos;
+        return new_expr;
+    }
 
     --token_pos;
     --token_pos;
