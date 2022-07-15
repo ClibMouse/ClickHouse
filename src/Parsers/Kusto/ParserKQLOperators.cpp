@@ -33,6 +33,14 @@ String KQLOperators::genHasAnyAllOpExpr(std::vector<String> &tokens, IParser::Po
     while (!token_pos->isEnd() && token_pos->type != TokenType::PipeMark && token_pos->type != TokenType::Semicolon)
     {
         auto tmp_arg = String(token_pos->begin, token_pos->end);
+        if (token_pos->type == TokenType::BareWord )
+        {
+            String new_arg;
+            auto fun = KQLFunctionFactory::get(tmp_arg);
+            if (fun && fun->convert(new_arg,token_pos))
+                tmp_arg = new_arg;
+        }
+
         if (token_pos->type == TokenType::Comma)
             new_expr = new_expr + logic_op;
         else
