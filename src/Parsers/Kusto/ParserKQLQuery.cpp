@@ -13,8 +13,9 @@
 #include <format>
 #include <Parsers/ASTTablesInSelectQuery.h>
 #include <Parsers/ASTSubquery.h>
-#include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/Kusto/KustoFunctions/KQLFunctionFactory.h>
+#include <Parsers/Kusto/ParserKQLOperators.h>
+#include <Parsers/Kusto/ParserKQLPrint.h>
 
 namespace DB
 {
@@ -163,9 +164,20 @@ bool ParserKQLQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 
     std::vector<std::pair<String, Pos>> operation_pos;
 
+    operation_pos.push_back(std::make_pair("table", pos));
     String table_name(pos->begin, pos->end);
 
-    operation_pos.push_back(std::make_pair("table", pos));
+    if (table_name == "print")
+    {
+        ++pos;
+        if (!ParserKQLPrint().parse(pos, select_expression_list, expected))
+            return false;
+
+        select_query->setExpression(ASTSelectQuery::Expression::SELECT, std::move(select_expression_list));
+
+        return true;
+    }
+
     ++pos;
     uint16_t bracket_count = 0;
 
