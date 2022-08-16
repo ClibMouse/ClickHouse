@@ -16,6 +16,8 @@
 #include <Parsers/Kusto/KustoFunctions/KQLFunctionFactory.h>
 #include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/Kusto/ParserKQLPrint.h>
+#include <Parsers/Kusto/ParserKQLMakeSeries.h>
+#include <Parsers/CommonParsers.h>
 
 namespace DB
 {
@@ -187,6 +189,20 @@ bool ParserKQLQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
                 {
                     kql_operator = "order by";
                     --pos;
+                }
+            }
+            else if (kql_operator == "make")
+            {
+                ++pos;
+                ParserKeyword s_series("series");
+                ParserToken s_dash(TokenType::Minus);
+                if (s_dash.ignore(pos,expected))
+                {
+                    if (s_series.ignore(pos,expected))
+                    {
+                        kql_operator = "make-series";
+                        --pos;
+                    }
                 }
             }
             if (pos->type != TokenType::BareWord || kql_parser.find(kql_operator) == kql_parser.end())
