@@ -5,7 +5,6 @@
 #include <Parsers/ASTCreateQuery.h>
 #include <Parsers/ASTFunction.h>
 #include <Parsers/ASTIdentifier.h>
-#include <Parsers/Access/ASTCreateUserQuery.h>
 #include <Parsers/Access/ParserCreateUserQuery.h>
 #include <Parsers/ParserAlterQuery.h>
 #include <Parsers/ParserCreateQuery.h>
@@ -15,8 +14,6 @@
 #include <Parsers/formatAST.h>
 #include <Parsers/parseQuery.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
-#include <string_view>
-#include <regex>
 
 namespace
 {
@@ -32,48 +29,6 @@ std::ostream & operator<<(std::ostream & ostr, const std::shared_ptr<IParser> pa
 std::ostream & operator<<(std::ostream & ostr, const ParserTestCase & test_case)
 {
     return ostr << "ParserTestCase input: " << test_case.input_text;
-}
-
-TEST_P(ParserTest, parseQuery)
-{
-    const auto & parser = std::get<0>(GetParam());
-    const auto & [input_text, expected_ast] = std::get<1>(GetParam());
-
-    ASSERT_NE(nullptr, parser);
-
-    if (expected_ast)
-    {
-        if (std::string(expected_ast).starts_with("throws"))
-        {
-            EXPECT_THROW(parseQuery(*parser, input_text.begin(), input_text.end(), 0, 0), DB::Exception);
-        }
-        else
-        {
-            ASTPtr ast;
-            ASSERT_NO_THROW(ast = parseQuery(*parser, input_text.begin(), input_text.end(), 0, 0));
-            if (std::string("CREATE USER or ALTER USER query") != parser->getName()
-                    && std::string("ATTACH access entity query") != parser->getName())
-            {
-                EXPECT_EQ(expected_ast, serializeAST(*ast->clone(), false));
-            }
-            else
-            {
-                if (input_text.starts_with("ATTACH"))
-                {
-                    auto salt = (dynamic_cast<const ASTCreateUserQuery *>(ast.get())->auth_data)->getSalt();
-                    EXPECT_TRUE(std::regex_match(salt, std::regex(expected_ast)));
-                }
-                else
-                {
-                    EXPECT_TRUE(std::regex_match(serializeAST(*ast->clone(), false), std::regex(expected_ast)));
-                }
-            }
-        }
-    }
-    else
-    {
-        ASSERT_THROW(parseQuery(*parser, input_text.begin(), input_text.end(), 0, 0), DB::Exception);
-    }
 }
 
 INSTANTIATE_TEST_SUITE_P(ParserOptimizeQuery, ParserTest,
@@ -595,33 +550,5 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery, ParserTest,
          {
              "print output = dynamic(['a', 'b', 'c'])",
              "SELECT ['a', 'b', 'c'] AS output"
-         },
-         {
-             "print output = array_index_of(dynamic([1, 2, 3]), 2)",
-             "SELECT indexOf([1, 2, 3], 2) - 1 AS output"
-         },
-         {
-             "print output = array_index_of(dynamic(['a', 'b', 'c']), 'b')",
-             "SELECT indexOf(['a', 'b', 'c'], 'b') - 1 AS output"
-         },
-         {
-             "print output = array_index_of(dynamic(['John', 'Denver', 'Bob', 'Marley']), 'Marley')",
-             "SELECT indexOf(['John', 'Denver', 'Bob', 'Marley'], 'Marley') - 1 AS output"
-         },
-         {
-             "print output = array_length(dynamic([1, 2, 3]))",
-             "SELECT length([1, 2, 3]) AS output"
-         },
-         {
-             "print output = array_length(dynamic(['John', 'Denver', 'Bob', 'Marley']))",
-             "SELECT length(['John', 'Denver', 'Bob', 'Marley']) AS output"
-         },
-         {
-             "print output = array_sum(dynamic([2, 5, 3]))",
-             "SELECT arraySum([2, 5, 3]) AS output"
-         },
-         {
-             "print output = array_sum(dynamic([2.5, 5.5, 3]))",
-             "SELECT arraySum([2.5, 5.5, 3]) AS output"
          }
 })));
