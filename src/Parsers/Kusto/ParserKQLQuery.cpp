@@ -17,6 +17,7 @@
 #include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/Kusto/ParserKQLPrint.h>
 #include <Parsers/Kusto/ParserKQLMakeSeries.h>
+#include <Parsers/Kusto/ParserKQLMVExpand.h>
 #include <Parsers/CommonParsers.h>
 
 namespace DB
@@ -101,8 +102,8 @@ String ParserKQLBase :: getExprFromToken(Pos & pos)
         tokens.push_back(alias);
     }
 
-    for (auto const &token : tokens)
-        res = res.empty()? token : res +" " + token;
+    for (const auto & token : tokens)
+        res = res.empty() ? token : res + " " + token;
     return res;
 }
 
@@ -205,6 +206,21 @@ bool ParserKQLQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
                     }
                 }
             }
+            else if (kql_operator == "mv")
+            {
+                ++pos;
+                ParserKeyword s_series("expand");
+                ParserToken s_dash(TokenType::Minus);
+                if (s_dash.ignore(pos,expected))
+                {
+                    if (s_series.ignore(pos,expected))
+                    {
+                        kql_operator = "mv-expand";
+                        --pos;
+                    }
+                }
+            }
+
             if (pos->type != TokenType::BareWord || kql_parser.find(kql_operator) == kql_parser.end())
                 return false;
             ++pos;
