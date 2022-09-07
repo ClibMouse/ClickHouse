@@ -99,7 +99,7 @@ if __name__ == "__main__":
 
     docker_image = get_image_with_version(temp_path, "clickhouse/fasttest")
 
-    s3_helper = S3Helper("https://s3.amazonaws.com")
+    s3_helper = S3Helper()
 
     workspace = os.path.join(temp_path, "fasttest-workspace")
     if not os.path.exists(workspace):

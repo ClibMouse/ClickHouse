@@ -7,9 +7,9 @@ import sys
 
 from github import Github
 
-from env_helper import TEMP_PATH, REPO_COPY, REPORTS_PATH
+from env_helper import TEMP_PATH, REPO_COPY, REPORTS_PATH, DOCKER_REPO, DOCKER_USER
 from s3_helper import S3Helper
-from get_robot_token import get_best_robot_token
+from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from pr_info import PRInfo
 from build_download_helper import download_shared_build
 from upload_result_helper import upload_results
@@ -20,7 +20,7 @@ from stopwatch import Stopwatch
 from rerun_helper import RerunHelper
 
 
-DOCKER_IMAGE = "clickhouse/split-build-smoke-test"
+DOCKER_IMAGE = f"{DOCKER_REPO}/clickhouse/split-build-smoke-test"
 DOWNLOAD_RETRIES_COUNT = 5
 RESULT_LOG_NAME = "run.log"
 CHECK_NAME = "Split build smoke test (actions)"
@@ -75,7 +75,6 @@ if __name__ == "__main__":
     reports_path = REPORTS_PATH
 
     pr_info = PRInfo()
-
     gh = Github(get_best_robot_token())
 
     rerun_helper = RerunHelper(gh, pr_info, CHECK_NAME)
@@ -88,6 +87,13 @@ if __name__ == "__main__":
             if f == "changed_images.json":
                 images_path = os.path.join(root, "changed_images.json")
                 break
+
+    subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+        "docker login {} --username '{}' --password-stdin".format(DOCKER_REPO, DOCKER_USER),
+        input=get_parameter_from_ssm("dockerhub_robot_password"),
+        encoding="utf-8",
+        shell=True,
+    )
 
     docker_image = get_image_with_version(reports_path, DOCKER_IMAGE)
 
@@ -126,7 +132,7 @@ if __name__ == "__main__":
     )
 
     ch_helper = ClickHouseHelper()
-    s3_helper = S3Helper("https://s3.amazonaws.com")
+    s3_helper = S3Helper()
     report_url = upload_results(
         s3_helper,
         pr_info.number,

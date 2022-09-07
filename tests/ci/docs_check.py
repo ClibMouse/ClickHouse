@@ -6,7 +6,7 @@ import os
 import sys
 from github import Github
 
-from env_helper import TEMP_PATH, REPO_COPY
+from env_helper import TEMP_PATH, REPO_COPY, DOCKER_REPO
 from s3_helper import S3Helper
 from pr_info import PRInfo
 from get_robot_token import get_best_robot_token
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     if not os.path.exists(temp_path):
         os.makedirs(temp_path)
 
-    docker_image = get_image_with_version(temp_path, "clickhouse/docs-builder")
+    docker_image = get_image_with_version(temp_path, f"{DOCKER_REPO}/clickhouse/docs-builder")
 
     test_output = os.path.join(temp_path, "docs_check_log")
     if not os.path.exists(test_output):
@@ -120,7 +120,7 @@ if __name__ == "__main__":
         else:
             lines.append(("Non zero exit code", "FAIL"))
 
-    s3_helper = S3Helper("https://s3.amazonaws.com")
+    s3_helper = S3Helper()
     ch_helper = ClickHouseHelper()
 
     report_url = upload_results(

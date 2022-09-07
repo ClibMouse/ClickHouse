@@ -14,7 +14,7 @@ from github import Github
 
 from clickhouse_helper import ClickHouseHelper, prepare_tests_results_for_clickhouse
 from commit_status_helper import post_commit_status
-from env_helper import GITHUB_WORKSPACE, RUNNER_TEMP, GITHUB_RUN_URL
+from env_helper import GITHUB_WORKSPACE, RUNNER_TEMP, GITHUB_RUN_URL, DOCKER_USER, DOCKER_REPO
 from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from pr_info import PRInfo
 from s3_helper import S3Helper
@@ -91,7 +91,7 @@ def get_images_dict(repo_path: str, image_file_path: str) -> ImagesDict:
 
 
 def get_changed_docker_images(
-    pr_info: PRInfo, images_dict: ImagesDict
+    pr_info: PRInfo, images_dict: ImagesDict, docker_repo
 ) -> Set[DockerImage]:
 
     if not images_dict:
@@ -111,7 +111,7 @@ def get_changed_docker_images(
     for dockerfile_dir, image_description in images_dict.items():
         for f in files_changed:
             if f.startswith(dockerfile_dir):
-                name = image_description["name"]
+                name = docker_repo + "/" + image_description["name"]
                 only_amd64 = image_description.get("only_amd64", False)
                 logging.info(
                     "Found changed file '%s' which affects "
@@ -135,7 +135,7 @@ def get_changed_docker_images(
                 dependent,
                 image,
             )
-            name = images_dict[dependent]["name"]
+            name = docker_repo + "/" + images_dict[dependent]["name"]
             only_amd64 = images_dict[dependent].get("only_amd64", False)
             changed_images.append(DockerImage(dependent, name, only_amd64, image))
         index += 1
@@ -248,6 +248,7 @@ def build_and_push_one_image(
             "docker buildx build --builder default "
             f"--label build-url={GITHUB_RUN_URL} "
             f"{from_tag_arg}"
+            f"--build-arg DOCKER_REPO={DOCKER_REPO} "
             # A hack to invalidate cache, grep for it in docker/ dir
             f"--build-arg CACHE_INVALIDATOR={GITHUB_RUN_URL} "
             f"--tag {image.repo}:{version_string} "
@@ -389,7 +390,6 @@ def parse_args() -> argparse.Namespace:
         default=argparse.SUPPRESS,
         help="don't push images to docker hub",
     )
-
     return parser.parse_args()
 
 
@@ -405,13 +405,12 @@ def main():
     else:
         changed_json = os.path.join(TEMP_PATH, "changed_images.json")
 
-    if args.push:
-        subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
-            "docker login --username 'robotclickhouse' --password-stdin",
-            input=get_parameter_from_ssm("dockerhub_robot_password"),
-            encoding="utf-8",
-            shell=True,
-        )
+    subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+        "docker login {} --username '{}' --password-stdin".format(DOCKER_REPO, DOCKER_USER),
+        input=get_parameter_from_ssm("dockerhub_robot_password"),
+        encoding="utf-8",
+        shell=True,
+    )
 
     if os.path.exists(TEMP_PATH):
         shutil.rmtree(TEMP_PATH)
@@ -431,7 +430,7 @@ def main():
             # If the event does not contain diff, nothing will be built
             pass
 
-    changed_images = get_changed_docker_images(pr_info, images_dict)
+    changed_images = get_changed_docker_images(pr_info, images_dict, DOCKER_REPO)
     if changed_images:
         logging.info(
             "Has changed images: %s", ", ".join([im.path for im in changed_images])
@@ -460,7 +459,7 @@ def main():
     with open(changed_json, "w", encoding="utf-8") as images_file:
         json.dump(result_images, images_file)
 
-    s3_helper = S3Helper("https://s3.amazonaws.com")
+    s3_helper = S3Helper()
 
     s3_path_prefix = (
         str(pr_info.number) + "/" + pr_info.sha + "/" + NAME.lower().replace(" ", "_")

@@ -1,7 +1,8 @@
 # rebuild in #33610
 # docker build -t clickhouse/stateless-pytest .
 ARG FROM_TAG=latest
-FROM clickhouse/test-base:$FROM_TAG
+ARG DOCKER_REPO=docker.io
+FROM $DOCKER_REPO/clickhouse/test-base:$FROM_TAG
 
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends \

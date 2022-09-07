@@ -7,9 +7,9 @@ import subprocess
 
 from github import Github
 
-from env_helper import TEMP_PATH, REPO_COPY, REPORTS_PATH
+from env_helper import DOCKER_USER, DOCKER_REPO, TEMP_PATH, REPO_COPY, REPORTS_PATH
 from s3_helper import S3Helper
-from get_robot_token import get_best_robot_token
+from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from pr_info import PRInfo
 from build_download_helper import download_unit_tests
 from upload_result_helper import upload_results
@@ -121,6 +121,13 @@ if __name__ == "__main__":
         logging.info("Check is already finished according to github status, exiting")
         sys.exit(0)
 
+    subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+        "docker login {} --username '{}' --password-stdin".format(DOCKER_REPO, DOCKER_USER),
+        input=get_parameter_from_ssm("dockerhub_robot_password"),
+        encoding="utf-8",
+        shell=True,
+    )
+
     docker_image = get_image_with_version(reports_path, IMAGE_NAME)
 
     download_unit_tests(check_name, reports_path, temp_path)
@@ -147,7 +154,7 @@ if __name__ == "__main__":
 
     subprocess.check_call(f"sudo chown -R ubuntu:ubuntu {temp_path}", shell=True)
 
-    s3_helper = S3Helper("https://s3.amazonaws.com")
+    s3_helper = S3Helper()
     state, description, test_results, additional_logs = process_result(test_output)
 
     ch_helper = ClickHouseHelper()

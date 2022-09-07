@@ -117,7 +117,7 @@ if __name__ == "__main__":
         "core.gz": os.path.join(workspace_path, "core.gz"),
     }
 
-    s3_helper = S3Helper("https://s3.amazonaws.com")
+    s3_helper = S3Helper()
     for f in paths:
         try:
             paths[f] = s3_helper.upload_test_report_to_s3(paths[f], s3_prefix + "/" + f)
@@ -173,4 +173,4 @@ if __name__ == "__main__":
 
     logging.info("Result: '%s', '%s', '%s'", status, description, report_url)
     print(f"::notice ::Report url: {report_url}")
-    post_commit_status(gh, pr_info.sha, check_name, description, status, report_url)
+    # post_commit_status(gh, pr_info.sha, check_name, description, status, report_url)

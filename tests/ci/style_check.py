@@ -4,7 +4,6 @@ import subprocess
 import os
 import csv
 import sys
-
 from github import Github
 
 from env_helper import (
@@ -12,10 +11,12 @@ from env_helper import (
     GITHUB_WORKSPACE,
     GITHUB_REPOSITORY,
     GITHUB_SERVER_URL,
+    DOCKER_USER,
+    DOCKER_REPO,
 )
 from s3_helper import S3Helper
 from pr_info import PRInfo, SKIP_SIMPLE_CHECK_LABEL
-from get_robot_token import get_best_robot_token
+from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from upload_result_helper import upload_results
 from docker_pull_helper import get_image_with_version
 from commit_status_helper import post_commit_status, get_commit
@@ -78,6 +79,13 @@ if __name__ == "__main__":
 
     pr_info = PRInfo()
 
+    subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+        "docker login {} --username '{}' --password-stdin".format(DOCKER_REPO, DOCKER_USER),
+        input=get_parameter_from_ssm("dockerhub_robot_password"),
+        encoding="utf-8",
+        shell=True,
+    )
+
     gh = Github(get_best_robot_token())
 
     rerun_helper = RerunHelper(gh, pr_info, NAME)
@@ -88,8 +96,8 @@ if __name__ == "__main__":
     if not os.path.exists(temp_path):
         os.makedirs(temp_path)
 
-    docker_image = get_image_with_version(temp_path, "clickhouse/style-test")
-    s3_helper = S3Helper("https://s3.amazonaws.com")
+    docker_image = get_image_with_version(temp_path, "{}/clickhouse/style-test".format(DOCKER_REPO))
+    s3_helper = S3Helper()
 
     cmd = (
         f"docker run -u $(id -u ${{USER}}):$(id -g ${{USER}}) --cap-add=SYS_PTRACE "
