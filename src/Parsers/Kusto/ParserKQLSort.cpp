@@ -8,7 +8,7 @@
 namespace DB
 {
 
-bool ParserKQLSort :: parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
+bool ParserKQLSort::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
     bool has_dir = false;
     std::vector <bool> has_directions;
@@ -35,6 +35,7 @@ bool ParserKQLSort :: parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
             has_directions.push_back(has_dir);
             has_dir = false;
         }
+
         ++new_pos;
     }
     has_directions.push_back(has_dir);
@@ -53,7 +54,6 @@ bool ParserKQLSort :: parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
     }
 
     node->as<ASTSelectQuery>()->setExpression(ASTSelectQuery::Expression::ORDER_BY, std::move(order_expression_list));
-
     return true;
 }
 
