@@ -8,7 +8,7 @@
 namespace DB
 {
 
-bool ParserKQLFilter :: parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
+bool ParserKQLFilter::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
     String expr = getExprFromToken(pos);
     ASTPtr where_expression;
