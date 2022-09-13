@@ -9,7 +9,7 @@
 namespace DB
 {
 
-bool ParserKQLLimit :: parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
+bool ParserKQLLimit::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
     ASTPtr limit_length;
 
