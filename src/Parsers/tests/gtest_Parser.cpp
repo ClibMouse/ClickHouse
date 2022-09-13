@@ -417,7 +417,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery, ParserTest,
         },
         {
             "Customers |summarize count() by bin(Age, 10)",
-            "SELECT\n    toInt32(Age / 10) * 10 AS bin_int,\n    count()\nFROM Customers\nGROUP BY bin_int"
+            "SELECT\n    toInt64(toFloat64(Age) / 10) * 10,\n    count()\nFROM Customers\nGROUP BY toInt64(toFloat64(Age) / 10) * 10"
         },
         {
             "Customers | where FirstName contains 'pet'",
@@ -593,6 +593,14 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery, ParserTest,
          {
              "print output = dynamic(['a', 'b', 'c'])",
              "SELECT ['a', 'b', 'c'] AS output"
+         },
+         {
+             "T | extend T | extend duration = endTime - startTime",
+             "SELECT\n    *,\n    endTime - startTime AS duration\nFROM\n(\n    SELECT\n        *,\n        T\n    FROM T\n)"
+         },
+         {
+             "T |project endTime, startTime | extend duration = endTime - startTime",
+             "SELECT\n    *,\n    endTime - startTime AS duration\nFROM\n(\n    SELECT\n        endTime,\n        startTime\n    FROM T\n)"
          }
 })));
 
