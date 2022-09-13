@@ -18,7 +18,7 @@
 namespace DB
 {
 
-bool ParserKQLSummarize ::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
+bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
     ASTPtr select_expression_list;
     ASTPtr group_expression_list;
@@ -50,8 +50,16 @@ bool ParserKQLSummarize ::parseImpl(Pos & pos, ASTPtr & node, Expected & expecte
     else
         expr_aggregation = begin <= pos ? String(begin->begin, pos->end) : "";
 
-    auto expr_aggregation_str = expr_aggregation.empty() ? "" : expr_aggregation +",";
-    expr_columns = groupby ? expr_aggregation_str + expr_groupby : expr_aggregation_str;
+    if (!expr_groupby.empty())
+        expr_columns = expr_groupby;
+
+    if (!expr_aggregation.empty())
+    {
+        if (expr_columns.empty())
+            expr_columns = expr_aggregation;
+        else
+            expr_columns =  expr_columns + "," + expr_aggregation;
+    }
 
     String converted_columns =  getExprFromToken(expr_columns, pos.max_depth);
 
@@ -77,5 +85,4 @@ bool ParserKQLSummarize ::parseImpl(Pos & pos, ASTPtr & node, Expected & expecte
 
     return true;
 }
-
 }
