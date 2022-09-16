@@ -1,7 +1,11 @@
 # rebuild in #33610
 #  docker build -t clickhouse/fasttest .
 ARG FROM_TAG=latest
-FROM clickhouse/test-util:$FROM_TAG
+ARG DOCKER_REPO=docker.io
+FROM $DOCKER_REPO/clickhouse/test-util:$FROM_TAG
+
+ENV GITHUB_SERVER_URL=https://github.com
+ENV GITHUB_REPOSITORY=ClickHouse/ClickHouse
 
 # ARG for quick switch to a given ubuntu mirror
 ARG apt_archive="http://archive.ubuntu.com"

@@ -8,10 +8,10 @@ import sys
 
 from github import Github
 
-from env_helper import CACHES_PATH, TEMP_PATH, GITHUB_SERVER_URL, GITHUB_REPOSITORY
+from env_helper import CACHES_PATH, TEMP_PATH, GITHUB_SERVER_URL, GITHUB_REPOSITORY, DOCKER_REPO, DOCKER_USER
 from pr_info import FORCE_TESTS_LABEL, PRInfo, SKIP_SIMPLE_CHECK_LABEL
 from s3_helper import S3Helper
-from get_robot_token import get_best_robot_token
+from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from upload_result_helper import upload_results
 from docker_pull_helper import get_image_with_version
 from commit_status_helper import post_commit_status, get_commit
@@ -37,6 +37,8 @@ def get_fasttest_cmd(
         f"-e FASTTEST_SOURCE=/ClickHouse --cap-add=SYS_PTRACE "
         f"-e PULL_REQUEST_NUMBER={pr_number} -e COMMIT_SHA={commit_sha} "
         f"-e COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1 "
+        f"-e GITHUB_SERVER_URL={GITHUB_SERVER_URL} "
+        f"-e GITHUB_REPOSITORY={GITHUB_REPOSITORY} "
         f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "
         f"--volume={output_path}:/test_output "
         f"--volume={ccache_path}:/fasttest-workspace/ccache {image}"
@@ -90,6 +92,13 @@ if __name__ == "__main__":
 
     pr_info = PRInfo()
 
+    subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+        "docker login {} --username '{}' --password-stdin".format(DOCKER_REPO, DOCKER_USER),
+        input=get_parameter_from_ssm("dockerhub_robot_password"),
+        encoding="utf-8",
+        shell=True,
+    )
+
     gh = Github(get_best_robot_token())
 
     rerun_helper = RerunHelper(gh, pr_info, NAME)
@@ -97,7 +106,7 @@ if __name__ == "__main__":
         logging.info("Check is already finished according to github status, exiting")
         sys.exit(0)
 
-    docker_image = get_image_with_version(temp_path, "clickhouse/fasttest")
+    docker_image = get_image_with_version(temp_path, "{}/clickhouse/fasttest".format(DOCKER_REPO))
 
     s3_helper = S3Helper()
 

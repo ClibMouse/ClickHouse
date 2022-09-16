@@ -11,7 +11,7 @@ on:  # yamllint disable-line rule:truthy
       - reopened
       - opened
     branches:
-      - master
+      - oss_runners
     paths-ignore:
       - 'docker/docs/**'
       - 'docs/**'
