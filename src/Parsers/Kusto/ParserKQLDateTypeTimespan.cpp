@@ -49,8 +49,17 @@ double ParserKQLDateTypeTimespan::toSeconds()
             return time_span / 10000000.0;
     }
 }
-
-bool ParserKQLDateTypeTimespan ::parseConstKQLTimespan(const String & text)
+ParserKQLDateTypeTimespan::KQLTimespanUint ParserKQLDateTypeTimespan :: getTimespanUnit( const String & text)  
+{
+    bool res [[maybe_unused]] = parseConstKQLTimespan(text);
+    return  time_span_unit;
+}
+double ParserKQLDateTypeTimespan :: getTimespan( const String & text)  
+{
+    bool res [[maybe_unused]] = parseConstKQLTimespan(text);
+    return  time_span;
+}
+bool ParserKQLDateTypeTimespan :: parseConstKQLTimespan(const String & text)
 {
     std::unordered_map<String, KQLTimespanUint> timespan_suffixes
         = {{"d", KQLTimespanUint::day},
