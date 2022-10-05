@@ -22,6 +22,8 @@ public:
     };
     bool parseConstKQLTimespan(const String & text);
     double toSeconds();
+    KQLTimespanUint getTimespanUnit(const String & text);
+    double getTimespan(const String & text);
 
 protected:
     const char * getName() const override { return "KQLDateTypeTimespan"; }
