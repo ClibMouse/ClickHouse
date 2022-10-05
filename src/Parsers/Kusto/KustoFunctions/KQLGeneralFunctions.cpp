@@ -20,10 +20,13 @@
 
 namespace DB
 {
+namespace DB::ErrorCodes
+{
+extern const int BAD_ARGUMENTS;
+}
 
 bool Bin::convertImpl(String & out, IParser::Pos & pos)
 {
-    double bin_size;
     const String fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;
@@ -33,6 +36,10 @@ bool Bin::convertImpl(String & out, IParser::Pos & pos)
     String value = getConvertedArgument(fn_name, pos);
 
     ++pos;
+    String origal_round_to(pos->begin, pos->end);
+    if(pos->type == TokenType::StringLiteral && origal_round_to.find_first_not_of("abcdefghijklmnopqrstuvwxyzQWERTYUIOPASDFGHJKLZXCVBNM"))
+        throw Exception("Only numeric lierals are accepted as second argument", ErrorCodes::BAD_ARGUMENTS);
+
     String round_to = getConvertedArgument(fn_name, pos);
 
     //remove sapce between minus and number
@@ -40,25 +47,50 @@ bool Bin::convertImpl(String & out, IParser::Pos & pos)
 
     auto t = std::format("toFloat64({})", value);
 
-    bin_size = std::stod(round_to);
+    //bin_size =  std::stod(round_to);
+    auto bin_size =  std::format("toFloat64({})", round_to);
+    int scale = 0;
+    String decimal_val;
 
+    ParserKQLDateTypeTimespan::KQLTimespanUint time_unit  = ParserKQLDateTypeTimespan().getTimespanUnit(origal_round_to);
+
+        switch(time_unit)
+        {
+            case ParserKQLDateTypeTimespan::KQLTimespanUint::millisec:
+                scale = 3;
+                break;
+            case ParserKQLDateTypeTimespan::KQLTimespanUint::microsec:
+                scale = 6;            
+                break;
+            case ParserKQLDateTypeTimespan::KQLTimespanUint::nanosec:
+                scale = 9;
+                break;
+            case ParserKQLDateTypeTimespan::KQLTimespanUint::tick:
+                scale = 7;
+                break;
+            default:
+                scale = 0;
+            }
+       
     if (origal_expr == "datetime" || origal_expr == "date")
+        out = std::format("toDateTime64(toInt64({0} / {1} ) * {1}, {2}, 'UTC')", t, bin_size, scale);
+    
+    else if (origal_expr == "timespan" || origal_expr =="time" || ParserKQLDateTypeTimespan().parseConstKQLTimespan(origal_expr))
     {
-        out = std::format("toDateTime64(toInt64({0}/{1}) * {1}, 9, 'UTC')", t, bin_size);
-    }
-    else if (origal_expr == "timespan" || origal_expr == "time" || ParserKQLDateTypeTimespan().parseConstKQLTimespan(origal_expr))
-    {
-        String bin_value = std::format("toInt64({0}/{1}) * {1}", t, bin_size);
-        out = std::format(
-            "concat(toString(toInt32((({}) as x) / 3600)),':', toString(toInt32(x % 3600 / 60)),':',toString(toInt32(x % 3600 % 60)))",
-            bin_value);
+        String bin_value = std::format(" toInt64({0} / {1} ) * {1}", t, bin_size);
+        decimal_val = std::format("countSubstrings(({0})::String, '.') = 0 ? '': substr(({0})::String, position(({0})::String,'.') + 1)", bin_value);
+        out = std::format("concat(toString( toInt32(({0}) / 86400) as x),'.' ,toString(toInt32(x % 86400 / 3600)),':', toString( toInt32(x % 86400 % 3600 / 60)),':',toString( toInt32( x % 86400 % 3600 % 60 / 60)), empty({1}) ? '' : concat('.' , substr({1} , 1, {2})) )", bin_value, decimal_val, scale);
     }
     else
     {
-        out = std::format("toInt64({0} / {1}) * {1}", t, bin_size);
+       // String bin_value = std::format(" toInt64({0} / {1} ) * {1} ", t, bin_size);
+       // auto decimal_scale = std::format("countSubstrings(({0})::String, '.') = 0 ? 0: length(substr(({0})::String, position(({0})::String,'.') + 1))", bin_value);
+        //out = std::format(" toDecimal64(({0}) , {1})", bin_value,  decimal_scale);
+        out = std::format(" toInt64({0} / {1} ) * {1} ", t, bin_size);
     }
+
     return true;
-}
+}   
 
 bool BinAt::convertImpl(String & out, IParser::Pos & pos)
 {
