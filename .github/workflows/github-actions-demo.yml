@@ -1,6 +1,17 @@
 name: GitHub Actions Demo
 run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
-on: [push]
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+    types:
+      - synchronize
+      - reopened
+      - opened
+    branches:
+      - larry-actions
+    paths-ignore:
+      - 'docker/docs/**'
+      - 'docs/**'
+      - 'website/**'
 jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
