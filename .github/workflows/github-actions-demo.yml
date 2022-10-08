@@ -87,7 +87,7 @@ jobs:
         with:
           name: changed_images
           path: ${{ runner.temp }}/changed_images.json
-    - run: echo "🍏 This job's status is ${{ job.status }}."          
+      - run: echo "🍏 This job's status is ${{ job.status }}."          
   FastTest:
     needs: DockerHubPush
     runs-on: [self-hosted, builder]
@@ -124,4 +124,4 @@ jobs:
           # shellcheck disable=SC2046
           docker rm -f $(docker ps -a -q) ||:
           sudo rm -fr "$TEMP_PATH" "$CACHES_PATH"
-    - run: echo "🍏 This job's status is ${{ job.status }}."
+      - run: echo "🍏 This job's status is ${{ job.status }}."
