@@ -5,10 +5,13 @@ import logging
 import time
 
 import requests  # type: ignore
-
+from env_helper import GITHUB_REPOSITORY
 from get_robot_token import get_parameter_from_ssm
 from pr_info import PRInfo
 from report import TestResults
+
+class InsertException(Exception):
+    pass
 
 
 class InsertException(Exception):
@@ -36,14 +39,7 @@ class ClickHouseHelper:
         }
 
         for i in range(5):
-            try:
-                response = requests.post(
-                    url, params=params, data=json_str, headers=auth
-                )
-            except Exception as e:
-                error = f"Received exception while sending data to {url} on {i} attempt: {e}"
-                logging.warning(error)
-                continue
+            response = requests.post(url, params=params, data=json_str, headers=auth)
 
             logging.info("Response content '%s'", response.content)
 
@@ -142,7 +138,7 @@ def prepare_tests_results_for_clickhouse(
     check_name: str,
 ) -> List[dict]:
 
-    pull_request_url = "https://github.com/ClickHouse/ClickHouse/commits/master"
+    pull_request_url = "https://github.com/{}/commits/master".format(GITHUB_REPOSITORY)
     base_ref = "master"
     head_ref = "master"
     base_repo = pr_info.repo_full_name
