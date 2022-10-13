@@ -33,14 +33,14 @@ bool Bin::convertImpl(String & out, IParser::Pos & pos)
 
     ++pos;
     String origal_expr(pos->begin, pos->end);
+
     String value = getConvertedArgument(fn_name, pos);
 
     ++pos;
     String origal_round_to(pos->begin, pos->end);
-    if(pos->type == TokenType::StringLiteral && origal_round_to.find_first_not_of("abcdefghijklmnopqrstuvwxyzQWERTYUIOPASDFGHJKLZXCVBNM"))
-        throw Exception("Only numeric lierals are accepted as second argument", ErrorCodes::BAD_ARGUMENTS);
-
     String round_to = getConvertedArgument(fn_name, pos);
+    //remove spaces between minus and number
+    round_to.erase(std::remove_if(round_to.begin(), round_to.end(), isspace) , round_to.end());
 
     //remove sapce between minus and number
     round_to.erase(std::remove_if(round_to.begin(), round_to.end(), isspace), round_to.end());
@@ -53,44 +53,42 @@ bool Bin::convertImpl(String & out, IParser::Pos & pos)
     String decimal_val;
 
     ParserKQLDateTypeTimespan::KQLTimespanUint time_unit  = ParserKQLDateTypeTimespan().getTimespanUnit(origal_round_to);
-
-        switch(time_unit)
-        {
-            case ParserKQLDateTypeTimespan::KQLTimespanUint::millisec:
-                scale = 3;
-                break;
-            case ParserKQLDateTypeTimespan::KQLTimespanUint::microsec:
-                scale = 6;            
-                break;
-            case ParserKQLDateTypeTimespan::KQLTimespanUint::nanosec:
-                scale = 9;
-                break;
-            case ParserKQLDateTypeTimespan::KQLTimespanUint::tick:
-                scale = 7;
-                break;
-            default:
-                scale = 0;
-            }
-       
+    switch(time_unit)
+    {
+        case ParserKQLDateTypeTimespan::KQLTimespanUint::millisec:
+            scale = 3;
+            break;
+        case ParserKQLDateTypeTimespan::KQLTimespanUint::microsec:
+            scale = 6;     
+            break;
+        case ParserKQLDateTypeTimespan::KQLTimespanUint::nanosec:
+            scale = 9;
+            break;
+        case ParserKQLDateTypeTimespan::KQLTimespanUint::tick:
+            scale = 7;
+            break;
+        default:
+            scale = 0;
+    }
+    if (scale == 9 && ParserKQLDateTypeTimespan().getTimespan(origal_round_to) < 100)
+    {
+        out = "NULL";
+        return true;
+    }
     if (origal_expr == "datetime" || origal_expr == "date")
-        out = std::format("toDateTime64(toInt64({0} / {1} ) * {1}, {2}, 'UTC')", t, bin_size, scale);
-    
+        out = std::format("isNull(toFloat64OrNull({3}::String)) ? parseDateTimeBestEffortOrNull(throwIf(true, 'Only numeric lierals are accepted as second argument')::String , 3,'UTC') : toDateTime64(toInt64({0} / {1} ) * {1}, {2}, 'UTC')", t, bin_size, scale, round_to); 
     else if (origal_expr == "timespan" || origal_expr =="time" || ParserKQLDateTypeTimespan().parseConstKQLTimespan(origal_expr))
     {
-        String bin_value = std::format(" toInt64({0} / {1} ) * {1}", t, bin_size);
+        String bin_value = std::format("isNull(toFloat64OrNull({2}::String)) ? toFloat64OrNull(throwIf(true, 'Only numeric lierals are accepted as second argument')::String) : toInt64({0} / {1} ) * {1}", t, bin_size, round_to);
         decimal_val = std::format("countSubstrings(({0})::String, '.') = 0 ? '': substr(({0})::String, position(({0})::String,'.') + 1)", bin_value);
         out = std::format("concat(toString( toInt32(({0}) / 86400) as x),'.' ,toString(toInt32(x % 86400 / 3600)),':', toString( toInt32(x % 86400 % 3600 / 60)),':',toString( toInt32( x % 86400 % 3600 % 60 / 60)), empty({1}) ? '' : concat('.' , substr({1} , 1, {2})) )", bin_value, decimal_val, scale);
     }
     else
-    {
-       // String bin_value = std::format(" toInt64({0} / {1} ) * {1} ", t, bin_size);
-       // auto decimal_scale = std::format("countSubstrings(({0})::String, '.') = 0 ? 0: length(substr(({0})::String, position(({0})::String,'.') + 1))", bin_value);
-        //out = std::format(" toDecimal64(({0}) , {1})", bin_value,  decimal_scale);
-        out = std::format(" toInt64({0} / {1} ) * {1} ", t, bin_size);
+    { 
+        out = std::format(" multiIf(isNull(toFloat64OrNull({3}::String)) , toFloat64OrNull(throwIf(true, 'Only numeric lierals are accepted as second argument')::String) , {1} > 0  , toInt64({0} / {1} ) * {1} , {1} < 0 AND abs({1}) < {0} , ceil({0}/abs({1})) * abs({1}) , abs({1}) > {0} AND {1} < 0  , {1} , NULL  )", t, bin_size, scale, round_to);
     }
-
     return true;
-}   
+}
 
 bool BinAt::convertImpl(String & out, IParser::Pos & pos)
 {
