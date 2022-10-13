@@ -42,12 +42,7 @@ bool Bin::convertImpl(String & out, IParser::Pos & pos)
     //remove spaces between minus and number
     round_to.erase(std::remove_if(round_to.begin(), round_to.end(), isspace) , round_to.end());
 
-    //remove sapce between minus and number
-    round_to.erase(std::remove_if(round_to.begin(), round_to.end(), isspace), round_to.end());
-
     auto t = std::format("toFloat64({})", value);
-
-    //bin_size =  std::stod(round_to);
     auto bin_size =  std::format("toFloat64({})", round_to);
     int scale = 0;
     String decimal_val;
