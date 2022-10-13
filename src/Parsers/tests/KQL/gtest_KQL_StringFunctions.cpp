@@ -116,19 +116,19 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "print bin(4.5, 1)",
-            "SELECT toInt64(toFloat64(4.5) / 1) * 1"
+            "SELECT multiIf(toFloat64OrNull(CAST('1', 'String')) IS NULL, toFloat64OrNull(CAST(throwIf(true, 'Only numeric lierals are accepted as second argument'), 'String')), toFloat64(1) > 0, toInt64(toFloat64(4.5) / toFloat64(1)) * toFloat64(1), (toFloat64(1) < 0) AND (abs(toFloat64(1)) < toFloat64(4.5)), ceil(toFloat64(4.5) / abs(toFloat64(1))) * abs(toFloat64(1)), (abs(toFloat64(1)) > toFloat64(4.5)) AND (toFloat64(1) < 0), toFloat64(1), NULL)"
         },
         {
             "print bin(4.5, -1)",
-            "SELECT toInt64(toFloat64(4.5) / -1) * -1"
+            "SELECT multiIf(toFloat64OrNull(CAST('-1', 'String')) IS NULL, toFloat64OrNull(CAST(throwIf(true, 'Only numeric lierals are accepted as second argument'), 'String')), toFloat64(-1) > 0, toInt64(toFloat64(4.5) / toFloat64(-1)) * toFloat64(-1), (toFloat64(-1) < 0) AND (abs(toFloat64(-1)) < toFloat64(4.5)), ceil(toFloat64(4.5) / abs(toFloat64(-1))) * abs(toFloat64(-1)), (abs(toFloat64(-1)) > toFloat64(4.5)) AND (toFloat64(-1) < 0), toFloat64(-1), NULL)"
         },
         {
             "print bin(time(16d), 7d)",
-            "SELECT concat(toString(toInt32(((toInt64(toFloat64(CAST('1382400', 'Float64')) / 604800) * 604800) AS x) / 3600)), ':', toString(toInt32((x % 3600) / 60)), ':', toString(toInt32((x % 3600) % 60)))"
+            "SELECT concat(toString(toInt32(if(toFloat64OrNull(CAST('604800', 'String')) IS NULL, toFloat64OrNull(CAST(throwIf(true, 'Only numeric lierals are accepted as second argument'), 'String')), toInt64(toFloat64(CAST('1382400', 'Float64')) / toFloat64(604800)) * toFloat64(604800)) / 86400) AS x), '.', toString(toInt32((x % 86400) / 3600)), ':', toString(toInt32(((x % 86400) % 3600) / 60)), ':', toString(toInt32((((x % 86400) % 3600) % 60) / 60)), if(empty(if(countSubstrings(CAST(if(toFloat64OrNull(CAST('604800', 'String')) IS NULL, toFloat64OrNull(CAST(throwIf(true, 'Only numeric lierals are accepted as second argument'), 'String')), toInt64(toFloat64(CAST('1382400', 'Float64')) / toFloat64(604800)) * toFloat64(604800)), 'String'), '.') = 0, '', substr(CAST(if(toFloat64OrNull(CAST('604800', 'String')) IS NULL, toFloat64OrNull(CAST(throwIf(true, 'Only numeric lierals are accepted as second argument'), 'String')), toInt64(toFloat64(CAST('1382400', 'Float64')) / toFloat64(604800)) * toFloat64(604800)), 'String'), position(CAST(if(toFloat64OrNull(CAST('604800', 'String')) IS NULL, toFloat64OrNull(CAST(throwIf(true, 'Only numeric lierals are accepted as second argument'), 'String')), toInt64(toFloat64(CAST('1382400', 'Float64')) / toFloat64(604800)) * toFloat64(604800)), 'String'), '.') + 1))), '', concat('.', substr(if(countSubstrings(CAST(if(toFloat64OrNull(CAST('604800', 'String')) IS NULL, toFloat64OrNull(CAST(throwIf(true, 'Only numeric lierals are accepted as second argument'), 'String')), toInt64(toFloat64(CAST('1382400', 'Float64')) / toFloat64(604800)) * toFloat64(604800)), 'String'), '.') = 0, '', substr(CAST(if(toFloat64OrNull(CAST('604800', 'String')) IS NULL, toFloat64OrNull(CAST(throwIf(true, 'Only numeric lierals are accepted as second argument'), 'String')), toInt64(toFloat64(CAST('1382400', 'Float64')) / toFloat64(604800)) * toFloat64(604800)), 'String'), position(CAST(if(toFloat64OrNull(CAST('604800', 'String')) IS NULL, toFloat64OrNull(CAST(throwIf(true, 'Only numeric lierals are accepted as second argument'), 'String')), toInt64(toFloat64(CAST('1382400', 'Float64')) / toFloat64(604800)) * toFloat64(604800)), 'String'), '.') + 1)), 1, 0))))"
         },
         {
             "print bin(datetime(1970-05-11 13:45:07), 1d)",
-            "SELECT toDateTime64(toInt64(toFloat64(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07', 9, 'UTC')) / 86400) * 86400, 9, 'UTC')"
+            "SELECT if(toFloat64OrNull(CAST('86400', 'String')) IS NULL, parseDateTimeBestEffortOrNull(CAST(throwIf(true, 'Only numeric lierals are accepted as second argument'), 'String'), 3, 'UTC'), toDateTime64(toInt64(toFloat64(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07', 9, 'UTC')) / toFloat64(86400)) * toFloat64(86400), 0, 'UTC'))"
         },
         {
             "print extract('x=([0-9.]+)', 1, 'hello x=456|wo' , typeof(bool));",
@@ -160,11 +160,11 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "print bin(datetime(1970-05-11 13:45:07.456345672), 1ms)",
-            "SELECT toDateTime64(toInt64(toFloat64(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07.456345672', 9, 'UTC')) / 0.001) * 0.001, 9, 'UTC')"
+            "SELECT if(toFloat64OrNull(CAST('0.001', 'String')) IS NULL, parseDateTimeBestEffortOrNull(CAST(throwIf(true, 'Only numeric lierals are accepted as second argument'), 'String'), 3, 'UTC'), toDateTime64(toInt64(toFloat64(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07.456345672', 9, 'UTC')) / toFloat64(0.001)) * toFloat64(0.001), 3, 'UTC'))"
         },
         {
             "print bin(datetime(1970-05-11 13:45:07.456345672), 1microseconds)",
-            "SELECT toDateTime64(toInt64(toFloat64(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07.456345672', 9, 'UTC')) / 0.000001) * 0.000001, 9, 'UTC')"
+            "SELECT if(toFloat64OrNull(CAST('9.9999999999999995e-07', 'String')) IS NULL, parseDateTimeBestEffortOrNull(CAST(throwIf(true, 'Only numeric lierals are accepted as second argument'), 'String'), 3, 'UTC'), toDateTime64(toInt64(toFloat64(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07.456345672', 9, 'UTC')) / toFloat64(0.000001)) * toFloat64(0.000001), 6, 'UTC'))"
         },
         {
             "print parse_version('1.2.3.40')",
@@ -188,11 +188,11 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "print bin(datetime(1970-05-11 13:45:07.456345672), 1ms)",
-            "SELECT toDateTime64(toInt64(toFloat64(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07.456345672', 9, 'UTC')) / 0.001) * 0.001, 9, 'UTC')"
+            "SELECT if(toFloat64OrNull(CAST('0.001', 'String')) IS NULL, parseDateTimeBestEffortOrNull(CAST(throwIf(true, 'Only numeric lierals are accepted as second argument'), 'String'), 3, 'UTC'), toDateTime64(toInt64(toFloat64(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07.456345672', 9, 'UTC')) / toFloat64(0.001)) * toFloat64(0.001), 3, 'UTC'))"
         },
         {
             "print bin(datetime(1970-05-11 13:45:07.456345672), 1microseconds)",
-            "SELECT toDateTime64(toInt64(toFloat64(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07.456345672', 9, 'UTC')) / 0.000001) * 0.000001, 9, 'UTC')"
+            "SELECT if(toFloat64OrNull(CAST('9.9999999999999995e-07', 'String')) IS NULL, parseDateTimeBestEffortOrNull(CAST(throwIf(true, 'Only numeric lierals are accepted as second argument'), 'String'), 3, 'UTC'), toDateTime64(toInt64(toFloat64(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07.456345672', 9, 'UTC')) / toFloat64(0.000001)) * toFloat64(0.000001), 6, 'UTC'))"
         },
         {
             "print parse_command_line('echo \"hello world!\" print$?', 'windows')",
