@@ -56,7 +56,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print dayofweek(datetime(2015-12-20))",
-            "SELECT concat(CAST(toDayOfWeek(parseDateTime64BestEffortOrNull('2015-12-20', 9, 'UTC')) % 7, 'String'), '.00:00:00')"
+            "SELECT (toDayOfWeek(parseDateTime64BestEffortOrNull('2015-12-20', 9, 'UTC')) % 7) * 86400"
         },
         {
             "print now()",
