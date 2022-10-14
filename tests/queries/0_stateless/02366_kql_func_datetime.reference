@@ -1,7 +1,9 @@
 -- dayofmonth()
 31
 -- dayofweek()
-4.00:00:00
+345600
+172800
+345600
 -- dayofyear()
 365
 -- getmonth()

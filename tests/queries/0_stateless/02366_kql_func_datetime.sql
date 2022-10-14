@@ -4,6 +4,8 @@ print '-- dayofmonth()';
 print dayofmonth(datetime(2015-12-31));
 print '-- dayofweek()';
 print dayofweek(datetime(2015-12-31));
+print dayofweek(datetime(2015-12-14 18:54:00)) + 1d;
+print dayofweek(datetime(2015-12-18 18:54:00)) - dayofweek(datetime(2015-12-14 18:54:00));
 print '-- dayofyear()';
 print dayofyear(datetime(2015-12-31));
 print '-- getmonth()';
