@@ -280,6 +280,8 @@ print parse_version('1.2.4.5.6');
 print parse_version('moo'); 
 print parse_version('moo.boo.foo');
 print parse_version(strcat_delim('.', 'moo', 'boo', 'foo'));
+print parse_version('');
+print parse_version('....');
 Versions | project parse_version(Version);
 print '-- parse_json()';
 print parse_json(dynamic([1, 2, 3]));
