@@ -16,11 +16,11 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_DynamicExactMatch, ParserKQLTest,
         },
         {
             "print array_iff(A, B, C)",
-            "SELECT arrayMap(x -> multiIf(toTypeName(x.1) = 'String', NULL, toInt64(x.1) != 0, x.2, x.3), arrayZip(A, arrayResize(B, length(A), NULL), arrayResize(C, length(A), NULL)))"
+            "SELECT arrayMap(x -> multiIf((NOT arrayExists(y -> (startsWith(toTypeName(x.1), y) OR (startsWith(toTypeName(x.1), 'Nullable') AND startsWith(extract(toTypeName(x.1), 'Nullable\\\\((.*)\\\\)'), y))), ['Bool', 'Decimal', 'Float', 'Int', 'UInt'])) OR ((x.1) IS NULL), NULL, toDecimal128OrDefault(x.1, 0) != 0, x.2, x.3), arrayZip(A, arrayResize(B, length(A), NULL), arrayResize(C, length(A), NULL)))"
         },
         {
             "print array_iif(A, B, C)",
-            "SELECT arrayMap(x -> multiIf(toTypeName(x.1) = 'String', NULL, toInt64(x.1) != 0, x.2, x.3), arrayZip(A, arrayResize(B, length(A), NULL), arrayResize(C, length(A), NULL)))"
+            "SELECT arrayMap(x -> multiIf((NOT arrayExists(y -> (startsWith(toTypeName(x.1), y) OR (startsWith(toTypeName(x.1), 'Nullable') AND startsWith(extract(toTypeName(x.1), 'Nullable\\\\((.*)\\\\)'), y))), ['Bool', 'Decimal', 'Float', 'Int', 'UInt'])) OR ((x.1) IS NULL), NULL, toDecimal128OrDefault(x.1, 0) != 0, x.2, x.3), arrayZip(A, arrayResize(B, length(A), NULL), arrayResize(C, length(A), NULL)))"
         },
         {
             "print output = array_index_of(dynamic([1, 2, 3]), 2)",
