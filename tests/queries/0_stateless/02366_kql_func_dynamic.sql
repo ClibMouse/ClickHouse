@@ -21,6 +21,7 @@ print array_iif(dynamic([true,false,true]), dynamic([1,2,3]), dynamic([4,5,6]));
 print array_iif(dynamic([1,0,1]), dynamic([1,2,3]), dynamic([4,5,6]));
 print array_iif(dynamic([true,false,true]), dynamic([1,2]), dynamic([4,5,6]));
 print array_iif(dynamic(['a','b','c']), dynamic([1,2,3]), dynamic([4,5,6]));
+print array_iif(dynamic([true,null]), dynamic([1, 2]), repeat(4, 2));
 print '-- array_concat()';
 print array_concat(dynamic([1,2,3]),dynamic([4,5,6]));
 print '-- array_reverse()';
