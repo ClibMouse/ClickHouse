@@ -462,30 +462,35 @@ bool ParseURL::convertImpl(String & out, IParser::Pos & pos)
     ++pos;
     const String url = getConvertedArgument(fn_name, pos);
 
-    const String scheme = std::format(R"(concat('"Scheme":"', protocol({0}),'"'))", url);
-    const String host = std::format(R"(concat('"Host":"', domain({0}),'"'))", url);
-    const String port = std::format(R"(concat('"Port":"', toString(port({0})),'"'))", url);
-    const String path = std::format(R"(concat('"Path":"', path({0}),'"'))", url);
-    const String username_pwd = std::format("netloc({0})", url);
-    const String query_string = std::format("queryString({0})", url);
-    const String fragment = std::format(R"(concat('"Fragment":"',fragment({0}),'"'))", url);
-    const String username = std::format(
-        R"(concat('"Username":"', arrayElement(splitByChar(':',arrayElement(splitByChar('@',{0}) ,1)),1),'"'))", username_pwd);
-    const String password = std::format(
-        R"(concat('"Password":"', arrayElement(splitByChar(':',arrayElement(splitByChar('@',{0}) ,1)),2),'"'))", username_pwd);
-    const String query_parameters = std::format(
-        R"(concat('"Query Parameters":', concat('{{"', replace(replace({}, '=', '":"'),'&','","') ,'"}}')))", query_string);
+    const String scheme = std::format("concat('\"Scheme\":\"', protocol({0}),'\"')",url);
+    const String host = std::format("concat('\"Host\":\"', domain({0}),'\"')",url);
+    String port = std::format("concat('\"Port\":\"', toString(port({0})),'\"')",url);
+    const String path = std::format("concat('\"Path\":\"', path({0}),'\"')",url);
+    const String username_pwd = std::format("netloc({0})",url);
+    const String query_string = std::format("queryString({0})",url);
+    const String fragment = std::format("concat('\"Fragment\":\"',fragment({0}),'\"')",url);
+    const String username = std::format("concat('\"Username\":\"', arrayElement(splitByChar(':',arrayElement(splitByChar('@',{0}) ,1)),1),'\"')", username_pwd);
+    const String password = std::format("concat('\"Password\":\"', arrayElement(splitByChar(':',arrayElement(splitByChar('@',{0}) ,1)),2),'\"')", username_pwd);
+    String query_parameters = std::format("concat('\"Query Parameters\":', concat('{{\"', replace(replace({}, '=', '\":\"'),'&','\",\"') ,'\"}}'))", query_string);
 
-    out = std::format(
-        "concat('{{',{},',',{},',',{},',',{},',',{},',',{},',',{},',',{},'}}')",
-        scheme,
-        host,
-        port,
-        path,
-        username,
-        password,
-        query_parameters,
-        fragment);
+    bool all_space = true;
+    for(size_t i = 0; i < url.size(); i++)
+    {
+        if(url[i] == '\'' || url[i] == '\"')
+            continue;
+        if(url[i] != ' ')
+        {
+            all_space = false;
+            break;
+        }
+    }
+
+    if(all_space)
+    {
+        port = "'\"Port\":\"\"'";
+        query_parameters = "'\"Query Parameters\":{}'";
+    }
+    out = std::format("concat('{{',{},',',{},',',{},',',{},',',{},',',{},',',{},',',{},'}}')",scheme, host, port, path, username, password, query_parameters,fragment);
     return true;
 }
 
