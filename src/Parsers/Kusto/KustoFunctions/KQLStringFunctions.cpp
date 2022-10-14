@@ -512,11 +512,7 @@ bool ParseVersion::convertImpl(String & out, IParser::Pos & pos)
     String arg;
     ++pos;
     arg = getConvertedArgument(fn_name, pos);
-    out = std::format(
-        "length(splitByChar('.', {0})) > 4 OR  length(splitByChar('.', {0})) < 1 OR match({0}, '.*[a-zA-Z]+.*') = 1 ? "
-        "toDecimal128OrNull('NULL' , 0)  : toDecimal128OrNull(substring(arrayStringConcat(arrayMap(x -> leftPad(x, 8, '0'), arrayMap(x -> "
-        "if(empty(x), '0', x), arrayResize(splitByChar('.', {0}), 4)))), 8),0)",
-        arg);
+    out = std::format("length(splitByChar('.', {0})) > 4 OR  length(splitByChar('.', {0})) < 1 OR match({0}, '.*[a-zA-Z]+.*') = 1 OR empty({0}) OR hasAll(splitByChar('.', {0}) , ['']) ? toDecimal128OrNull('NULL' , 0)  : toDecimal128OrNull(substring(arrayStringConcat(arrayMap(x -> leftPad(x, 8, '0'), arrayMap(x -> if(empty(x), '0', x), arrayResize(splitByChar('.', {0}), 4)))), 8),0)", arg);
     return true;
 }
 

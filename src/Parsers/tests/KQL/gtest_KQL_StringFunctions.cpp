@@ -167,6 +167,14 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
             "SELECT if((length(splitByChar('.', '1')) > 4) OR (length(splitByChar('.', '1')) < 1) OR (match('1', '.*[a-zA-Z]+.*') = 1), toDecimal128OrNull('NULL', 0), toDecimal128OrNull(substring(arrayStringConcat(arrayMap(x -> leftPad(x, 8, '0'), arrayMap(x -> if(empty(x), '0', x), arrayResize(splitByChar('.', '1'), 4)))), 8), 0))"
         },
         {
+             "print parse_version('')",
+             "SELECT if((length(splitByChar('.', '')) > 4) OR (length(splitByChar('.', '')) < 1) OR (match('', '.*[a-zA-Z.]+.*') = 1) OR empty('') OR hasAll(splitByChar('.', ''), ['']), toDecimal128OrNull('NULL', 0), toDecimal128OrNull(substring(arrayStringConcat(arrayMap(x -> leftPad(x, 8, '0'), arrayMap(x -> if(empty(x), '0', x), arrayResize(splitByChar('.', ''), 4)))), 8), 0))"
+        },
+        {
+             "print parse_version('...')",
+             "SELECT if((length(splitByChar('.', '...')) > 4) OR (length(splitByChar('.', '...')) < 1) OR (match('...', '.*[a-zA-Z.]+.*') = 1) OR empty('...') OR hasAll(splitByChar('.', '...'), ['']), toDecimal128OrNull('NULL', 0), toDecimal128OrNull(substring(arrayStringConcat(arrayMap(x -> leftPad(x, 8, '0'), arrayMap(x -> if(empty(x), '0', x), arrayResize(splitByChar('.', '...'), 4)))), 8), 0))"
+        },
+        {
             "print parse_json( dynamic([1, 2, 3]))",
             "SELECT [1, 2, 3]"
         },
