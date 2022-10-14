@@ -238,6 +238,8 @@ print base64_decode_tostring('');
 print base64_decode_tostring('S3VzdG8x');
 print '-- parse_url()';
 print parse_url('scheme://username:password@host:1234/this/is/a/path?k1=v1&k2=v2#fragment');
+print '-- parse_url()';
+print parse_url('');
 print '-- parse_urlquery()';
 print parse_urlquery('k1=v1&k2=v2&k3=v3');
 print '-- strcmp()';
