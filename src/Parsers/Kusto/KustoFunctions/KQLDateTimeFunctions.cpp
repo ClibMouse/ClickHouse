@@ -153,8 +153,8 @@ bool DayOfWeek::convertImpl(String & out, IParser::Pos & pos)
         return false;
     ++pos;
     const String datetime_str = getConvertedArgument(fn_name, pos);
-
-    out = std::format("concat((toDayOfWeek({})%7)::String, '.00:00:00')", datetime_str);
+    
+    out = std::format("(toDayOfWeek({})%7)*86400",datetime_str);
     return true;
 }
 
