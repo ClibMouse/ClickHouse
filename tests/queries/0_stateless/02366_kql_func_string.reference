@@ -292,6 +292,8 @@ S3VzdG8x
 Kusto1
 -- parse_url()
 {"Scheme":"scheme","Host":"","Port":"0","Path":"/this/is/a/path","Username":"username","Password":"password","Query Parameters":{"k1":"v1","k2":"v2"},"Fragment":"fragment"}
+-- parse_url()
+{"Scheme":"","Host":"","Port":"","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
 -- parse_urlquery()
 {"Query Parameters":{"k1":"v1","k2":"v2","k3":"v3"}}
 -- strcmp()
