@@ -122,8 +122,11 @@ bool IParserKQLFunction::directMapping(
 
 String IParserKQLFunction::generateUniqueIdentifier()
 {
-    static pcg32_unique unique_random_generator;
-    return std::to_string(unique_random_generator());
+    // This particular random generator hits each number exactly once before looping over.
+    // Because of this, it's sufficient for queries consisting of up to 2^16 (= 65536) distinct function calls.
+    // Reference: https://www.pcg-random.org/using-pcg-cpp.html#insecure-generators
+    static pcg16_once_insecure random_generator;
+    return std::to_string(random_generator());
 }
 
 String IParserKQLFunction::getArgument(const String & function_name, DB::IParser::Pos & pos, const ArgumentState argument_state)
@@ -244,7 +247,7 @@ IParserKQLFunction::getOptionalArgument(const String & function_name, DB::IParse
 
 String IParserKQLFunction::getKQLFunctionName(IParser::Pos & pos)
 {
-    String fn_name = String(pos->begin, pos->end);
+    String fn_name(pos->begin, pos->end);
     ++pos;
     if (pos->type != TokenType::OpeningRoundBracket)
     {
@@ -290,15 +293,14 @@ void IParserKQLFunction::validateEndOfFunction(const String & fn_name, IParser::
 
 String IParserKQLFunction::getExpression(IParser::Pos & pos)
 {
-    String arg = String(pos->begin, pos->end);
+    String arg(pos->begin, pos->end);
     if (pos->type == TokenType::BareWord)
     {
-        String new_arg;
         auto fun = KQLFunctionFactory::get(arg);
-        if (fun && fun->convert(new_arg, pos))
+        if (String new_arg; fun && fun->convert(new_arg, pos))
         {
             validateEndOfFunction(arg, pos);
-            arg = new_arg;
+            arg = std::move(new_arg);
         }
         else
         {
