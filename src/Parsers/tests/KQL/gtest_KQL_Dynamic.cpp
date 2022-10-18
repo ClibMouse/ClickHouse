@@ -35,16 +35,16 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_DynamicExactMatch, ParserKQLTest,
             "SELECT indexOf(['John', 'Denver', 'Bob', 'Marley'], 'Marley') - 1 AS output"
         },
         {
-            "print output = array_length(dynamic([1, 2, 3]))",
-            "SELECT length([1, 2, 3]) AS output"
+            "print array_length(dynamic([1, 2, 3]))",
+            "SELECT arrayLastIndex(x -> true, [1, 2, 3])"
         },
         {
-            "print output = array_length(dynamic(['John', 'Denver', 'Bob', 'Marley']))",
-            "SELECT length(['John', 'Denver', 'Bob', 'Marley']) AS output"
+            "print array_length(dynamic(['John', 'Denver', 'Bob', 'Marley']))",
+            "SELECT arrayLastIndex(x -> true, ['John', 'Denver', 'Bob', 'Marley'])"
         },
         {
             "print array_reverse(A)",
-            "SELECT if(throwIf(NOT startsWith(toTypeName(A), 'Array'), 'Only arrays are supported'), [], reverse(A))"
+            "SELECT arrayReverse(A)"
         },
         {
             "print array_rotate_left(A, B)",
@@ -55,12 +55,12 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_DynamicExactMatch, ParserKQLTest,
             "SELECT arrayMap(x -> (A[moduloOrZero((x + length(A)) + moduloOrZero(-1 * B, toInt64(length(A))), length(A)) + 1]), range(0, length(A)))"
         },
         {
-            "print output = array_sum(dynamic([2, 5, 3]))",
-            "SELECT arraySum([2, 5, 3]) AS output"
+            "print array_sum(dynamic([2, 5, 3]))",
+            "SELECT if(multiSearchAny(extract(toTypeName(arrayMap(x -> assumeNotNull(x), arrayFilter(x -> (x IS NOT NULL), [2, 5, 3]))), 'Array\\\\((.*)\\\\)'), ['Bool', 'Decimal', 'Float', 'Int', 'Nothing', 'UInt']), arraySum(x -> toFloat64OrDefault(x), [2, 5, 3]), NULL)"
         },
         {
-            "print output = array_sum(dynamic([2.5, 5.5, 3]))",
-            "SELECT arraySum([2.5, 5.5, 3]) AS output"
+            "print array_sum(dynamic([2.5, 5.5, 3]))",
+            "SELECT if(multiSearchAny(extract(toTypeName(arrayMap(x -> assumeNotNull(x), arrayFilter(x -> (x IS NOT NULL), [2.5, 5.5, 3]))), 'Array\\\\((.*)\\\\)'), ['Bool', 'Decimal', 'Float', 'Int', 'Nothing', 'UInt']), arraySum(x -> toFloat64OrDefault(x), [2.5, 5.5, 3]), NULL)"
         },
         {
             "print jaccard_index(A, B)",

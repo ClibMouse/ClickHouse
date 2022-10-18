@@ -8,11 +8,18 @@ set dialect = 'kusto';
 print '-- constant index value';
 array_test | project floats[0], strings[1], nullable_strings;
 print '-- array_length()';
-print array_length(dynamic(['John', 'Denver', 'Bob', 'Marley'])) == 4;
-print array_length(dynamic([1, 2, 3])) == 3;
+print array_length(dynamic(['John', 'Denver', 'Bob', 'Marley']));
+print array_length(dynamic([1, 2, 3]));
+print array_length(42); -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
+print array_length('a'); -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
+-- print array_length(dynamic(42)); -> NULL
+-- print array_length(dynamic('a')); -> NULL
 print '-- array_sum()';
-print array_sum(dynamic([2, 5, 3])) == 10;
-print array_sum(dynamic([2.5, 5.5, 3])) == 11;
+print array_sum(dynamic([2, 5, 3]));
+print array_sum(dynamic([2.5, 5.5, 3]));
+print array_sum(dynamic([true, false, null]));
+print array_sum(dynamic(['Alice', 'Bob']));
+print array_sum(dynamic([null, null, null]));
 print '-- array_index_of()';
 print array_index_of(dynamic(['John', 'Denver', 'Bob', 'Marley']), 'Marley');
 print array_index_of(dynamic([1, 2, 3]), 2);

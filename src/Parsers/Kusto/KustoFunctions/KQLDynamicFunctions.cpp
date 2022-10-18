@@ -61,19 +61,19 @@ bool ArrayIndexOf::convertImpl(String & out, IParser::Pos & pos)
 
 bool ArrayLength::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "length");
-}
-
-bool ArrayReverse::convertImpl(String & out, IParser::Pos & pos)
-{
     const auto function_name = getKQLFunctionName(pos);
     if (function_name.empty())
         return false;
 
     const auto array = getArgument(function_name, pos);
-    out = std::format("if(throwIf(not startsWith(toTypeName({0}), 'Array'), 'Only arrays are supported'), [], reverse({0}))", array);
+    out = std::format("arrayLastIndex(x -> true, {0})", array);
 
     return true;
+}
+
+bool ArrayReverse::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "arrayReverse");
 }
 
 bool ArrayRotateLeft::convertImpl(String & out, IParser::Pos & pos)
@@ -121,7 +121,7 @@ bool ArrayShiftLeft::convertImpl(String & out, IParser::Pos & pos)
         "defaultValueOfTypeName(if(element_type_{3} = 'Nothing', 'Nullable(Nothing)', element_type_{3})), {2}) as fill_value_{3})",
         array,
         count,
-        fill ? *fill : "null",
+        fill.value_or("null"),
         generateUniqueIdentifier());
 
     return true;
@@ -201,7 +201,19 @@ bool ArraySplit::convertImpl(String & out, IParser::Pos & pos)
 
 bool ArraySum::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "arraySum");
+    const auto function_name = getKQLFunctionName(pos);
+    if (function_name.empty())
+        return false;
+
+    const auto argument = getArgument(function_name, pos);
+    out = std::format(
+        "if(multiSearchAny(extract(toTypeName(arrayMap(x -> assumeNotNull(x), arrayFilter(x -> isNotNull(x), {0}))), "
+        "'Array\\((.*)\\)'), ['Bool', 'Decimal', 'Float', 'Int', 'Nothing', 'UInt']), "
+        "arraySum(x -> toFloat64OrDefault(x), {0}), null)",
+        argument,
+        generateUniqueIdentifier());
+
+    return true;
 }
 
 bool BagKeys::convertImpl(String & out, IParser::Pos & pos)
