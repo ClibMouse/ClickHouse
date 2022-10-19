@@ -2590,8 +2590,9 @@ Action ParserExpressionImpl::tryParseOperand(Layers & layers, IParser::Pos & pos
     {
         layers.back()->pushOperand(std::move(tmp));
     }
-    else if (pos->type == TokenType::OpeningRoundBracket)
+    else if (pos->type == TokenType::OpeningRoundBracket || String(pos->begin , pos->end) == "kql")
     {
+
         if (subquery_parser.parse(pos, tmp, expected))
         {
             layers.back()->pushOperand(std::move(tmp));
