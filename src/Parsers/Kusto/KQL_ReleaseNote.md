@@ -1,4 +1,13 @@
 ## KQL implemented features  
+# October 25, 2022
+## operator  
+- [count](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/countoperator)  
+
+`Customers | count;`  
+`Customers | where Age< 30 | count;`  
+`Customers | where Age< 30 | limit 2 | count;`  
+`Customers | where Age< 30 | limit 2 | count | project Count;`  
+
 
 # October 9, 2022  
 
