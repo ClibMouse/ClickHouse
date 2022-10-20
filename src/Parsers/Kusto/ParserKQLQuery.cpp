@@ -17,6 +17,7 @@
 #include <Parsers/Kusto/KustoFunctions/KQLFunctionFactory.h>
 #include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/Kusto/ParserKQLPrint.h>
+#include <Parsers/Kusto/ParserKQLCount.h>
 #include <Parsers/Kusto/ParserKQLMakeSeries.h>
 #include <Parsers/Kusto/ParserKQLMVExpand.h>
 #include <Parsers/Kusto/ParserKQLExtend.h>
@@ -202,6 +203,8 @@ std::unique_ptr<IParserBase> ParserKQLQuery::getOperator(String & op_name)
         return std::make_unique<ParserKQLMVExpand>();
     else if (op_name == "print")
         return std::make_unique<ParserKQLPrint>();
+    else if (op_name == "count")
+        return std::make_unique<ParserKQLCount>();
     else
         return nullptr;
 }
@@ -235,7 +238,8 @@ bool ParserKQLQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
         {"print", {"print", false, true, 3}},
         {"summarize", {"summarize", true, true, 3}},
         {"make-series", {"make-series", true, true, 5}},
-        {"mv-expand", {"mv-expand", true, true, 5}}
+        {"mv-expand", {"mv-expand", true, true, 5}},
+        {"count", {"count", false, true, 3}},
     };
 
     std::vector<std::pair<String, Pos>> operation_pos;
@@ -302,8 +306,8 @@ bool ParserKQLQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 
     auto kql_operator_str = operation_pos.back().first;
     auto npos = operation_pos.back().second;
-    if (!npos.isValid())
-        return false;
+   // if (!npos.isValid())
+    //    return false;
 
     auto kql_operator_p = getOperator(kql_operator_str);
 
