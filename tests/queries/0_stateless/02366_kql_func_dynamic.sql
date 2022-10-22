@@ -20,6 +20,7 @@ print array_sum(dynamic([2.5, 5.5, 3]));
 print array_sum(dynamic([true, false, null]));
 print array_sum(dynamic(['Alice', 'Bob']));
 print array_sum(dynamic([null, null, null]));
+print array_sum(repeat(1, 4));
 print '-- array_index_of()';
 print array_index_of(dynamic(['John', 'Denver', 'Bob', 'Marley']), 'Marley');
 print array_index_of(dynamic([1, 2, 3]), 2);
