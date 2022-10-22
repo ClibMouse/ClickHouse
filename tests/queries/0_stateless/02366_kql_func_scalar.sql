@@ -6,6 +6,17 @@ CREATE TABLE Bin_at_test
 ) ENGINE = Memory;
 INSERT INTO Bin_at_test VALUES (toDateTime('2018-02-24T15:14:00'),3), (toDateTime('2018-02-23T16:14:00'),4), (toDateTime('2018-02-26T15:14:00'),5);
 
+DROP TABLE IF EXISTS Customers;
+CREATE TABLE Customers
+(    
+    FirstName Nullable(String),
+    LastName String, 
+    Occupation String,
+    Education String,
+    Age Nullable(UInt8)
+) ENGINE = Memory;
+INSERT INTO Customers VALUES ('Theodore','Diaz','Skilled Manual','Bachelors',28), ('Stephanie','Cox','Management abcd defg','Bachelors',33),('Peter','Nara','Skilled Manual','Graduate Degree',26),('Latoya','Shen','Professional','Graduate Degree',25),('Apple','','Skilled Manual','Bachelors',28),(NULL,'why','Professional','Partial College',38);
+
 set dialect = 'kusto';
 print '-- bin_at()';
 print bin_at(6.5, 2.5, 7);
@@ -24,3 +35,4 @@ print bin(datetime(2022-09-26 10:13:23.987234), 6microseconds);
 print bin(datetime(1970-05-11 13:45:07.456345672), 16microseconds);
 print bin(datetime(2022-09-26 10:13:23.987234128), 1tick);
 print bin(datetime(2022-09-26 10:13:23.987234128), 99nanosecond);
+Customers | summarize count() by bin(Age, Age);
