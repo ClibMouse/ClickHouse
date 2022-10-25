@@ -1,6 +1,6 @@
 ## KQL implemented features  
 # October 25, 2022
-## operator  
+## New Operators  
 - [count](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/countoperator)  
 `Customers | count;`  
 `Customers | where Age< 30 | count;`  
@@ -23,6 +23,12 @@
 `Customers | top-hitters 2 of Age by extra | where approximate_sum_extra < 200;`  
 `Customers | top-hitters 2 of Age | where approximate_count_Age > 2;`  
 
+## Bugs fixed
+- [parse_version needs to return null when parameter is empty string](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1492)  
+- [Different expressions with the same alias in function substring](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1489)  
+- [parse_version needs to return null when parameter is empty string](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1492)  
+- [parse_url() output mismatch for empty string](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1345)  
+- [array_sum and array_length return incorrect results](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1120)  
 
 # October 9, 2022  
 
