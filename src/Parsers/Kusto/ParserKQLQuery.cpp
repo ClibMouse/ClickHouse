@@ -21,9 +21,10 @@
 #include <Parsers/Kusto/ParserKQLStatement.h>
 #include <Parsers/Kusto/ParserKQLSummarize.h>
 #include <Parsers/Kusto/ParserKQLTable.h>
+#include <Parsers/Kusto/ParserKQLTop.h>
+#include <Parsers/Kusto/ParserKQLTopHitter.h>
 #include <Parsers/ParserSelectWithUnionQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
-
 #include <format>
 namespace DB
 {
@@ -32,6 +33,27 @@ namespace ErrorCodes
 {
     extern const int SYNTAX_ERROR;
 }
+
+std::unordered_map<std::string, ParserKQLQuery::KQLOperatorDataFlowState> kql_parser =
+{
+    {"filter", {"filter", false, false, false, 3}},
+    {"where", {"filter", false, false, false, 3}},
+    {"limit", {"limit", false, true, false, 3}},
+    {"take", {"limit", false, true, false, 3}},
+    {"project", {"project", false, false, false, 3}},
+    {"distinct", {"distinct", false, true, false, 3}},
+    {"extend", {"extend", true, true, false, 3}},
+    {"sort by", {"order by", false, false, false, 4}},
+    {"order by", {"order by", false, false, false, 4}},
+    {"table", {"table", false, false, false, 3}},
+    {"print", {"print", false, true, false, 3}},
+    {"summarize", {"summarize", true, true, false, 3}},
+    {"make-series", {"make-series", true, true, false, 5}},
+    {"mv-expand", {"mv-expand", true, true, false, 5}},
+    {"count", {"count", false, true, false, 3}},
+    {"top", {"top", false, true, true, 3}},
+    {"top-hitters", {"top-hitters", true, true, true, 5}},
+};
 
 bool ParserKQLBase::parseByString(const String expr, ASTPtr & node, const uint32_t max_depth)
 {
@@ -303,7 +325,7 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
     return res;
 }
 
-std::unique_ptr<IParserBase> ParserKQLQuery::getOperator(String & op_name)
+std::unique_ptr<ParserKQLBase> ParserKQLQuery::getOperator(String & op_name)
 {
     if (op_name == "filter" || op_name == "where")
         return std::make_unique<ParserKQLFilter>();
@@ -329,45 +351,16 @@ std::unique_ptr<IParserBase> ParserKQLQuery::getOperator(String & op_name)
         return std::make_unique<ParserKQLPrint>();
     else if (op_name == "count")
         return std::make_unique<ParserKQLCount>();
+    else if (op_name == "top")
+        return std::make_unique<ParserKQLTop>();
+    else if (op_name == "top-hitters")
+        return std::make_unique<ParserKQLTopHitters>();
     else
         return nullptr;
 }
 
-bool ParserKQLQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
+bool ParserKQLQuery::getOperations(Pos & pos, Expected & expected, OperationsPos & operation_pos)
 {
-    struct KQLOperatorDataFlowState
-    {
-        String operator_name;
-        bool need_input;
-        bool gen_output;
-        int8_t backspace_steps; // how many steps to last token of previous pipe
-    };
-
-    auto select_query = std::make_shared<ASTSelectQuery>();
-    node = select_query;
-    ASTPtr tables;
-
-    std::unordered_map<std::string, KQLOperatorDataFlowState> kql_parser =
-    {
-        {"filter", {"filter", false, false, 3}},
-        {"where", {"filter", false, false, 3}},
-        {"limit", {"limit", false, true, 3}},
-        {"take", {"limit", false, true, 3}},
-        {"project", {"project", false, false, 3}},
-        {"distinct", {"distinct", false, true, 3}},
-        {"extend", {"extend", true, true, 3}},
-        {"sort by", {"order by", false, false, 4}},
-        {"order by", {"order by", false, false, 4}},
-        {"table", {"table", false, false, 3}},
-        {"print", {"print", false, true, 3}},
-        {"summarize", {"summarize", true, true, 3}},
-        {"make-series", {"make-series", true, true, 5}},
-        {"mv-expand", {"mv-expand", true, true, 5}},
-        {"count", {"count", false, true, 3}},
-    };
-
-    std::vector<std::pair<String, Pos>> operation_pos;
-
     String table_name(pos->begin, pos->end);
 
     if (table_name == "print")
@@ -429,16 +422,44 @@ bool ParserKQLQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
         else
             ++pos;
     }
+    return true;
+}
+
+bool ParserKQLQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
+{
+    auto select_query = std::make_shared<ASTSelectQuery>();
+    node = select_query;
+    ASTPtr tables;
+
+    OperationsPos operation_pos;
+
+    if (!getOperations(pos, expected, operation_pos))
+        return false;
 
     auto kql_operator_str = operation_pos.back().first;
-    auto npos = operation_pos.back().second;
-   // if (!npos.isValid())
-    //    return false;
 
     auto kql_operator_p = getOperator(kql_operator_str);
-
     if (!kql_operator_p)
         return false;
+
+    String updated_query;
+    kql_operator_p->updatePipeLine(operation_pos, updated_query);
+
+    Tokens token_query(updated_query.c_str(), updated_query.c_str() + updated_query.size());
+    IParser::Pos pos_query(token_query, pos.max_depth);
+    if (!updated_query.empty())
+    {
+        operation_pos.clear();
+        if(!ParserKQLQuery::getOperations(pos_query, expected, operation_pos))
+            return false;
+    }
+
+    kql_operator_str = operation_pos.back().first;
+    kql_operator_p = getOperator(kql_operator_str);
+    if (!kql_operator_p)
+        return false;
+
+    auto npos = operation_pos.back().second;
 
     if (operation_pos.size() == 1)
     {
