@@ -1,0 +1,38 @@
+--top 1--
+Angel	Stewart	Professional	Partial College	46	100
+Dalton	Wood	Professional	Partial College	42	70
+\N	why	Professional	Partial College	38	120
+--top 2--
+Angel	Stewart	Professional	Partial College	46	100
+Dalton	Wood	Professional	Partial College	42	70
+\N	why	Professional	Partial College	38	120
+--top 3--
+Peter	Nara	Skilled Manual	Graduate Degree	26	30
+Latoya	Shen	Professional	Graduate Degree	25	40
+Joshua	Lee	Professional	Partial College	26	50
+--top 4--
+\N	why	Professional	Partial College	38	120
+Theodore	Diaz	Skilled Manual	Bachelors	28	10
+Stephanie	Cox	Management	Bachelors	33	20
+--top 5--
+Theodore	Diaz	Skilled Manual	Bachelors	28	10
+Stephanie	Cox	Management	Bachelors	33	20
+Peter	Nara	Skilled Manual	Graduate Degree	26	30
+--top 6--
+Dalton	Wood	Professional	Partial College	42	70
+Angel	Stewart	Professional	Partial College	46	100
+--top hitters 1--
+28	210
+38	120
+--top hitters 2--
+28	3
+26	2
+--top hitters 3--
+38	1
+28	1
+--top hitters 4--
+38	120
+--top hitters 5--
+38	120
+--top hitters 6--
+28	3
