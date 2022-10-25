@@ -2,11 +2,26 @@
 # October 25, 2022
 ## operator  
 - [count](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/countoperator)  
-
 `Customers | count;`  
 `Customers | where Age< 30 | count;`  
 `Customers | where Age< 30 | limit 2 | count;`  
 `Customers | where Age< 30 | limit 2 | count | project Count;`  
+
+- [top](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/topoperator)  
+`Customers | top 3 by Age;`  
+`Customers | top 3 by Age desc;`  
+`Customers | top 3 by Age asc | order by FirstName;`  
+`Customers | top 3 by FirstName  desc nulls first;`  
+`Customers | top 3 by FirstName  desc nulls last;`  
+`Customers | top 3 by Age | top 2 by FirstName;`  
+
+- [top-hitters](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/tophittersoperator)  
+`Customers | top-hitters a = 2 of Age by extra;`  
+`Customers | top-hitters 2 of Age;`  
+`Customers | top-hitters 2 of Age by extra | top-hitters 2 of Age | order by Age;`  
+`Customers | top-hitters 2 of Age by extra | where Age > 30;`  
+`Customers | top-hitters 2 of Age by extra | where approximate_sum_extra < 200;`  
+`Customers | top-hitters 2 of Age | where approximate_count_Age > 2;`  
 
 
 # October 9, 2022  
