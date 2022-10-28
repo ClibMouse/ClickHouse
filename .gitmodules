@@ -290,3 +290,6 @@
 [submodule "contrib/morton-nd"]
 	path = contrib/morton-nd
 	url = https://github.com/morton-nd/morton-nd
+[submodule "contrib/crc32-vpmsum"]
+	path = contrib/crc32-vpmsum
+	url = https://github.com/antonblanchard/crc32-vpmsum.git
