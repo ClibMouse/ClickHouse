@@ -18,4 +18,11 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class Case : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "case()"; }
+    bool convertImpl(String &out,IParser::Pos &pos) override;
+};
+
 }
