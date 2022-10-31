@@ -124,4 +124,9 @@ bool BinAt::convertImpl(String & out,IParser::Pos & pos)
     return true;
 }
 
+bool Case::convertImpl(String & out,IParser::Pos & pos)
+{
+    return directMapping(out, pos, "multiIf");
+}
+
 }
