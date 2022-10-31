@@ -195,6 +195,7 @@ namespace DB
 
         bin,
         bin_at,
+        kase,
 
         datatype_bool,
         datatype_datetime,
