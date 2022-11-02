@@ -170,18 +170,12 @@ bool ArraySlice::convertImpl(String & out, IParser::Pos & pos)
 
 bool ArraySortAsc::convertImpl(String & out, IParser::Pos & pos)
 {
-    out = ArraySortHelper(out, pos, true);
-    if (out == "false")
-        return false;
-    return true;
+    return directMapping(out, pos, "kql_array_sort_asc");
 }
 
 bool ArraySortDesc::convertImpl(String & out, IParser::Pos & pos)
 {
-    out = ArraySortHelper(out, pos, false);
-    if (out == "false")
-        return false;
-    return true;
+    return directMapping(out, pos, "kql_array_sort_desc");
 }
 
 bool ArraySplit::convertImpl(String & out, IParser::Pos & pos)
