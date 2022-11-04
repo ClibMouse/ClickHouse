@@ -119,36 +119,10 @@ bool ToDecimal::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
 
-    //++pos;
-    String res;
-
-    /*if (pos->type == TokenType::QuotedIdentifier || pos->type == TokenType::StringLiteral)
-    {
-       // --pos;
-        res =  getArgument(fn_name, pos);
-        String scale = std::format("if(position({0},'e') = 0 , countSubstrings({0}, '.') = 1 ?  length(substr({0}, position({0},'.') + 1)) : 0 , toUInt64(multiIf(position({0},'e+')  as x >0 , substr({0},x+2) ,  position({0},'e-')  as y >0 , substr({0},y+2)  ,  position({0},'e-') = 0 AND position({0},'e+') AND position({0},'e')>0, substr({0},position({0},'e')+1) , 0::String)))", res);
-        out = std::format("toDecimal128OrNull({0}::String, {1})", res , scale);
-     //   return true;
-    }
-    else if (pos->type == TokenType::Number)
-    {
-       // --pos;
-        res = getArgument(fn_name, pos);
-        String scale = std::format("if(position({0}::String,'e') = 0 , countSubstrings({0}::String, '.') = 1 ? length(substr({0}::String, position({0}::String,'.') + 1)) : 0 , toUInt64(multiIf(position({0}::String,'e+')  as x >0 , substr({0}::String,x+2) ,  position({0}::String,'e-')  as y >0 , substr({0}::String,y+2)  ,  position({0}::String,'e-') = 0 AND position({0}::String,'e+') AND position({0}::String,'e')>0, substr({0}::String,position({0}::String,'e')+1) , 0::String)))", res);  
-        out = std::format("toDecimal128OrNull({0}::String, {1})", res, scale);
-     //   return true;
-    }
-    else
-    {
-        //--pos;
-      */  
-        res = getArgument(fn_name, pos);
-        String scale = std::format("if(position({0}::String,'e') = 0 , ( countSubstrings({0}::String, '.') = 1 ? length(substr({0}::String, position({0}::String,'.') + 1)) : 0 ) , toUInt64(multiIf(position({0}::String,'e+')  as x >0 , substr({0}::String,x+2) ,  position({0}::String,'e-')  as y >0 , substr({0}::String,y+2)  ,  position({0}::String,'e-') = 0 AND position({0}::String,'e+') AND position({0}::String,'e')>0, substr({0}::String,position({0}::String,'e')+1) , 0::String)))", res);
-        out = std::format("toTypeName({0}) = 'String' OR  toTypeName({0}) = 'FixedString' ? toDecimal128OrNull({0}::String , abs(34 - ({1}::UInt8))) : toDecimal128OrNull({0}::String , abs(17 - ({1}::UInt8)))", res, scale);
-       // return true;
-    //}
-//++pos;
-return true;
+    const String res = getArgument(fn_name, pos);
+    String scale = std::format("if(position({0}::String,'e') = 0 , ( countSubstrings({0}::String, '.') = 1 ? length(substr({0}::String, position({0}::String,'.') + 1)) : 0 ) , toUInt64(multiIf(position({0}::String,'e+')  as x >0 , substr({0}::String,x+2) ,  position({0}::String,'e-')  as y >0 , substr({0}::String,y+2)  ,  position({0}::String,'e-') = 0 AND position({0}::String,'e+') AND position({0}::String,'e')>0, substr({0}::String,position({0}::String,'e')+1) , 0::String)))", res);
+    out = std::format("toTypeName({0}) = 'String' OR  toTypeName({0}) = 'FixedString' ? toDecimal128OrNull({0}::String , abs(34 - ({1}::UInt8))) : toDecimal128OrNull({0}::String , abs(17 - ({1}::UInt8)))", res, scale); 
+    return true;
 }
 
 }
