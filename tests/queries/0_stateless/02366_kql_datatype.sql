@@ -1,5 +1,11 @@
-set dialect = 'kusto';
 
+DROP TABLE IF EXISTS tb1;
+create table tb1 (    
+str String
+)ENGINE = Memory;
+INSERT INTO tb1 VALUES ('123.561') , ('653.4');
+
+set dialect = 'kusto';
 print '-- bool'
 print bool(true);
 print bool(true);
@@ -114,4 +120,5 @@ print '-- todecimal()';
 print todecimal(123.345);
 print todecimal(null);
 print todecimal('abc');
+tb1| project todecimal(str);
 -- print todecimal(4 * 2 + 3); -> 11
