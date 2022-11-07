@@ -62,7 +62,10 @@ print week_of_year(datetime(2000-01-01));
 print '-- now()';
 print getyear(now(-2d))>1900;
 print '-- make_datetime()';
-print make_datetime(2017,10,01,12,10) == datetime(2017-10-01 12:10:00);
+print make_datetime(2017,10,01,12,10) == datetime(2017-10-01 12:10:00.000000);
+print make_datetime(2300,10,01,12,10);
+print make_datetime(2020,14,30,12,10)
+print make_datetime(2020,10,35,12,10)
 print year_month_day_hour_minute = make_datetime(2017,10,01,12,10);
 print year_month_day_hour_minute_second = make_datetime(2017,10,01,12,11,0.1234567);
 print '-- format_datetime';

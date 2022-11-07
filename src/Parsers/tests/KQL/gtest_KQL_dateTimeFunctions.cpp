@@ -104,15 +104,15 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print make_datetime(2017,10,01)",
-            "SELECT makeDateTime64(2017, 10, 1, 0, 0, 0, 0, 7, 'UTC')"
+            "SELECT if((CAST('2017', 'UInt16') < 2300) AND (CAST('2017', 'UInt16') > 1899) AND (CAST('10', 'UInt16') < 13) AND (CAST('10', 'UInt16') > 0) AND (CAST('01', 'UInt16') < 32) AND (CAST('01', 'UInt16') > 0) AND (CAST('0', 'UInt16') < 25) AND (CAST('0', 'UInt16') >= 0) AND (CAST('0', 'UInt16') < 60) AND (CAST('0', 'UInt16') >= 0) AND (CAST('0', 'UInt16') < 60) AND (CAST('0', 'UInt16') >= 0), makeDateTime64(2017, 10, 1, 0, 0, 0, 0, 7, 'UTC'), parseDateTime64BestEffort(NULL, 9, 'UTC'))"
         },
         {
             "print make_datetime(2017,10,01,12,10)",
-            "SELECT makeDateTime64(2017, 10, 1, 12, 10, 0, 0, 7, 'UTC')"
+            "SELECT if((CAST('2017', 'UInt16') < 2300) AND (CAST('2017', 'UInt16') > 1899) AND (CAST('10', 'UInt16') < 13) AND (CAST('10', 'UInt16') > 0) AND (CAST('01', 'UInt16') < 32) AND (CAST('01', 'UInt16') > 0) AND (CAST('12', 'UInt16') < 25) AND (CAST('12', 'UInt16') >= 0) AND (CAST('10', 'UInt16') < 60) AND (CAST('10', 'UInt16') >= 0) AND (CAST('0', 'UInt16') < 60) AND (CAST('0', 'UInt16') >= 0), makeDateTime64(2017, 10, 1, 12, 10, 0, 0, 7, 'UTC'), parseDateTime64BestEffort(NULL, 9, 'UTC'))"
         },
         {
             "print make_datetime(2017,10,01,12,11,0.1234567)",
-            "SELECT makeDateTime64(2017, 10, 1, 12, 11, 0.1234567, 0, 7, 'UTC')"
+            "SELECT if((CAST('2017', 'UInt16') < 2300) AND (CAST('2017', 'UInt16') > 1899) AND (CAST('10', 'UInt16') < 13) AND (CAST('10', 'UInt16') > 0) AND (CAST('01', 'UInt16') < 32) AND (CAST('01', 'UInt16') > 0) AND (CAST('12', 'UInt16') < 25) AND (CAST('12', 'UInt16') >= 0) AND (CAST('11', 'UInt16') < 60) AND (CAST('11', 'UInt16') >= 0) AND (CAST(toUInt8(if(position(CAST('0.1234567', 'String'), '.') > 0, substr(CAST('0.1234567', 'String'), 1, position(CAST('0.1234567', 'String'), '.') - 1), CAST('0.1234567', 'String'))), 'UInt16') < 60) AND (CAST(toUInt8(if(position(CAST('0.1234567', 'String'), '.') > 0, substr(CAST('0.1234567', 'String'), 1, position(CAST('0.1234567', 'String'), '.') - 1), CAST('0.1234567', 'String'))), 'UInt16') >= 0), makeDateTime64(2017, 10, 1, 12, 11, toUInt8(if(position(CAST('0.1234567', 'String'), '.') > 0, substr(CAST('0.1234567', 'String'), 1, position(CAST('0.1234567', 'String'), '.') - 1), CAST('0.1234567', 'String'))), toUInt8(if(position(CAST('0.1234567', 'String'), '.') > 0, substr(CAST('0.1234567', 'String'), position(CAST('0.1234567', 'String'), '.') + 1), CAST('0', 'String'))), 7, 'UTC'), parseDateTime64BestEffort(NULL, 9, 'UTC'))"
         },
         {
             "print unixtime_microseconds_todatetime(1546300800000000)",
