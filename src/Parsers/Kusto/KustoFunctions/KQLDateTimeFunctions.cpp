@@ -604,8 +604,8 @@ bool MakeDateTime::convertImpl(String & out, IParser::Pos & pos)
     if(optional_seconds.has_value())
     {
         String second_argument = optional_seconds.value();
-        seconds = std::format("toUInt8(position({0}::String, '.') > 0 ? substr({0}::String, 1 , position({0}::String,'.') - 1) :  {0}::String)", second_argument);
-        precision = std::format("toUInt8(position({0}::String, '.') > 0 ? substr({0}::String, position({0}::String,'.') + 1) : 0::String )", second_argument);
+        seconds = std::format("toUInt64(position({0}::String, '.') > 0 ? substr({0}::String, 1 , position({0}::String,'.') - 1) :  {0}::String)", second_argument);
+        precision = std::format("toUInt64(position({0}::String, '.') > 0 ? substr({0}::String, position({0}::String,'.') + 1) : 0::String )", second_argument);
     }
     String condition = std::format( "{0}::UInt16 < 2300 AND {0}::UInt16 > 1899  AND  {1}::UInt16 < 13 AND {1}::UInt16 > 0 AND {2}::UInt16 < 32 AND {2}::UInt16 > 0 AND {3}::UInt16 < 25 AND {3}::UInt16 >= 0 AND {4}::UInt16 < 60 AND {4}::UInt16 >=0 AND {5}::UInt16 <60 AND {5}::UInt16 >= 0 ",year,month,day,hours,minutes,seconds);
     //String condition = std::format( "{0}< '2300' AND {0} > '1899'  AND  {1} < '13' AND {1} > '0' AND {2} < '32' AND {2} > '0' AND {3} < '25' AND {3} >= 0 AND {4} < '60' AND {4} >='0' AND {5} <'60' AND {5} >= '0' ",year, month, day, hours, minutes, seconds);
