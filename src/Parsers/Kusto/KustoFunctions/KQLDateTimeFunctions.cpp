@@ -1,5 +1,6 @@
 #include <format>
 #include <regex>
+#include <optional>
 #include <Parsers/ASTExpressionList.h>
 #include <Parsers/ASTSelectWithUnionQuery.h>
 #include <Parsers/IParserBase.h>
@@ -585,30 +586,30 @@ bool MakeDateTime::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
 
-    ++pos;
-    String arguments;
-    int arg_count = 0;
+    String year = "0",  month = "0", day = "0", hours = "0", minutes= "0", seconds = "0" , precision = "0";
 
-    while (!pos->isEnd() && pos->type != TokenType::ClosingRoundBracket)
+    year = getArgument(fn_name, pos);
+    month = getArgument(fn_name, pos);
+    day = getArgument(fn_name, pos);
+    const auto optional_hour = getOptionalArgument(fn_name, pos);
+    const auto optional_minutes = getOptionalArgument(fn_name, pos);
+    const auto optional_seconds = getOptionalArgument(fn_name, pos);
+    
+    if(optional_hour.has_value())
+        hours = optional_hour.value();
+    
+    if(optional_minutes.has_value())
+        minutes = optional_minutes.value();
+
+    if(optional_seconds.has_value())
     {
-        String arg = getConvertedArgument(fn_name, pos);
-        if (pos->type == TokenType::Comma)
-            ++pos;
-        arguments = arguments + arg + ",";
-        ++arg_count;
+        String second_argument = optional_seconds.value();
+        seconds = std::format("toUInt8(position({0}::String, '.') > 0 ? substr({0}::String, 1 , position({0}::String,'.') - 1) :  {0}::String)", second_argument);
+        precision = std::format("toUInt8(position({0}::String, '.') > 0 ? substr({0}::String, position({0}::String,'.') + 1) : 0::String )", second_argument);
     }
-
-    if (arg_count < 1 || arg_count > 7)
-        throw Exception(ErrorCodes::SYNTAX_ERROR, "argument count out of bound in function: {}", fn_name);
-
-    if (arg_count < 7)
-    {
-        for (int i = arg_count; i < 7; ++i)
-            arguments = arguments + "0,";
-    }
-
-    arguments = arguments + "7,'UTC'";
-    out = std::format("makeDateTime64({})", arguments);
+    String condition = std::format( "{0}::UInt16 < 2300 AND {0}::UInt16 > 1899  AND  {1}::UInt16 < 13 AND {1}::UInt16 > 0 AND {2}::UInt16 < 32 AND {2}::UInt16 > 0 AND {3}::UInt16 < 25 AND {3}::UInt16 >= 0 AND {4}::UInt16 < 60 AND {4}::UInt16 >=0 AND {5}::UInt16 <60 AND {5}::UInt16 >= 0 ",year,month,day,hours,minutes,seconds);
+    //String condition = std::format( "{0}< '2300' AND {0} > '1899'  AND  {1} < '13' AND {1} > '0' AND {2} < '32' AND {2} > '0' AND {3} < '25' AND {3} >= 0 AND {4} < '60' AND {4} >='0' AND {5} <'60' AND {5} >= '0' ",year, month, day, hours, minutes, seconds);
+    out = std::format("{7} ? makeDateTime64({0},{1},{2},{3},{4},{5},{6},7,'UTC') : parseDateTime64BestEffort(NULL  , 9, 'UTC') ", year , month , day , hours, minutes, seconds, precision, condition);
 
     return true;
 }
