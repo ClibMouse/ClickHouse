@@ -25,28 +25,7 @@
 namespace DB
 {
 
-    String first_part;
-    for (std::size_t i = 0; i < temp.size() - 1; i++)
-    {
-        first_part += temp[i];
-    }
-    if (!temp.empty())
-    {
-        return std::make_pair(first_part, temp[temp.size() - 1]);
-    }
-    if (!temp.empty())
-    {
-        return std::make_pair(first_part, temp[temp.size() - 1]);
-    }
-    if (temp.size() > 0)
-    {
-        return std::make_pair(firstPart, temp[temp.size() - 1]);
-    }
-
-    return std::make_pair("", "");
-}
-
-String ParserKQLSummarize::getBinGroupbyString(String expr_bin)
+bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
     ASTPtr select_expression_list;
     ASTPtr group_expression_list;
