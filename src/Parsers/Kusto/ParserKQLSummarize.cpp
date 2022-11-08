@@ -38,9 +38,9 @@ namespace DB
     {
         return std::make_pair(first_part, temp[temp.size() - 1]);
     }
-    if (!temp.empty())
+    if (temp.size() > 0)
     {
-        return std::make_pair(first_part, temp[temp.size() - 1]);
+        return std::make_pair(firstPart, temp[temp.size() - 1]);
     }
 
     return std::make_pair("", "");
