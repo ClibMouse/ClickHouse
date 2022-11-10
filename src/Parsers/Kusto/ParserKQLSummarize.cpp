@@ -1,3 +1,4 @@
+#include <format>
 #include <memory>
 #include <queue>
 #include <vector>
@@ -20,10 +21,14 @@
 #include <Parsers/ParserSetQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
 #include <Parsers/ParserWithElement.h>
-#include <format>
 
 namespace DB
 {
+
+namespace ErrorCodes
+{
+    extern const int SYNTAX_ERROR;
+}
 
 bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
@@ -83,6 +88,8 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
 
     auto apply_aliais = [&](Pos & begin_pos, Pos & end_pos, bool is_groupby)
     {
+        if (end_pos->end <= begin_pos->begin)
+            throw Exception("Syntax error near keyword \"" + String(begin_pos->begin, begin_pos->end) + "\"", ErrorCodes::SYNTAX_ERROR);
         auto expr = String(begin_pos->begin, end_pos->end);
         auto equal_pos = begin_pos;
         ++equal_pos;
