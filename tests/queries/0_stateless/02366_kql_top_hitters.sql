@@ -9,7 +9,7 @@ CREATE TABLE Customers
     extra Int16
 ) ENGINE = Memory;
 
-INSERT INTO Customers VALUES ('Theodore','Diaz','Skilled Manual','Bachelors',28,10),('Stephanie','Cox','Management','Bachelors',33,20),('Peter','Nara','Skilled Manual','Graduate Degree',26,30),('Latoya','Shen','Professional','Graduate Degree',25,40),('Joshua','Lee','Professional','Partial College',26,50),('Edward','Hernandez','Skilled Manual','High School',36,60),('Dalton','Wood','Professional','Partial College',42,70),('Christine','Nara','Skilled Manual','Partial College',33,80),('Cameron','Rodriguez','Professional','Partial College',28,90),('Angel','Stewart','Professional','Partial College',46,100),('Apple','B','Skilled Manual','Bachelors',28,110),(NULL,'why','Professional','Partial College',38,120);
+INSERT INTO Customers VALUES ('Theodore','Diaz','Skilled Manual','Bachelors',28,10),('Stephanie','Cox','Management','Bachelors',31,20),('Peter','Nara','Skilled Manual','Graduate Degree',26,30),('Latoya','Shen','Professional','Graduate Degree',25,40),('Joshua','Lee','Professional','Partial College',26,50),('Edward','Hernandez','Skilled Manual','High School',36,60),('Dalton','Wood','Professional','Partial College',42,70),('Christine','Nara','Skilled Manual','Partial College',33,80),('Cameron','Rodriguez','Professional','Partial College',28,90),('Angel','Stewart','Professional','Partial College',46,100),('Apple','B','Skilled Manual','Bachelors',28,110),(NULL,'why','Professional','Partial College',38,120);
 
 set dialect = 'kusto';
 print '--top 1--';
