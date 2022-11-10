@@ -1,4 +1,86 @@
 ## KQL implemented features  
+# November 7, 2022
+## Improvement
+- [array_sort_asc](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/arraysortascfunction) and [array_sort_desc](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/arraysortdescfunction)
+   ```
+   Returns the same number of arrays as in the input, with the first array sorted in ascending order, and the remaining arrays ordered to match the reordered first array.
+
+   null will be returned for every array that differs in length from the first one.
+   ```
+   Becasue array in ClickHouse is not nullable, so an array with a single NULL  ( `[NULL]`) is returned instead of a null if array that differs in length from the first one:
+   ```
+   array_sort_asc(dynamic([2, 1, 3]), dynamic([20, 40, 30]), dynamic([100, 200])) -> [1,2,3,NULL],[10,20,30,40],[NULL]
+   ```
+   the result can be used as a condition 
+   ```
+   DROP TABLE IF EXISTS visit;
+   CREATE TABLE visit(pageid UInt8, ip_country Array(Nullable(String)), hit Array(Int64),duration Array(Int64)) ENGINE = Memory;
+   INSERT INTO visit VALUES (1,['CA', 'US','FR','Eng'], [11,16,12,20],[100,500,300,200]);
+   INSERT INTO visit VALUES (2,['Japan', 'Gem','FR','Eng'], [31,22,33,10],[510,410,310,210]);
+   INSERT INTO visit VALUES (3,['CA', 'Gem','Japan','Eng'], [25,10,23,11],[120,110,130]);
+   INSERT INTO visit VALUES (4,['CA', 'Gem',null,'Eng'], [5,10,3,2],[220,320,310,150]);
+   INSERT INTO visit VALUES (5,['FR', null,'US','Eng'], [16,12,23,10],[210,250,110,260]);
+
+   visit | project *, array_sort_asc(ip_country, hit, duration)
+   ┌─pageid─┬─ip_country─────────────────┬─hit───────────┬─duration──────────┬─kql_array_sort_asc(ip_country, hit, duration)────────────────┐
+   │      2 │ ['Japan','Gem','FR','Eng'] │ [31,22,33,10] │ [510,410,310,210] │ (['Eng','FR','Gem','Japan'],[10,33,22,31],[210,310,410,510]) │
+   └────────┴────────────────────────────┴───────────────┴───────────────────┴──────────────────────────────────────────────────────────────┘
+   ┌─pageid─┬─ip_country─────────────┬─hit───────────┬─duration──────────┬─kql_array_sort_asc(ip_country, hit, duration)────────────┐
+   │      1 │ ['CA','US','FR','Eng'] │ [11,16,12,20] │ [100,500,300,200] │ (['CA','Eng','FR','US'],[11,20,12,16],[100,200,300,500]) │
+   └────────┴────────────────────────┴───────────────┴───────────────────┴──────────────────────────────────────────────────────────┘
+   ┌─pageid─┬─ip_country──────────────┬─hit────────┬─duration──────────┬─kql_array_sort_asc(ip_country, hit, duration)──────────┐
+   │      4 │ ['CA','Gem',NULL,'Eng'] │ [5,10,3,2] │ [220,320,310,150] │ (['CA','Eng','Gem',NULL],[5,2,10,3],[220,150,320,310]) │
+   └────────┴─────────────────────────┴────────────┴───────────────────┴────────────────────────────────────────────────────────┘
+   ┌─pageid─┬─ip_country─────────────────┬─hit───────────┬─duration──────┬─kql_array_sort_asc(ip_country, hit, duration)─────┐
+   │      3 │ ['CA','Gem','Japan','Eng'] │ [25,10,23,11] │ [120,110,130] │ (['CA','Eng','Gem','Japan'],[25,11,10,23],[NULL]) │
+   └────────┴────────────────────────────┴───────────────┴───────────────┴───────────────────────────────────────────────────┘
+   ┌─pageid─┬─ip_country─────────────┬─hit───────────┬─duration──────────┬─kql_array_sort_asc(ip_country, hit, duration)────────────┐
+   │      5 │ ['FR',NULL,'US','Eng'] │ [16,12,23,10] │ [210,250,110,260] │ (['Eng','FR','US',NULL],[10,16,23,12],[260,210,110,250]) │
+   └────────┴────────────────────────┴───────────────┴───────────────────┴──────────────────────────────────────────────────────────┘  
+   
+   visit | where isnull((array_sort_asc(ip_country, hit, duration))[2][0])
+   ┌─pageid─┬─ip_country─────────────────┬─hit───────────┬─duration──────┐
+   │      3 │ ['CA','Gem','Japan','Eng'] │ [25,10,23,11] │ [120,110,130] │
+   └────────┴────────────────────────────┴───────────────┴───────────────┘
+   ```
+
+   the following behavious are same as Azure Data Explorer  
+   if no alias specified, the functions return a single tuple includes arrays. can use array sbscripon to access the element inside. for exapmple:
+   ```
+   print array_sort_asc(dynamic([2, 1, 3]), dynamic([20, 40, 30]), dynamic([100, 200]))[0] -> [1,2,3]
+   ```
+   if a signle alias is used the firt array as an column is returned :
+   ```
+   print t = array_sort_asc(dynamic([2, 1, 3]), dynamic([20, 40, 30]), dynamic([100, 200]))
+   ┌─t───────┐
+   │ [1,2,3] │
+   └─────────┘
+   ```
+   if a n aliasies are used the first n arrays as columns are returned :
+   ```
+   print 5, (t,w) = array_sort_asc(dynamic([2, 1, 3]), dynamic([20, 40, 30]), dynamic([100, 200]))
+   ┌─5─┬─t───────┬─w──────────┐
+   │ 5 │ [1,2,3] │ [40,20,30] │
+   └───┴─────────┴────────────┘
+   ```
+## New Functions
+- [case](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/casefunction)  
+   `Customers | extend t = case(Age <= 10, "A", Age <= 20, "B", Age <= 30, "C", "D");`
+## Bug fixed
+- [summarize crash if aggregation function is missing](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1705)
+   ```
+   fixed with throw exception:
+
+   Exception on client:
+   Code: 62. DB::Exception: Syntax error near keyword "by". (SYNTAX_ERROR)
+   ```
+- [make_datetime creates wrong date time](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1262)
+
+- [todecimal() doesn't work with column arguments](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1413)
+
+- [zip error :cannot be inside Nullable type](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1528)  
+
+
 # October 25, 2022
 ## New Operators  
 - [count](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/countoperator)  

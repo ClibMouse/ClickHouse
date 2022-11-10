@@ -7,7 +7,7 @@
 #include <Functions/FunctionHelpers.h>
 #include <Functions/IFunction.h>
 #include <Interpreters/Context_fwd.h>
-
+#include "Functions/array/FunctionArrayMapped.h"
 
 namespace DB
 {
