@@ -1,0 +1,5 @@
+-- support subquery for in orerator (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/in-cs-operator) (subquery need to be wraped with bracket inside bracket); TODO: case-insensitive not supported yet
+Latoya	Shen	Professional	Graduate Degree	25
+Peter	Nara	Skilled Manual	Graduate Degree	26
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Apple		Skilled Manual	Bachelors	28

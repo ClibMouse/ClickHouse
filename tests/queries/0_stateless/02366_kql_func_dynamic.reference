@@ -71,31 +71,31 @@
 [[1],[2,3],[4,5]]
 [[1,2,3,4],[],[4,5]]
 -- array_sort_asc()
-[['a','c','c','d',NULL]]
-[[1,2,3,4]]
+(['a','c','c','d',NULL])
+([1,2,3,4])
 ['a','b','c']
-[['p','q','r'],['hello','clickhouse','world']]
-[[NULL,'a','c','c','d']]
-[[NULL,'a','c','c','d']]
-[[NULL,NULL,NULL]]
+(['p','q','r'],['hello','clickhouse','world'])
+([NULL,'a','c','c','d'])
+([NULL,'a','c','c','d'])
+([NULL,NULL,NULL])
 [1,2,3,NULL,NULL]
 ['a','e','b','c','d']
-[['George','John','Paul','Ringo']]
-[['blue','green','yellow',NULL,NULL]]
-[[NULL,NULL,'blue','green','yellow']]
+(['George','John','Paul','Ringo'])
+(['blue','green','yellow',NULL,NULL])
+([NULL,NULL,'blue','green','yellow'])
 -- array_sort_desc()
-[['d','c','c','a',NULL]]
-[[4,3,2,1]]
+(['d','c','c','a',NULL])
+([4,3,2,1])
 ['c','b','a']
-[['r','q','p'],['world','clickhouse','hello']]
-[[NULL,'d','c','c','a']]
-[[NULL,'d','c','c','a']]
-[[NULL,NULL,NULL]]
+(['r','q','p'],['world','clickhouse','hello'])
+([NULL,'d','c','c','a'])
+([NULL,'d','c','c','a'])
+([NULL,NULL,NULL])
 [3,2,1,NULL,NULL]
 ['d','c','b','e','a']
-[['Ringo','Paul','John','George']]
-[['yellow','green','blue',NULL,NULL]]
-[[NULL,NULL,'yellow','green','blue']]
+(['Ringo','Paul','John','George'])
+(['yellow','green','blue',NULL,NULL])
+([NULL,NULL,'yellow','green','blue'])
 -- jaccard_index()
 0.75
 0
@@ -156,3 +156,40 @@ nan
 [['Darth','Vader','has a suit'],['Master','Yoda','doesn\'t have a suit']]
 [[1,10],[2,20],[3,NULL]]
 [[NULL,1],[NULL,2],[NULL,3]]
+-- array_sort in table()
+1	(['CA','Eng','FR','US'],[11,20,12,16],[100,200,300,500])
+2	(['Eng','FR','Gem','Japan'],[10,33,22,31],[210,310,410,510])
+3	(['CA','Eng','Gem','Japan'],[25,11,10,23],[NULL])
+4	(['CA','Eng','Gem',NULL],[5,2,10,3],[220,150,320,310])
+5	(['Eng','FR','US',NULL],[10,16,23,12],[260,210,110,250])
+-- array_sort in table() with condition
+1	(['CA','Eng','FR','US'],[11,20,12,16],[100,200,300,500])
+2	(['Eng','FR','Gem','Japan'],[10,33,22,31],[210,310,410,510])
+3	(['CA','Eng','Gem','Japan'],[25,11,10,23],[NULL])
+4	([NULL,'CA','Eng','Gem'],[3,5,2,10],[310,220,150,320])
+5	(['Eng','FR','US',NULL],[10,16,23,12],[260,210,110,250])
+-- array_sort as condition
+3	['CA','Gem','Japan','Eng']	[25,10,23,11]	[120,110,130]
+-- array_sort with single alias
+1	['CA','Eng','FR','US']
+2	['Eng','FR','Gem','Japan']
+3	['CA','Eng','Gem','Japan']
+4	['CA','Eng','Gem',NULL]
+5	['Eng','FR','US',NULL]
+1	['CA','Eng','FR','US']
+2	['Eng','FR','Gem','Japan']
+3	['CA','Eng','Gem','Japan']
+4	['CA','Eng','Gem',NULL]
+5	['Eng','FR','US',NULL]
+-- array_sort with partial alias
+1	['CA','Eng','FR','US']	[11,20,12,16]
+2	['Eng','FR','Gem','Japan']	[10,33,22,31]
+3	['CA','Eng','Gem','Japan']	[25,11,10,23]
+4	['CA','Eng','Gem',NULL]	[5,2,10,3]
+5	['Eng','FR','US',NULL]	[10,16,23,12]
+-- array_sort with all alias
+1	['CA','Eng','FR','US']	[11,20,12,16]	[100,200,300,500]
+2	['Eng','FR','Gem','Japan']	[10,33,22,31]	[210,310,410,510]
+3	['CA','Eng','Gem','Japan']	[25,11,10,23]	[NULL]
+4	['CA','Eng','Gem',NULL]	[5,2,10,3]	[220,150,320,310]
+5	['Eng','FR','US',NULL]	[10,16,23,12]	[260,210,110,250]

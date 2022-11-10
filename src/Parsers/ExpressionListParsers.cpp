@@ -662,6 +662,14 @@ public:
             }
             else
             {
+                /// enable using subscript operator for kql_array_sort
+                if (cur_op.function_name == "arrayElement" && !operands.empty())
+                {
+                    const auto* first_arg_as_node = operands.front()->as<ASTFunction>();
+                    if (first_arg_as_node && (first_arg_as_node->name == "kql_array_sort_asc" || first_arg_as_node->name == "kql_array_sort_desc"))
+                        cur_op.function_name = "tupleElement";
+                }
+
                 function = makeASTFunction(cur_op);
 
                 if (!popLastNOperands(function->children[0]->children, cur_op.arity))
