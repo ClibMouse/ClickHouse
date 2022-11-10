@@ -78,7 +78,6 @@
 
 - [todecimal() doesn't work with column arguments](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1413)
 
-- [zip error :cannot be inside Nullable type](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1528)  
 
 
 # October 25, 2022
