@@ -82,8 +82,5 @@ protected:
     static String kqlCallToExpression(std::string_view function_name, std::span<const std::string_view> params, uint32_t max_depth);
     static void validateEndOfFunction(const String & fn_name, IParser::Pos & pos);
     static String getKQLFunctionName(IParser::Pos & pos);
-    static String ArraySortHelper(String & out, IParser::Pos & pos, bool ascending);
-    static int getNullCounts(String arg);
-    static int getArrayLength(String arg);
 };
 }
