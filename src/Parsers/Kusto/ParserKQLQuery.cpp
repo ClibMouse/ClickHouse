@@ -1,3 +1,4 @@
+#include <format>
 #include <Parsers/ASTLiteral.h>
 #include <Parsers/ASTSelectQuery.h>
 #include <Parsers/ASTSelectWithUnionQuery.h>
@@ -25,7 +26,6 @@
 #include <Parsers/Kusto/ParserKQLTopHitter.h>
 #include <Parsers/ParserSelectWithUnionQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
-#include <format>
 namespace DB
 {
 
@@ -34,8 +34,7 @@ namespace ErrorCodes
     extern const int SYNTAX_ERROR;
 }
 
-std::unordered_map<std::string, ParserKQLQuery::KQLOperatorDataFlowState> kql_parser =
-{
+std::unordered_map<std::string, ParserKQLQuery::KQLOperatorDataFlowState> kql_parser = {
     {"filter", {"filter", false, false, false, 3}},
     {"where", {"filter", false, false, false, 3}},
     {"limit", {"limit", false, true, false, 3}},
@@ -450,7 +449,7 @@ bool ParserKQLQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
     if (!updated_query.empty())
     {
         operation_pos.clear();
-        if(!ParserKQLQuery::getOperations(pos_query, expected, operation_pos))
+        if (!ParserKQLQuery::getOperations(pos_query, expected, operation_pos))
             return false;
     }
 

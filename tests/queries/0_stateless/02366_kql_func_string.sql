@@ -153,8 +153,6 @@ print '';
 print '-- Customers | project tolower(FirstName)';
 Customers | project tolower(FirstName)| order by LastName;
 print '';
-print '-- support subquery for in orerator (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/in-cs-operator) (subquery need to be wraped with bracket inside bracket); TODO: case-insensitive not supported yet';
-Customers | where Age in ((Customers|project Age|where Age < 30)) | order by LastName;
 -- Customer | where LastName in~ ("diaz", "cox")
 print '';
 print '-- has_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/has-all-operator); TODO: subquery not supported yet';
