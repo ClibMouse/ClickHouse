@@ -11,6 +11,7 @@ struct MultiplyImpl
 {
     using ResultType = typename NumberTraits::ResultOfAdditionMultiplication<A, B>::Type;
     static const constexpr bool allow_fixed_string = false;
+    static const constexpr bool allow_interval = true;
     static const constexpr bool allow_string_integer = false;
 
     template <typename Result = ResultType>

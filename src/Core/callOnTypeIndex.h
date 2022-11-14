@@ -157,6 +157,7 @@ inline bool callOnBasicTypes(TypeIndex type_num1, TypeIndex type_num2, F && f)
 
 class DataTypeDate;
 class DataTypeDate32;
+class DataTypeInterval;
 class DataTypeString;
 class DataTypeFixedString;
 class DataTypeUUID;
@@ -200,6 +201,8 @@ bool callOnIndexAndDataType(TypeIndex number, F && f, ExtraArgs && ... args)
         case TypeIndex::Date32:         return f(TypePair<DataTypeDate32, T>(), std::forward<ExtraArgs>(args)...);
         case TypeIndex::DateTime:       return f(TypePair<DataTypeDateTime, T>(), std::forward<ExtraArgs>(args)...);
         case TypeIndex::DateTime64:     return f(TypePair<DataTypeDateTime64, T>(), std::forward<ExtraArgs>(args)...);
+
+        case TypeIndex::Interval:       return f(TypePair<DataTypeInterval, T>(), std::forward<ExtraArgs>(args)...);
 
         case TypeIndex::String:         return f(TypePair<DataTypeString, T>(), std::forward<ExtraArgs>(args)...);
         case TypeIndex::FixedString:    return f(TypePair<DataTypeFixedString, T>(), std::forward<ExtraArgs>(args)...);
