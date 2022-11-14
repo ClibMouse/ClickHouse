@@ -13,7 +13,8 @@ template <typename A>
 struct BitCountImpl
 {
     using ResultType = UInt8;
-    static constexpr bool allow_fixed_string = false;
+    static const constexpr bool allow_fixed_string = false;
+    static const constexpr bool allow_interval = false;
     static const constexpr bool allow_string_integer = false;
 
     static inline ResultType apply(A a)

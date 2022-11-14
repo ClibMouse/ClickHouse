@@ -12,11 +12,12 @@
 #include <Parsers/Kusto/KustoFunctions/KQLIPFunctions.h>
 #include <Parsers/Kusto/KustoFunctions/KQLStringFunctions.h>
 #include <Parsers/Kusto/KustoFunctions/KQLTimeSeriesFunctions.h>
-#include <Parsers/Kusto/ParserKQLDateTypeTimespan.h>
+#include <Parsers/Kusto/KQLTimespanParser.h>
 #include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLStatement.h>
 #include <Parsers/ParserSetQuery.h>
+#include <Parsers/Kusto/Utilities.h>
 #include <boost/lexical_cast.hpp>
 
 
@@ -316,12 +317,9 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
                 }
                 --pos;
             }
-            ParserKQLDateTypeTimespan time_span;
-            ASTPtr node;
-            Expected expected;
 
-            if (time_span.parse(pos, node, expected))
-                arg = boost::lexical_cast<std::string>(time_span.toSeconds());
+            if (std::optional<Int64> ticks; KQLTimespanParser::tryParse(extractTokenWithoutQuotes(pos), ticks) && ticks)
+                arg = kqlTicksToInterval(ticks);
         }
     }
     else if (pos->type == TokenType::QuotedIdentifier)
@@ -340,5 +338,4 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
 
     return arg;
 }
-
 }
