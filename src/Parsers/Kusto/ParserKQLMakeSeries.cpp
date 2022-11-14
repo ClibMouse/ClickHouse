@@ -1,3 +1,5 @@
+#include "KQLTimespanParser.h"
+
 #include <Parsers/ASTLiteral.h>
 #include <Parsers/IParserBase.h>
 #include <Parsers/ExpressionListParsers.h>
@@ -5,7 +7,6 @@
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLMakeSeries.h>
 #include <Parsers/Kusto/ParserKQLOperators.h>
-#include <Parsers/Kusto/ParserKQLDateTypeTimespan.h>
 #include <Parsers/ParserSelectQuery.h>
 #include <format>
 
@@ -138,10 +139,16 @@ bool ParserKQLMakeSeries :: parseFromToStepClause(FromToStepClause & from_to_ste
     ++step_pos;
     from_to_step.step_str = String(step_pos->begin, end_pos->end);
 
-    if (String(step_pos->begin, step_pos->end) == "time" || String(step_pos->begin, step_pos->end) == "timespan" || ParserKQLDateTypeTimespan().parseConstKQLTimespan(from_to_step.step_str))
+    if (std::optional<Int64> ticks; String(step_pos->begin, step_pos->end) == "time" || String(step_pos->begin, step_pos->end) == "timespan"
+        || KQLTimespanParser::tryParse(from_to_step.step_str, ticks))
     {
+        // TODO: this is a hack of the ugliest kind that can only be fixed by supporting arbitrary expressions in make-series
+        static constexpr std::string_view wrapper = "toIntervalNanosecond(";
+        const auto timespan = getExprFromToken(from_to_step.step_str, pos.max_depth);
+        const auto value = timespan.substr(wrapper.length(), timespan.length() - wrapper.length() - 1);
+
         from_to_step.is_timespan = true;
-        from_to_step.step = std::stod(getExprFromToken(from_to_step.step_str, pos.max_depth));
+        from_to_step.step = std::stod(value) * 1e-9;
     }
     else
         from_to_step.step = std::stod(from_to_step.step_str);
@@ -342,8 +349,6 @@ bool ParserKQLMakeSeries :: parseImpl(Pos & pos, ASTPtr & node, Expected & expec
     auto & subquery_columns = kql_make_series.subquery_columns;
     auto & axis_column = kql_make_series.axis_column;
     auto & group_expression = kql_make_series.group_expression;
-
-    ParserKQLDateTypeTimespan time_span;
 
    //const auto make_series_parameters = getMakeSeriesParameters(pos);
 
