@@ -18,6 +18,7 @@ struct BitShiftRightImpl
 {
     using ResultType = typename NumberTraits::ResultOfBit<A, B>::Type;
     static const constexpr bool allow_fixed_string = false;
+    static const constexpr bool allow_interval = false;
     static const constexpr bool allow_string_integer = true;
 
     template <typename Result = ResultType>
