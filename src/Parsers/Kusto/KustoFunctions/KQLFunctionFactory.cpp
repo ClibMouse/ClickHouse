@@ -245,9 +245,6 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(String & kql_functio
         case KQLFunctionValue::none:
             return nullptr;
 
-        case KQLFunctionValue::timespan:
-            return std::make_unique<TimeSpan>();
-
         case KQLFunctionValue::ago:
             return std::make_unique<Ago>();
 
