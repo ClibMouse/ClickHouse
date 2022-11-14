@@ -16,7 +16,7 @@ DROP TABLE IF EXISTS make_series_test_table;
 CREATE TABLE make_series_test_table
 (
    Supplier Nullable(String),
-   Fruit String ,
+   Fruit String,
    Price Float64,
    Purchase Date
 ) ENGINE = Memory;
@@ -59,7 +59,7 @@ make_series_test_table | make-series avg(Price) default=0 on Purchase step 1d by
 print '-- 3d step';
 make_series_test_table | make-series PriceAvg = avg(Price) default=0 on Purchase from datetime(2016-09-10)  to datetime(2016-09-13) step 3d by Supplier, Fruit | order by Supplier, Fruit;
 
-print '-- numeric column'
+print '-- numeric column';
 print '-- from to';
 make_series_test_table2 | make-series PriceAvg=avg(Price) default=0 on Purchase from 10 to  15 step  1.0  by Supplier, Fruit;
 print '-- from';
@@ -71,7 +71,7 @@ make_series_test_table2 | make-series PriceAvg=avg(Price) default=0 on Purchase 
 print '-- without by';
 make_series_test_table2 | make-series PriceAvg=avg(Price) default=0 on Purchase step  2.0;
 
-make_series_test_table3 | make-series avg(metric) default=0  on timestamp from datetime(2017-01-01) to datetime(2017-01-10) step 1d
+make_series_test_table3 | make-series avg(metric) default=0  on timestamp from datetime(2017-01-01) to datetime(2017-01-10) step 1d;
 
 -- print '-- summarize --'
 -- make_series_test_table | summarize count() by format_datetime(bin(Purchase, 1d), 'yy-MM-dd');

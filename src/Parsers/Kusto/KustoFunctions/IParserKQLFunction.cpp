@@ -1,7 +1,23 @@
-#include "KQLFunctionFactory.h"
+#include <Parsers/ASTExpressionList.h>
+#include <Parsers/ASTSelectWithUnionQuery.h>
+#include <Parsers/IParserBase.h>
+#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
+#include <Parsers/Kusto/KustoFunctions/KQLAggregationFunctions.h>
+#include <Parsers/Kusto/KustoFunctions/KQLBinaryFunctions.h>
+#include <Parsers/Kusto/KustoFunctions/KQLCastingFunctions.h>
+#include <Parsers/Kusto/KustoFunctions/KQLDateTimeFunctions.h>
+#include <Parsers/Kusto/KustoFunctions/KQLDynamicFunctions.h>
+#include <Parsers/Kusto/KustoFunctions/KQLFunctionFactory.h>
+#include <Parsers/Kusto/KustoFunctions/KQLGeneralFunctions.h>
+#include <Parsers/Kusto/KustoFunctions/KQLIPFunctions.h>
+#include <Parsers/Kusto/KustoFunctions/KQLStringFunctions.h>
+#include <Parsers/Kusto/KustoFunctions/KQLTimeSeriesFunctions.h>
+#include <Parsers/Kusto/KQLTimespanParser.h>
 #include <Parsers/Kusto/ParserKQLOperators.h>
+#include <Parsers/Kusto/ParserKQLQuery.h>
+#include <Parsers/Kusto/ParserKQLStatement.h>
+#include <Parsers/ParserSetQuery.h>
 #include <Parsers/Kusto/Utilities.h>
-#include <Parsers/Kusto/ParserKQLDateTypeTimespan.h>
 #include <boost/lexical_cast.hpp>
 #include <magic_enum.hpp>
 #include <pcg_random.hpp>
@@ -346,7 +362,8 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
                 --pos;
             }
 
-            parseConstTimespan();
+            if (std::optional<Int64> ticks; KQLTimespanParser::tryParse(extractTokenWithoutQuotes(pos), ticks) && ticks)
+                arg = kqlTicksToInterval(ticks);
         }
     }
     else if (pos->type == TokenType::ErrorWrongNumber)
@@ -366,17 +383,5 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
     }
 
     return arg;
-}
-
-String IParserKQLFunction::escapeSingleQuotes(const String & input)
-{
-    String output;
-    for (const auto & ch : input)
-    {
-        if (ch == '\'')
-            output += ch;
-        output += ch;
-    }
-    return output;
 }
 }

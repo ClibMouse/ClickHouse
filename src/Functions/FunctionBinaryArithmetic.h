@@ -108,6 +108,9 @@ template <typename DataType> constexpr bool IsIntegralOrExtendedOrDecimal =
     IsIntegralOrExtended<DataType> ||
     IsDataTypeDecimal<DataType>;
 
+template <typename DataType> constexpr bool IsInterval = false;
+template <> inline constexpr bool IsInterval<DataTypeInterval> = true;
+
 template <typename DataType> constexpr bool IsFloatingPoint = false;
 template <> inline constexpr bool IsFloatingPoint<DataTypeFloat32> = true;
 template <> inline constexpr bool IsFloatingPoint<DataTypeFloat64> = true;
@@ -141,6 +144,7 @@ struct BinaryOperationTraits
 {
     using T0 = typename LeftDataType::FieldType;
     using T1 = typename RightDataType::FieldType;
+
 private: /// it's not correct for Decimal
     using Op = Operation<T0, T1>;
 
@@ -222,8 +226,6 @@ template <typename A, typename B, typename Op, typename OpResultType = typename 
 struct BinaryOperation
 {
     using ResultType = OpResultType;
-    static const constexpr bool allow_fixed_string = false;
-    static const constexpr bool allow_string_integer = false;
 
     template <OpCase op_case>
     static void NO_INLINE process(const A * __restrict a, const B * __restrict b, ResultType * __restrict c, size_t size, const NullMap * right_nullmap = nullptr)
@@ -752,6 +754,8 @@ class FunctionBinaryArithmetic : public IFunction
 {
     static constexpr bool is_plus = IsOperation<Op>::plus;
     static constexpr bool is_minus = IsOperation<Op>::minus;
+    static constexpr bool is_modulo = IsOperation<Op>::modulo;
+    static constexpr bool is_modulo_or_zero = IsOperation<Op>::modulo_or_zero;
     static constexpr bool is_multiply = IsOperation<Op>::multiply;
     static constexpr bool is_division = IsOperation<Op>::division;
     static constexpr bool is_bit_hamming_distance = IsOperation<Op>::bit_hamming_distance;
@@ -793,8 +797,31 @@ class FunctionBinaryArithmetic : public IFunction
         });
     }
 
+    static ColumnsWithTypeAndName switchArgumentOrder(const ColumnsWithTypeAndName & arguments)
+    {
+        auto new_arguments = arguments;
+
+        /// Interval argument must be second.
+        if (isDateOrDate32(arguments[1].type) || isDateTime(arguments[1].type) || isDateTime64(arguments[1].type))
+            std::swap(new_arguments[0], new_arguments[1]);
+
+        /// Change interval argument type to its representation
+        if (WhichDataType(new_arguments[1].type).isInterval())
+            new_arguments[1].type = std::make_shared<DataTypeNumber<DataTypeInterval::FieldType>>();
+
+        return new_arguments;
+    }
+
+    static FunctionOverloadResolverPtr getFunctionForDateTimeArithmetic(const DataTypePtr & type0, const DataTypePtr & type1, ContextPtr context)
+    {
+        if (isDateTime64(type0) && isDateTime64(type1) && is_minus)
+               return FunctionFactory::instance().get("dateTime64Diff", context);
+        
+        return {};
+    }
+
     static FunctionOverloadResolverPtr
-    getFunctionForIntervalArithmetic(const DataTypePtr & type0, const DataTypePtr & type1, ContextPtr context)
+    getFunctionForDateTimeIntervalArithmetic(const DataTypePtr & type0, const DataTypePtr & type1, ContextPtr context)
     {
         bool first_arg_is_date_or_datetime_or_string = isDateOrDate32OrDateTimeOrDateTime64(type0) || isString(type0);
         bool second_arg_is_date_or_datetime_or_string = isDateOrDate32OrDateTimeOrDateTime64(type1) || isString(type1);
@@ -1125,18 +1152,34 @@ class FunctionBinaryArithmetic : public IFunction
     ColumnPtr executeDateTimeIntervalPlusMinus(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type,
                                                size_t input_rows_count, const FunctionOverloadResolverPtr & function_builder) const
     {
-        ColumnsWithTypeAndName new_arguments = arguments;
-
-        /// Interval argument must be second.
-        if (isDateOrDate32OrDateTimeOrDateTime64(arguments[1].type) || isString(arguments[1].type))
-            std::swap(new_arguments[0], new_arguments[1]);
-
-        /// Change interval argument type to its representation
-        if (WhichDataType(new_arguments[1].type).isInterval())
-            new_arguments[1].type = std::make_shared<DataTypeNumber<DataTypeInterval::FieldType>>();
-
+        const auto new_arguments = switchArgumentOrder(arguments);
         auto function = function_builder->build(new_arguments);
         return function->execute(new_arguments, result_type, input_rows_count);
+    }
+
+    ColumnPtr executeInterval(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const size_t input_rows_count) const
+    {
+        const auto convert_argument = [this, &input_rows_count](const ColumnWithTypeAndName & argument)
+        {
+            if (const WhichDataType which_data_type(*argument.type); which_data_type.isInterval())
+            {
+                const ColumnsWithTypeAndName conversion_args{
+                    argument,
+                    createConstColumnWithTypeAndName<DataTypeString>(
+                        DataTypeNumber<DataTypeInterval::FieldType>().getName(), "target_type")};
+
+                const auto [converted_column, converted_data_type] = executeFunctionCall(context, "cast", conversion_args, input_rows_count);
+                return ColumnWithTypeAndName(converted_column, converted_data_type, argument.name);
+            }
+
+            return argument;
+        };
+
+        const ColumnsWithTypeAndName adjusted_args { convert_argument(arguments.front()), convert_argument(arguments.back()) };
+        const auto [intermediate_column, intermediate_data_type] = executeFunctionCall(context, name, adjusted_args, input_rows_count);
+
+        const ColumnsWithTypeAndName conversion_args = { { intermediate_column, intermediate_data_type, "intermediate" }, createConstColumnWithTypeAndName<DataTypeString>(result_type->getName(), "target_type") };
+        return executeFunctionCall(context, "accurateCastOrNull", conversion_args, input_rows_count).first;
     }
 
     ColumnPtr executeDateTimeTupleOfIntervalsPlusMinus(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type,
@@ -1531,17 +1574,20 @@ public:
         if (auto function_builder = getFunctionForIntervalArithmetic(arguments[0], arguments[1], context))
         {
             ColumnsWithTypeAndName new_arguments(2);
-
             for (size_t i = 0; i < 2; ++i)
                 new_arguments[i].type = arguments[i];
 
-            /// Interval argument must be second.
-            if (isDateOrDate32OrDateTimeOrDateTime64(new_arguments[1].type) || isString(new_arguments[1].type))
-                std::swap(new_arguments[0], new_arguments[1]);
+            return function_builder->build(new_arguments)->getResultType();
+        }
 
-            /// Change interval argument to its representation
-            new_arguments[1].type = std::make_shared<DataTypeNumber<DataTypeInterval::FieldType>>();
+        /// Special case when the function is plus or minus, one of arguments is Date/DateTime and another is Interval.
+        if (auto function_builder = getFunctionForDateTimeIntervalArithmetic(arguments[0], arguments[1], context))
+        {
+            ColumnsWithTypeAndName new_arguments(2);
+            for (size_t i = 0; i < 2; ++i)
+                new_arguments[i].type = arguments[i];
 
+            new_arguments = switchArgumentOrder(new_arguments);
             auto function = function_builder->build(new_arguments);
             return function->getResultType();
         }
@@ -1608,6 +1654,7 @@ public:
         {
             using LeftDataType = std::decay_t<decltype(left)>;
             using RightDataType = std::decay_t<decltype(right)>;
+            using ConcreteOp = Op<LeftDataType, RightDataType>;
 
             if constexpr ((std::is_same_v<DataTypeFixedString, LeftDataType> || std::is_same_v<DataTypeString, LeftDataType>) ||
                 (std::is_same_v<DataTypeFixedString, RightDataType> || std::is_same_v<DataTypeString, RightDataType>))
@@ -1615,7 +1662,7 @@ public:
                 if constexpr (std::is_same_v<DataTypeFixedString, LeftDataType> &&
                               std::is_same_v<DataTypeFixedString, RightDataType>)
                 {
-                    if constexpr (!Op<DataTypeFixedString, DataTypeFixedString>::allow_fixed_string)
+                    if constexpr (!ConcreteOp::allow_fixed_string)
                         return false;
                     else
                     {
@@ -1704,6 +1751,42 @@ public:
                         if constexpr (std::is_same_v<LeftDataType, DataTypeDateTime>)
                             tz = &left;
                         type_res = std::make_shared<ResultDataType>(*tz);
+                    }
+                    else if constexpr (IsInterval<LeftDataType> || IsInterval<RightDataType>)
+                    {
+                        if constexpr (!ConcreteOp::allow_interval)
+                            return false;
+
+                        const auto nested_type = std::invoke(
+                            [&]() -> std::shared_ptr<IDataType>
+                            {
+                                static constexpr auto is_left_interval = IsInterval<LeftDataType>;
+                                static constexpr auto is_right_interval = IsInterval<RightDataType>;
+                                if constexpr (
+                                    is_left_interval && !is_right_interval
+                                    && (is_division || is_modulo || is_modulo_or_zero || is_multiply))
+                                    return std::make_shared<DataTypeInterval>(left.getKind());
+                                else if constexpr (!is_left_interval && is_right_interval && is_multiply)
+                                    return std::make_shared<DataTypeInterval>(right.getKind());
+                                else if constexpr (
+                                    is_left_interval && is_right_interval
+                                    && (is_division || is_minus || is_modulo || is_modulo_or_zero || is_plus))
+                                {
+                                    if (left.getKind() != right.getKind())
+                                        return {};
+                                    else if constexpr (!is_division)
+                                        return std::make_shared<DataTypeInterval>(left.getKind());
+                                    else
+                                        return std::make_shared<ResultDataType>();
+                                }
+                                else
+                                    return {};
+                            });
+
+                        if (nested_type)
+                            type_res = makeNullable(nested_type);
+                        
+                        return static_cast<bool>(nested_type);
                     }
                     else
                         type_res = std::make_shared<ResultDataType>();
@@ -2120,8 +2203,11 @@ ColumnPtr executeStringInteger(const ColumnsWithTypeAndName & arguments, const A
             return executeAggregateAddition(arguments, result_type, input_rows_count);
         }
 
-        /// Special case when the function is plus or minus, one of arguments is Date/DateTime/String and another is Interval.
-        if (auto function_builder = getFunctionForIntervalArithmetic(arguments[0].type, arguments[1].type, context))
+        if (auto function_builder = getFunctionForDateTimeArithmetic(arguments[0].type, arguments[1].type, context))
+            return function_builder->build(arguments)->execute(arguments, result_type, input_rows_count);
+
+        /// Special case when the function is plus or minus, one of arguments is Date/DateTime and another is Interval.
+        if (auto function_builder = getFunctionForDateTimeIntervalArithmetic(arguments[0].type, arguments[1].type, context))
         {
             return executeDateTimeIntervalPlusMinus(arguments, result_type, input_rows_count, function_builder);
         }
@@ -2219,6 +2305,7 @@ ColumnPtr executeStringInteger(const ColumnsWithTypeAndName & arguments, const A
         {
             using LeftDataType = std::decay_t<decltype(left)>;
             using RightDataType = std::decay_t<decltype(right)>;
+            using ConcreteOp = Op<LeftDataType, RightDataType>;
 
             if constexpr ((std::is_same_v<DataTypeFixedString, LeftDataType> || std::is_same_v<DataTypeString, LeftDataType>) ||
                           (std::is_same_v<DataTypeFixedString, RightDataType> || std::is_same_v<DataTypeString, RightDataType>))
@@ -2226,7 +2313,7 @@ ColumnPtr executeStringInteger(const ColumnsWithTypeAndName & arguments, const A
                 if constexpr (std::is_same_v<DataTypeFixedString, LeftDataType> &&
                               std::is_same_v<DataTypeFixedString, RightDataType>)
                 {
-                    if constexpr (!Op<DataTypeFixedString, DataTypeFixedString>::allow_fixed_string)
+                    if constexpr (!ConcreteOp::allow_fixed_string)
                         return false;
                     else
                         return (res = executeFixedString(arguments)) != nullptr;
@@ -2246,6 +2333,13 @@ ColumnPtr executeStringInteger(const ColumnsWithTypeAndName & arguments, const A
                 }
                 else if constexpr (std::is_same_v<DataTypeString, LeftDataType>)
                     return (res = executeStringInteger<ColumnString>(arguments, left, right)) != nullptr;
+            }
+            else if constexpr (IsInterval<LeftDataType> || IsInterval<RightDataType>)
+            {
+                if constexpr (!ConcreteOp::allow_interval)
+                    return false;
+
+                return (res = executeInterval(arguments, result_type, input_rows_count)) != nullptr;
             }
             else
                 return (res = executeNumeric(arguments, left, right, right_nullmap)) != nullptr;
