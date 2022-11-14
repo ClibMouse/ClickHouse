@@ -8,7 +8,6 @@ namespace DB
 enum class KQLFunctionValue : uint16_t
 {
     none,
-    timespan,
     ago,
     datetime_add,
     datetime_part,

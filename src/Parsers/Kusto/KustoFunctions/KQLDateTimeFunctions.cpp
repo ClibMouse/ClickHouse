@@ -25,14 +25,6 @@ extern const int SYNTAX_ERROR;
 }
 namespace DB
 {
-
-bool TimeSpan::convertImpl(String & out, IParser::Pos & pos)
-{
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
-}
-
 bool Ago::convertImpl(String & out, IParser::Pos & pos)
 {
     const String fn_name = getKQLFunctionName(pos);
@@ -129,16 +121,12 @@ bool DatetimeDiff::convertImpl(String & out, IParser::Pos & pos)
     const String fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;
-    ++pos;
-    String arguments;
 
-    arguments = arguments + getConvertedArgument(fn_name, pos) + ",";
-    ++pos;
-    arguments = arguments + getConvertedArgument(fn_name, pos) + ",";
-    ++pos;
-    arguments = arguments + getConvertedArgument(fn_name, pos);
+    const auto period = getArgument(fn_name, pos);
+    const auto datetime_lhs = getArgument(fn_name, pos);
+    const auto datetime_rhs = getArgument(fn_name, pos);
+    out = std::format("dateDiff({}, {}, {})", period, datetime_rhs, datetime_lhs);
 
-    out = std::format("DateDiff({}) * -1", arguments);
     return true;
 }
 
@@ -149,13 +137,13 @@ bool DayOfMonth::convertImpl(String & out, IParser::Pos & pos)
 
 bool DayOfWeek::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
+    const auto fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;
-    ++pos;
-    const String datetime_str = getConvertedArgument(fn_name, pos);
-    
-    out = std::format("(toDayOfWeek({})%7)*86400",datetime_str);
+
+    const auto datetime = getArgument(fn_name, pos);
+    out = std::format("(toDayOfWeek({}) % 7) * {}", datetime, kqlCallToExpression("timespan", {"1d"}, pos.max_depth));
+
     return true;
 }
 
@@ -349,147 +337,78 @@ bool FormatDateTime::convertImpl(String & out, IParser::Pos & pos)
 
     return true;
 }
+
 bool FormatTimeSpan::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
+    static const std::unordered_set<char> ALLOWED_DELIMITERS{' ', '/', '-', ':', ',', '.', '_', '[', ']'};
+    static const std::unordered_map<char, std::tuple<std::string_view, std::optional<int>, bool, int, std::optional<std::string_view>>>
+        ATTRIBUTES_BY_FORMAT_CHARACTER{
+            {'d', {"1d", std::nullopt, false, 8, "leftPad"}},
+            {'f', {"1tick", 10'000'000, true, 7, "rightPad"}},
+            {'F', {"1tick", 10'000'000, true, 7, std::nullopt}},
+            {'h', {"1h", 24, false, 2, "leftPad"}},
+            {'H', {"1h", 24, false, 2, "leftPad"}},
+            {'m', {"1m", 60, false, 2, "leftPad"}},
+            {'s', {"1s", 60, false, 2, "leftPad"}}};
+
+    const auto fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;
-    String formatspecifier;
-    ++pos;
-    const auto datetime = getConvertedArgument(fn_name, pos);
-    ++pos;
-    auto format = getConvertedArgument(fn_name, pos);
-    size_t decimal = 0;
-    trim(format);
-    //remove quotes and end space from format argument.
-    if (format.front() == '\"' || format.front() == '\'')
+
+    const auto timespan = getArgument(fn_name, pos);
+    const auto format = getArgument(fn_name, pos);
+    if (std::ssize(format) < 3 || format.front() != format.back() || format.front() != '\'')
+        throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Expected non-empty string literal as the second argument to {}", fn_name);
+
+    std::string current_streak;
+    std::string delimited_parts;
+    const auto convert_streak = [&current_streak, &timespan, &delimited_parts, &pos]
     {
-        format.erase(0, 1); // erase the first quote
-        format.erase(format.size() - 1); // erase the last quote
-    }
-    std::vector<String> res;
-    getTokens(format, res);
-    size_t pad = 0;
-    std::string::size_type i = 0;
-
-
-    bool is_day_in_format = false;
-    String day_val = std::to_string(std::stoi(datetime) / 86400);
-    bool is_hour_zero = std::stoi(datetime) % 86400 > 3600 ? false : true;
-
-    while (i < format.size())
-    {
-        char c = format[i];
-        if (!isalpha(c))
+        while (!current_streak.empty())
         {
-            //delimiter
-            if (c == ' ' || c == '-' || c == '_' || c == '[' || c == ']' || c == '/' || c == ',' || c == '.' || c == ':')
-                formatspecifier = formatspecifier + c;
-            else
-                throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid format delimiter in function: {}", fn_name);
-            ++i;
+            if (!delimited_parts.empty())
+                delimited_parts.append(", ");
+
+            const auto attributes_it = ATTRIBUTES_BY_FORMAT_CHARACTER.find(current_streak.front());
+            if (attributes_it == ATTRIBUTES_BY_FORMAT_CHARACTER.cend())
+                throw Exception(ErrorCodes::LOGICAL_ERROR, "Unexpected format character: {}", current_streak.front());
+
+            const auto & [timespan_unit, modulus, should_truncate, max_length, pad_function] = attributes_it->second;
+            const auto streak_length = std::ssize(current_streak);
+            const auto part_length = std::min(streak_length, static_cast<std::ptrdiff_t>(max_length));
+            current_streak.erase(current_streak.cbegin(), current_streak.cbegin() + part_length);
+
+            auto expression = std::format("intDiv({}, {})", timespan, kqlCallToExpression("timespan", {timespan_unit}, pos.max_depth));
+            expression = std::format("toString({})", modulus ? std::format("modulo({}, {})", expression, *modulus) : expression);
+            if (should_truncate)
+                expression = std::format("substring({}, 1, {})", expression, part_length);
+
+            delimited_parts.append(
+                pad_function ? std::format("if(length({1}) < {2}, {0}({1}, {2}, '0'), {1})", *pad_function, expression, part_length)
+                             : expression);
+        }
+    };
+
+    for (const auto & c : std::string_view(format.cbegin() + 1, format.cend() - 1))
+    {
+        if (ALLOWED_DELIMITERS.contains(c))
+        {
+            convert_streak();
+            delimited_parts.append(std::format(", '{}'", c));
+        }
+        else if (ATTRIBUTES_BY_FORMAT_CHARACTER.contains(c))
+        {
+            if (!current_streak.empty() && current_streak.back() != c)
+                convert_streak();
+
+            current_streak.push_back(c);
         }
         else
-        {
-            //format specifier
-            String arg = res.back();
+            throw Exception(ErrorCodes::BAD_ARGUMENTS, "Unexpected character '{}' in format string of {}", c, fn_name);
+    }
 
-            if (arg == "s" || arg == "ss")
-                formatspecifier = formatspecifier + "%S";
-            else if (arg == "m" || arg == "mm")
-                formatspecifier = formatspecifier + "%i";
-            else if (arg == "h" || arg == "hh")
-            {
-                if (is_hour_zero) //To handle the CH limit for 12hr format(01-12). If not handled, 1.00:00:00 returned as 1.12:00:00(in 12 hr format)
-                    formatspecifier = formatspecifier + "%h";
-                else
-                    formatspecifier = formatspecifier + "%H";
-            }
-            else if (arg == "H" || arg == "HH")
-                formatspecifier = formatspecifier + "%H";
-            else if (arg.starts_with('d')) //&& arg.size() >2)
-            {
-                pad = std::max(arg.size(), day_val.length());
-                is_day_in_format = true;
-            }
-            else if (arg.starts_with('f') || arg.starts_with('F'))
-                decimal = arg.size();
-            else
-                throw Exception(ErrorCodes::SYNTAX_ERROR, "Format specifier {} in function:{} is not supported", arg, fn_name);
-            res.pop_back();
-            i = i + arg.size();
-        }
-    }
-    auto last_delim = formatspecifier.substr(formatspecifier.length() - 1, formatspecifier.length());
-
-    if (!is_day_in_format)
-    {
-        if (decimal > 0)
-        {
-            if (format.substr(format.length() - decimal - 1, 1) == last_delim)
-                out = std::format(
-                    "concat(substring(toString(formatDateTime(toDateTime64({0},9,'UTC') ,'{1}')),1, length(toString(formatDateTime("
-                    "toDateTime64({0},9,'UTC'),'{1}'))) - position("
-                    "reverse(toString(formatDateTime(toDateTime64({0},9,'UTC'),'{1}'))),'{3}')+1),substring(SUBSTRING(toString("
-                    "toDateTime64({0},9,'UTC')),position(toString(toDateTime64({0},9,'UTC')),'.')+1),1,{2}))",
-                    datetime,
-                    formatspecifier,
-                    decimal,
-                    last_delim);
-            else
-                out = std::format(
-                    "concat(substring(toString(formatDateTime(toDateTime64({0},9,'UTC') ,'{1}')),1, length(toString(formatDateTime("
-                    "toDateTime64({0},9,'UTC'),'{1}'))) - position("
-                    "reverse(toString(formatDateTime(toDateTime64({0},9,'UTC'),'{1}'))),'{3}')),substring(SUBSTRING(toString(toDateTime64({"
-                    "0},9,'UTC')),position(toString(toDateTime64({0},9,'UTC')),'.')+1),1,{2}))",
-                    datetime,
-                    formatspecifier,
-                    decimal,
-                    last_delim);
-        }
-        else
-            out = std::format("formatDateTime(toDateTime64({0},9,'UTC'),'{1}')", datetime, formatspecifier);
-    }
-    else
-    {
-        if (decimal > 0)
-        {
-            if (format.substr(format.length() - decimal - 1, 1) == last_delim)
-                out = std::format(
-                    "concat(leftPad('{5}', {3},'0'),substring(toString(formatDateTime(toDateTime64({0},9,'UTC'),'{1}')),1,"
-                    "length(toString(formatDateTime(toDateTime64({0},9,'UTC'),'{1}'))) - position("
-                    "reverse(toString(formatDateTime(toDateTime64({0},9,'UTC'),'{1}'))),'{4}') "
-                    "+1),substring(SUBSTRING(toString(toDateTime64({0},9,'UTC')),position(toString(toDateTime64({0},9,'UTC')),'.')+1),1,{2}"
-                    "))",
-                    datetime,
-                    formatspecifier,
-                    decimal,
-                    pad,
-                    last_delim,
-                    day_val);
-            else
-                out = std::format(
-                    "concat(leftPad('{5}', {3}, '0'),substring(toString(formatDateTime(toDateTime64({0},9,'UTC'),'{1}')),1,"
-                    "length(toString(formatDateTime(toDateTime64({0},9,'UTC'),'{1}'))) - position("
-                    "reverse(toString(formatDateTime(toDateTime64({0},9,'UTC'),'{1}'))),'{4}')),substring(SUBSTRING(toString(toDateTime64({"
-                    "0},9,'UTC')),position(toString(toDateTime64({0},9,'UTC')),'.')+1),1,{2}),substring(toString(formatDateTime("
-                    "toDateTime64({0},9,'UTC'),'{1}')),position(toString(formatDateTime("
-                    "toDateTime64({0},9,'UTC'),'{1}')),'{4}'),length(toString(formatDateTime(toDateTime64({0},9,'UTC'),'{1}')))))",
-                    datetime,
-                    formatspecifier,
-                    decimal,
-                    pad,
-                    last_delim,
-                    day_val);
-        }
-        else if (decimal == 0)
-            out = std::format(
-                "concat(leftPad('{3}',{2},'0'),toString(formatDateTime(toDateTime64({0},9,'UTC'),'{1}')))",
-                datetime,
-                formatspecifier,
-                pad,
-                day_val);
-    }
+    convert_streak();
+    out = "concat(" + delimited_parts + ", '')";
     return true;
 }
 
@@ -510,72 +429,30 @@ bool HoursOfDay::convertImpl(String & out, IParser::Pos & pos)
 
 bool MakeTimeSpan::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
+     const String fn_name = getKQLFunctionName(pos);
+     if (fn_name.empty())
+         return false;
 
-    if (fn_name.empty())
-        return false;
+    const auto arg1 = getArgument(fn_name, pos);
+    const auto arg2 = getArgument(fn_name, pos);
+    const auto arg3 = getOptionalArgument(fn_name, pos);
+    const auto arg4 = getOptionalArgument(fn_name, pos);
 
-    ++pos;
-    String datetime_str;
-    String hour;
-    String day;
-    String minute;
-    String second;
-    int arg_count = 0;
-    std::vector<String> args;
-    while (!pos->isEnd() && pos->type != TokenType::ClosingRoundBracket)
-    {
-        String arg = getConvertedArgument(fn_name, pos);
-        args.insert(args.begin(), arg);
-        if (pos->type == TokenType::Comma)
-            ++pos;
-        ++arg_count;
-    }
-
-    if (arg_count < 2 || arg_count > 4)
-        throw Exception(ErrorCodes::SYNTAX_ERROR, "argument count out of bound in function: {}", fn_name);
-
-    if (arg_count == 2)
-    {
-        hour = args.back();
-        args.pop_back();
-        minute = args.back();
-        args.pop_back();
-        datetime_str = hour + ":" + minute;
-    }
-    else if (arg_count == 3)
-    {
-        hour = args.back();
-        args.pop_back();
-        minute = args.back();
-        args.pop_back();
-        second = args.back();
-        args.pop_back();
-
-        datetime_str = hour + ":" + minute + ":" + second;
-    }
-    else if (arg_count == 4)
-    {
-        day = args.back();
-        args.pop_back();
-        hour = args.back();
-        args.pop_back();
-        minute = args.back();
-        args.pop_back();
-        second = args.back();
-        args.pop_back();
-
-        datetime_str = hour + ":" + minute + ":" + second;
-        day = day + ".";
-    }
-    else
-        throw Exception(ErrorCodes::SYNTAX_ERROR, "argument count out of bound in function: {}", fn_name);
-
-    //Add dummy yyyy-mm-dd to parse datetime in CH
-    datetime_str = "0000-00-00 " + datetime_str;
+    const auto & [day, hour, minute, second]
+        = std::invoke([&arg1, &arg2, &arg3, &arg4]
+                      { return arg4 ? std::make_tuple(arg1, arg2, *arg3, *arg4) : std::make_tuple("0", arg1, arg2, arg3.value_or("0")); });
 
     out = std::format(
-        "CONCAT('{}',toString(SUBSTRING(toString(toTime(parseDateTime64BestEffortOrNull('{}', 9,'UTC'))),12)))", day, datetime_str);
+        "{} * {} + {} * {} + {} * {} + {} * {}",
+        day,
+        kqlCallToExpression("timespan", {"1d"}, pos.max_depth),
+        hour,
+        kqlCallToExpression("timespan", {"1h"}, pos.max_depth),
+        minute,
+        kqlCallToExpression("timespan", {"1m"}, pos.max_depth),
+        second,
+        kqlCallToExpression("timespan", {"1s"}, pos.max_depth));
+
     return true;
 }
 

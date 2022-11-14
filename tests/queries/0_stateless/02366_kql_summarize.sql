@@ -25,6 +25,12 @@ CREATE TABLE Customers
 
 INSERT INTO Customers VALUES  ('Theodore','Diaz','Skilled Manual','Bachelors',28),('Stephanie','Cox','Management abcd defg','Bachelors',33),('Peter','Nara','Skilled Manual','Graduate Degree',26),('Latoya','Shen','Professional','Graduate Degree',25),('Joshua','Lee','Professional','Partial College',26),('Edward','Hernandez','Skilled Manual','High School',36),('Dalton','Wood','Professional','Partial College',42),('Christine','Nara','Skilled Manual','Partial College',33),('Cameron','Rodriguez','Professional','Partial College',28),('Angel','Stewart','Professional','Partial College',46),('Apple','','Skilled Manual','Bachelors',28),(NULL,'why','Professional','Partial College',38);
 
+-- datatable (LogEntry:string, Created:long) [
+--     'Darth Vader has entered the room.', 546,
+--     'Rambo is suspciously looking at Darth Vader.', 245234,
+--     'Darth Sidious electrocutes both using Force Lightning.', 245554
+-- ]
+
 drop table if exists EventLog;
 create table EventLog
 (
@@ -91,7 +97,7 @@ Customers | sort by FirstName | summarize count() by Occupation | sort by Occupa
 print '-- summarize with bin --';
 EventLog | summarize count=count() by bin(Created, 1000);
 EventLog | summarize count=count() by bin(unixtime_seconds_todatetime(Created/1000), 1s);
-EventLog | summarize count=count() by time_label=bin(Created/1000, 1s);
+EventLog | summarize count=count() by time_label=bin(Created / 1000 * 1s, 1s);
 Dates | project bin(datetime(EventTime), 1m);
 print '-- make_list_with_nulls --';
 Customers | summarize t = make_list_with_nulls(FirstName);
