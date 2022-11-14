@@ -85,12 +85,14 @@ bool ToString::convertImpl(String & out, IParser::Pos & pos)
     const auto param = getArgument(function_name, pos);
     out = std::format("ifNull(toString({0}), '')", param);
     return true;
-} 
+}
+
 bool ToTimeSpan::convertImpl(String & out, IParser::Pos & pos)
 {
     const auto function_name = getKQLFunctionName(pos);
     if (function_name.empty())
         return false;
+
     ++pos;
     String arg;
      if (pos->type == TokenType::QuotedIdentifier)
@@ -105,16 +107,15 @@ bool ToTimeSpan::convertImpl(String & out, IParser::Pos & pos)
         ++pos;
         try
         {
-           auto result =  kqlCallToExpression("time", {arg}, pos.max_depth);
-            out = std::format("{}" , result);
+            out = kqlCallToExpression("timespan", {arg}, pos.max_depth);
         }
         catch(...)
         {
-            out = "NULL";
+            out = "null";
         }
     }
     else
-        out = std::format("{}" , arg);
+        out = arg;
 
     return true;
 }

@@ -4,22 +4,6 @@
 #include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
 namespace DB
 {
-
-class TimeSpan : public IParserKQLFunction
-{
-protected:
-    const char * getName() const override { return "timespan()"; }
-    bool convertImpl(String &out,IParser::Pos &pos) override;
-};
-/*
-class DateTime : public IParserKQLFunction
-{
-protected:
-    const char * getName() const override { return "datetime()"; }
-    bool convertImpl(String &out,IParser::Pos &pos) override;
-};*/
-
-
 class Ago : public IParserKQLFunction
 {
 protected:

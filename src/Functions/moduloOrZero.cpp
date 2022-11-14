@@ -4,14 +4,12 @@
 
 namespace DB
 {
-namespace
-{
-
 template <typename A, typename B>
 struct ModuloOrZeroImpl
 {
     using ResultType = typename NumberTraits::ResultOfModulo<A, B>::Type;
     static const constexpr bool allow_fixed_string = false;
+    static const constexpr bool allow_interval = true;
     static const constexpr bool allow_string_integer = false;
 
     template <typename Result = ResultType>
@@ -38,8 +36,6 @@ struct ModuloOrZeroImpl
 
 struct NameModuloOrZero { static constexpr auto name = "moduloOrZero"; };
 using FunctionModuloOrZero = BinaryArithmeticOverloadResolver<ModuloOrZeroImpl, NameModuloOrZero>;
-
-}
 
 REGISTER_FUNCTION(ModuloOrZero)
 {

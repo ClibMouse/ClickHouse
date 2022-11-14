@@ -9,6 +9,7 @@ struct BitHammingDistanceImpl
 {
     using ResultType = UInt8;
     static const constexpr bool allow_fixed_string = false;
+    static const constexpr bool allow_interval = false;
     static const constexpr bool allow_string_integer = false;
 
     template <typename Result = ResultType>
