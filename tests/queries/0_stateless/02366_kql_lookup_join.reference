@@ -1,0 +1,74 @@
+-- lookup 1 --
+1	Bill	Gates	billg
+2	Bill	Clinton	billc
+3	Bill	Clinton	billc
+4	Steve	Ballmer	steveb
+5	Tim	Cook	timc
+-- lookup 2 --
+1	Bill	Gates	billg
+2	Bill	Clinton	billc
+3	Bill	Clinton	billc
+4	Steve	Ballmer	steveb
+5	Tim	Cook	timc
+-- lookup 3 --
+1	Bill	Gates	billg
+2	Bill	Clinton	billc
+3	Bill	Clinton	billc
+4	Steve	Ballmer	
+5	Tim	Cook	
+-- lookup 4 --
+1	Bill	Gates	billg
+2	Bill	Clinton	billc
+3	Bill	Clinton	billc
+4	Steve	Ballmer	steveb
+5	Tim	Cook	timc
+-- lookup 5 --
+1	Bill	Gates	billg	billg
+2	Bill	Clinton	billc	billc
+3	Bill	Clinton	billc	billc
+4	Steve	Ballmer		steveb
+5	Tim	Cook		timc
+-- Default join --
+c	4	30
+c	4	20
+b	3	10
+-- Default join 2--
+c	4	30
+c	4	20
+b	3	10
+-- Inner-join --
+c	4	30
+c	4	20
+b	3	10
+b	2	10
+-- Left outer-join --
+c	4	30
+c	4	20
+b	3	10
+b	2	10
+a	1	0
+-- Right outer-join --
+d	0	40
+c	4	30
+c	4	20
+b	3	10
+b	2	10
+-- Full outer-join  --
+d	0	40
+c	4	30
+c	4	20
+b	3	10
+b	2	10
+a	1	0
+-- Left anti-join --
+a	1	0
+-- Right anti-join --
+d	0	40
+-- Left semi-join --
+c	4	30
+b	3	10
+b	2	10
+-- Right semi-join --
+c	4	30
+c	4	20
+b	3	10
