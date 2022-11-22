@@ -13,7 +13,7 @@ public:
     static String getExprFromToken(Pos & pos);
     static String getExprFromToken(const String & text, const uint32_t max_depth);
     static String getExprFromPipe(Pos & pos);
-    static bool setSubQuerySource(ASTPtr & select_query, ASTPtr & source, bool dest_is_subquery, bool src_is_subquery);
+    static bool setSubQuerySource(ASTPtr & select_query, ASTPtr & source, const bool dest_is_subquery, const bool src_is_subquery, const String alias = "");
     static bool parseSQLQueryByString(ParserPtr && parser, String & query, ASTPtr & select_node, int32_t max_depth);
     bool parseByString(const String expr, ASTPtr & node, const uint32_t max_depth);
     virtual bool updatePipeLine (OperationsPos & /*operations*/, String & /*query*/) {return false;}
@@ -33,8 +33,10 @@ public:
     static bool getOperations(Pos & pos, Expected & expected, OperationsPos & operation_pos);
 protected:
     static std::unique_ptr<ParserKQLBase> getOperator(String &op_name);
+    static bool pre_process(String & source, Pos & pos);
     const char * getName() const override { return "KQL query"; }
     bool parseImpl(Pos & pos, ASTPtr & node, Expected & expected) override;
+    bool executeImpl(Pos & pos, ASTPtr & node, Expected & expected);
 };
 
 class ParserKQLSubquery : public ParserKQLBase

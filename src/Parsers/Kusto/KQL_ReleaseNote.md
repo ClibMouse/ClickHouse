@@ -1,4 +1,100 @@
 ## KQL implemented features  
+# November 21, 2022
+
+## Operator
+- [join](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/joinoperator?pivots=azuredataexplorer)  
+   ```
+   CREATE TABLE X (Key String, Value1 Int64) ENGINE = Memory;
+   INSERT INTO X VALUES  ('a',1);
+   INSERT INTO X VALUES  ('b',2);
+   INSERT INTO X VALUES  ('b',3);
+   INSERT INTO X VALUES  ('c',4);
+   
+   CREATE TABLE Y  (Key String, Value2 Int64) ENGINE = Memory;
+   INSERT INTO  Y  VALUES  ('b',10);
+   INSERT INTO  Y  VALUES  ('c',20);
+   INSERT INTO  Y  VALUES  ('c',30);
+   INSERT INTO  Y  VALUES  ('d',40);
+
+   Join flavor : 
+  
+   Default join is innerunique
+      X | join Y  on $left.Key == $right.Key ;
+      X | join kind=innerunique Y  on Key ;
+
+   Inner-join
+      X | join kind=inner Y  on Key ;
+
+   Left outer-join
+      X | join kind=leftouter Y  on Key ;
+
+   Right outer-join
+      X | join kind=rightouter Y  on Key ;
+
+   Full outer-join 
+      X | join kind=fullouter Y  on Key ;
+
+   Left anti-join
+      X | join kind=leftanti Y  on Key ;
+
+   Right anti-join
+      X | join kind=rightanti Y  on Key ;
+
+   Left semi-join
+      X | join kind=leftsemi Y  on Key ;
+
+   Right semi-join
+      X | join kind=rightsemi Y  on Key ;
+   ```
+   **Deviation from ADX**
+   Becasue of the limitation between KQL and SQL. the result may different from ADX.(KQL-CH take the result of ClickHouse)
+   - columns  
+      ADX : common columns are duplicatedc in output
+      KQL-CH : only one column for common columns 
+   - column name  
+      ADX : column with same name (not common) ->column1
+      KQL-CH : column with same name (not common) -> right_.column
+   - filters  
+      ADX: Kusto is optimized to push filters that come after the join, towards the appropriate join side, left or right, when possible  
+      KQL-CH: because in the domanin of KQL, does not know the schema of tables, so the push need to manualy done by user, like: 
+      ```
+      t1|join kind = innerunique t2 on key | where value == 'val1.2'
+      ```
+      need to chang as the fowllowing by user(if user want) :
+      ```
+      t1| where value == 'val1.2' | join kind = innerunique t2 on key 
+      ```
+   - semi join flavor  
+      ADX : only returns left side or right side columns  
+      KQL-CH : returns columns from both side  
+      
+- [lookup](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/lookupoperator)  
+   lookup is a sunset of join, only support : kind=leftouter and kind=inner. if kind unspecified, kind=leftouter  
+   ```
+   DROP TABLE IF EXISTS FactTable;
+   CREATE TABLE FactTable (Row String, Personal String, Family String) ENGINE = Memory;
+   INSERT INTO FactTable VALUES  ('1', 'Bill',   'Gates');
+   INSERT INTO FactTable VALUES  ('2', 'Bill',   'Clinton');
+   INSERT INTO FactTable VALUES  ('3', 'Bill',   'Clinton');
+   INSERT INTO FactTable VALUES  ('4', 'Steve',  'Ballmer');
+   INSERT INTO FactTable VALUES  ('5', 'Tim',    'Cook');
+
+   DROP TABLE IF EXISTS DimTable;
+   CREATE TABLE DimTable (Personal String, Family String, Alias String) ENGINE = Memory;
+   INSERT INTO DimTable VALUES  ('Bill',  'Gates',   'billg');
+   INSERT INTO DimTable VALUES  ('Bill',  'Clinton', 'billc');
+   INSERT INTO DimTable VALUES  ('Steve', 'Ballmer', 'steveb');
+   INSERT INTO DimTable VALUES  ('Tim',   'Cook',    'timc');  
+
+   FactTable | lookup kind=leftouter DimTable on Personal, Family 
+
+   FactTable | lookup kind=inner  DimTable on Personal, Family 
+   ```
+
+## Bugs fixed
+   - [KQL-phase2 distinct operator does not support alias](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1505)  
+
+
 # November 7, 2022
 ## Improvement
 - [array_sort_asc](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/arraysortascfunction) and [array_sort_desc](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/arraysortdescfunction)
