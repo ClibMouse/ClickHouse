@@ -26,3 +26,6 @@ Customers where Age <30 | distinct Occupation, Education;
 
 print '--  distinct with where, order --';
 Customers |where Age <30 | order by Age| distinct Occupation, Education;
+
+print '--  distinct with alias --';
+Customers | project a = (Age % 10) | distinct a;
