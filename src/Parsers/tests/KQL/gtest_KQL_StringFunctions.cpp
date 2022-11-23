@@ -88,47 +88,47 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "print time('1.22:34:8.128')",
-            "SELECT CAST('167648.128', 'Float64')"
+            "SELECT toIntervalNanosecond(167648128000000)"
         },
         {
             "print time('1d')",
-            "SELECT CAST('86400', 'Float64')"
+            "SELECT toIntervalNanosecond(86400000000000)"
         },
         {
             "print time('1.5d')",
-            "SELECT CAST('129600', 'Float64')"
+            "SELECT toIntervalNanosecond(129600000000000)"
         },
         {
             "print timespan('1.5d')",
-            "SELECT CAST('129600', 'Float64')"
+            "SELECT toIntervalNanosecond(129600000000000)"
         },
         {
             "print res = bin_at(6.5, 2.5, 7)",
-            "SELECT toFloat64(7) + (toInt64(((toFloat64(6.5) - toFloat64(7)) / 2.5) + -1) * 2.5) AS res"
+            "SELECT kql_bin(6.5 - 7, 2.5) + 7 AS res"
         },
         {
             "print res = bin_at(1h, 1d, 12h)",
-            "SELECT concat(toString(toInt32(((toFloat64(43200) + (toInt64(((toFloat64(3600) - toFloat64(43200)) / 86400) + -1) * 86400)) AS x) / 3600)), ':', toString(toInt32((x % 3600) / 60)), ':', toString(toInt32((x % 3600) % 60))) AS res"
+            "SELECT kql_bin(toIntervalNanosecond(3600000000000) - toIntervalNanosecond(43200000000000), toIntervalNanosecond(86400000000000)) + toIntervalNanosecond(43200000000000) AS res"
         },
         {
             "print res = bin_at(datetime(2017-05-15 10:20:00.0), 1d, datetime(1970-01-01 12:00:00.0))",
-            "SELECT toDateTime64(toFloat64(parseDateTime64BestEffortOrNull('1970-01-01 12:00:00.0', 9, 'UTC')) + (toInt64(((toFloat64(parseDateTime64BestEffortOrNull('2017-05-15 10:20:00.0', 9, 'UTC')) - toFloat64(parseDateTime64BestEffortOrNull('1970-01-01 12:00:00.0', 9, 'UTC'))) / 86400) + 0) * 86400), 9, 'UTC') AS res"
+            "SELECT kql_bin(parseDateTime64BestEffortOrNull('2017-05-15 10:20:00.0', 9, 'UTC') - parseDateTime64BestEffortOrNull('1970-01-01 12:00:00.0', 9, 'UTC'), toIntervalNanosecond(86400000000000)) + parseDateTime64BestEffortOrNull('1970-01-01 12:00:00.0', 9, 'UTC') AS res"
         },
         {
             "print bin(4.5, 1)",
-            "SELECT CAST(multiIf(toFloat64(1) > 0, toInt64(toFloat64(4.5) / toFloat64(1)) * toFloat64(1), (toFloat64(1) < 0) AND (abs(toFloat64(1)) < toFloat64(4.5)), ceil(toFloat64(4.5) / abs(toFloat64(1))) * abs(toFloat64(1)), (abs(toFloat64(1)) > toFloat64(4.5)) AND (toFloat64(1) < 0), toFloat64(1), NULL), toTypeName(4.5))"
+            "SELECT kql_bin(4.5, 1)"
         },
         {
             "print bin(4.5, -1)",
-            "SELECT CAST(multiIf(toFloat64(-1) > 0, toInt64(toFloat64(4.5) / toFloat64(-1)) * toFloat64(-1), (toFloat64(-1) < 0) AND (abs(toFloat64(-1)) < toFloat64(4.5)), ceil(toFloat64(4.5) / abs(toFloat64(-1))) * abs(toFloat64(-1)), (abs(toFloat64(-1)) > toFloat64(4.5)) AND (toFloat64(-1) < 0), toFloat64(-1), NULL), toTypeName(4.5))"
+            "SELECT kql_bin(4.5, -1)"
         },
         {
             "print bin(time(16d), 7d)",
-            "SELECT concat(toString(toInt32((toInt64(toFloat64(CAST('1382400', 'Float64')) / toFloat64(604800)) * toFloat64(604800)) / 86400) AS x), '.', toString(toInt32((x % 86400) / 3600)), ':', toString(toInt32(((x % 86400) % 3600) / 60)), ':', toString(toInt32((((x % 86400) % 3600) % 60) / 60)), if(empty(if(countSubstrings(CAST(toInt64(toFloat64(CAST('1382400', 'Float64')) / toFloat64(604800)) * toFloat64(604800), 'String'), '.') = 0, '', substr(CAST(toInt64(toFloat64(CAST('1382400', 'Float64')) / toFloat64(604800)) * toFloat64(604800), 'String'), position(CAST(toInt64(toFloat64(CAST('1382400', 'Float64')) / toFloat64(604800)) * toFloat64(604800), 'String'), '.') + 1))), '', concat('.', substr(if(countSubstrings(CAST(toInt64(toFloat64(CAST('1382400', 'Float64')) / toFloat64(604800)) * toFloat64(604800), 'String'), '.') = 0, '', substr(CAST(toInt64(toFloat64(CAST('1382400', 'Float64')) / toFloat64(604800)) * toFloat64(604800), 'String'), position(CAST(toInt64(toFloat64(CAST('1382400', 'Float64')) / toFloat64(604800)) * toFloat64(604800), 'String'), '.') + 1)), 1, 4))))"
+            "SELECT kql_bin(toIntervalNanosecond(1382400000000000), toIntervalNanosecond(604800000000000))"
         },
         {
             "print bin(datetime(1970-05-11 13:45:07), 1d)",
-            "SELECT toDateTime64(toInt64(toFloat64(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07', 9, 'UTC')) / toFloat64(86400)) * toFloat64(86400), 4, 'UTC')"
+            "SELECT kql_bin(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07', 9, 'UTC'), toIntervalNanosecond(86400000000000))"
         },
         {
             "print extract('x=([0-9.]+)', 1, 'hello x=456|wo' , typeof(bool));",
@@ -188,11 +188,11 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "print bin(datetime(1970-05-11 13:45:07.456345672), 1ms)",
-            "SELECT toDateTime64(toInt64(toFloat64(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07.456345672', 9, 'UTC')) / toFloat64(0.001)) * toFloat64(0.001), 3, 'UTC')"
+            "SELECT kql_bin(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07.456345672', 9, 'UTC'), toIntervalNanosecond(1000000))"
         },
         {
             "print bin(datetime(1970-05-11 13:45:07.456345672), 1microseconds)",
-            "SELECT toDateTime64(toInt64(toFloat64(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07.456345672', 9, 'UTC')) / toFloat64(0.000001)) * toFloat64(0.000001), 6, 'UTC')"
+            "SELECT kql_bin(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07.456345672', 9, 'UTC'), toIntervalNanosecond(1000))"
         },
         {
             "print parse_command_line('echo \"hello world!\" print$?', 'windows')",

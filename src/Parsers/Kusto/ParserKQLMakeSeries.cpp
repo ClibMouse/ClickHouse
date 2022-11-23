@@ -1,4 +1,4 @@
-#include "KQLTimespanParser.h"
+#include "ParserKQLTimespan.h"
 
 #include <Parsers/ASTLiteral.h>
 #include <Parsers/ExpressionListParsers.h>
@@ -139,7 +139,7 @@ bool ParserKQLMakeSeries ::parseFromToStepClause(FromToStepClause & from_to_step
     from_to_step.step_str = String(step_pos->begin, end_pos->end);
 
     if (std::optional<Int64> ticks; String(step_pos->begin, step_pos->end) == "time" || String(step_pos->begin, step_pos->end) == "timespan"
-        || KQLTimespanParser::tryParse(from_to_step.step_str, ticks))
+        || ParserKQLTimespan::tryParse(from_to_step.step_str, ticks))
     {
         // TODO: this is a hack of the ugliest kind that can only be fixed by supporting arbitrary expressions in make-series
         static constexpr std::string_view wrapper = "toIntervalNanosecond(";

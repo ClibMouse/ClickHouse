@@ -56,7 +56,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print dayofweek(datetime(2015-12-20))",
-            "SELECT (toDayOfWeek(parseDateTime64BestEffortOrNull('2015-12-20', 9, 'UTC')) % 7) * 86400"
+            "SELECT (toDayOfWeek(parseDateTime64BestEffortOrNull('2015-12-20', 9, 'UTC')) % 7) * toIntervalNanosecond(86400000000000)"
         },
         {
             "print now()",
@@ -64,12 +64,12 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print now(1d)",
-            "SELECT now64(9, 'UTC') + 86400"
+            "SELECT now64(9, 'UTC') + toIntervalNanosecond(86400000000000)"
         },
         {
             "print ago(2d)",
-            "SELECT now64(9, 'UTC') - 172800"
-        },
+            "SELECT now64(9, 'UTC') - toIntervalNanosecond(172800000000000)"
+        },  
         {
             "print endofday(datetime(2017-01-01 10:10:17), -1)",
             "SELECT (toDateTime(toStartOfDay(parseDateTime64BestEffortOrNull('2017-01-01 10:10:17', 9, 'UTC')), 9, 'UTC') + toIntervalDay(-1 + 1)) - toIntervalMicrosecond(1)"
@@ -128,11 +128,11 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print datetime_diff('year',datetime(2017-01-01),datetime(2000-12-31))",
-            "SELECT dateDiff('year', parseDateTime64BestEffortOrNull('2017-01-01', 9, 'UTC'), parseDateTime64BestEffortOrNull('2000-12-31', 9, 'UTC')) * -1"
+            "SELECT dateDiff('year', parseDateTime64BestEffortOrNull('2000-12-31', 9, 'UTC'), parseDateTime64BestEffortOrNull('2017-01-01', 9, 'UTC'))"
         },
         {
             "print datetime_diff('minute',datetime(2017-10-30 23:05:01),datetime(2017-10-30 23:00:59))",
-            "SELECT dateDiff('minute', parseDateTime64BestEffortOrNull('2017-10-30 23:05:01', 9, 'UTC'), parseDateTime64BestEffortOrNull('2017-10-30 23:00:59', 9, 'UTC')) * -1"
+            "SELECT dateDiff('minute', parseDateTime64BestEffortOrNull('2017-10-30 23:00:59', 9, 'UTC'), parseDateTime64BestEffortOrNull('2017-10-30 23:05:01', 9, 'UTC'))"
         },
         {
             "print datetime(null)",
@@ -148,7 +148,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print make_timespan(67,12,30,59.9799)",
-            "SELECT CONCAT('67.', toString(substring(toString(toTime(parseDateTime64BestEffortOrNull('0000-00-00 12:30:59.9799', 9, 'UTC'))), 12)))"
+            "SELECT (((67 * toIntervalNanosecond(86400000000000)) + (12 * toIntervalNanosecond(3600000000000))) + (30 * toIntervalNanosecond(60000000000))) + (59.9799 * toIntervalNanosecond(1000000000))"
         },
         {
             "print  todatetime('2014-05-25T08:20:03.123456Z')",
@@ -164,19 +164,19 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print format_timespan(time(1d), 'd-[hh:mm:ss]')",
-            "SELECT concat(leftPad('1', 1, '0'), toString(formatDateTime(toDateTime64(CAST('86400', 'Float64'), 9, 'UTC'), '-[%h:%i:%S]')))"
+            "SELECT concat(if(length(toString(intDiv(toIntervalNanosecond(86400000000000), toIntervalNanosecond(86400000000000)))) < 1, leftPad(toString(intDiv(toIntervalNanosecond(86400000000000), toIntervalNanosecond(86400000000000))), 1, '0'), toString(intDiv(toIntervalNanosecond(86400000000000), toIntervalNanosecond(86400000000000)))), '-', '[', if(length(toString(intDiv(toIntervalNanosecond(86400000000000), toIntervalNanosecond(3600000000000)) % 24)) < 2, leftPad(toString(intDiv(toIntervalNanosecond(86400000000000), toIntervalNanosecond(3600000000000)) % 24), 2, '0'), toString(intDiv(toIntervalNanosecond(86400000000000), toIntervalNanosecond(3600000000000)) % 24)), ':', if(length(toString(intDiv(toIntervalNanosecond(86400000000000), toIntervalNanosecond(60000000000)) % 60)) < 2, leftPad(toString(intDiv(toIntervalNanosecond(86400000000000), toIntervalNanosecond(60000000000)) % 60), 2, '0'), toString(intDiv(toIntervalNanosecond(86400000000000), toIntervalNanosecond(60000000000)) % 60)), ':', if(length(toString(intDiv(toIntervalNanosecond(86400000000000), toIntervalNanosecond(1000000000)) % 60)) < 2, leftPad(toString(intDiv(toIntervalNanosecond(86400000000000), toIntervalNanosecond(1000000000)) % 60), 2, '0'), toString(intDiv(toIntervalNanosecond(86400000000000), toIntervalNanosecond(1000000000)) % 60)), ']', '')"
         },
         {
             "print format_timespan(time('12:30:55.123'), 'ddddd-[hh:mm:ss.ffff]')",
-            "SELECT concat(leftPad('0', 5, '0'), substring(toString(formatDateTime(toDateTime64(CAST('45055.123', 'Float64'), 9, 'UTC'), '-[%H:%i:%S.]')), 1, length(toString(formatDateTime(toDateTime64(CAST('45055.123', 'Float64'), 9, 'UTC'), '-[%H:%i:%S.]'))) - position(reverse(toString(formatDateTime(toDateTime64(CAST('45055.123', 'Float64'), 9, 'UTC'), '-[%H:%i:%S.]'))), ']')), substring(substring(toString(toDateTime64(CAST('45055.123', 'Float64'), 9, 'UTC')), position(toString(toDateTime64(CAST('45055.123', 'Float64'), 9, 'UTC')), '.') + 1), 1, 4), substring(toString(formatDateTime(toDateTime64(CAST('45055.123', 'Float64'), 9, 'UTC'), '-[%H:%i:%S.]')), position(toString(formatDateTime(toDateTime64(CAST('45055.123', 'Float64'), 9, 'UTC'), '-[%H:%i:%S.]')), ']'), length(toString(formatDateTime(toDateTime64(CAST('45055.123', 'Float64'), 9, 'UTC'), '-[%H:%i:%S.]')))))"
+            "SELECT concat(if(length(toString(intDiv(toIntervalNanosecond(45055123000000), toIntervalNanosecond(86400000000000)))) < 5, leftPad(toString(intDiv(toIntervalNanosecond(45055123000000), toIntervalNanosecond(86400000000000))), 5, '0'), toString(intDiv(toIntervalNanosecond(45055123000000), toIntervalNanosecond(86400000000000)))), '-', '[', if(length(toString(intDiv(toIntervalNanosecond(45055123000000), toIntervalNanosecond(3600000000000)) % 24)) < 2, leftPad(toString(intDiv(toIntervalNanosecond(45055123000000), toIntervalNanosecond(3600000000000)) % 24), 2, '0'), toString(intDiv(toIntervalNanosecond(45055123000000), toIntervalNanosecond(3600000000000)) % 24)), ':', if(length(toString(intDiv(toIntervalNanosecond(45055123000000), toIntervalNanosecond(60000000000)) % 60)) < 2, leftPad(toString(intDiv(toIntervalNanosecond(45055123000000), toIntervalNanosecond(60000000000)) % 60), 2, '0'), toString(intDiv(toIntervalNanosecond(45055123000000), toIntervalNanosecond(60000000000)) % 60)), ':', if(length(toString(intDiv(toIntervalNanosecond(45055123000000), toIntervalNanosecond(1000000000)) % 60)) < 2, leftPad(toString(intDiv(toIntervalNanosecond(45055123000000), toIntervalNanosecond(1000000000)) % 60), 2, '0'), toString(intDiv(toIntervalNanosecond(45055123000000), toIntervalNanosecond(1000000000)) % 60)), '.', if(length(substring(toString(intDiv(toIntervalNanosecond(45055123000000), toIntervalNanosecond(100)) % 10000000), 1, 4)) < 4, rightPad(substring(toString(intDiv(toIntervalNanosecond(45055123000000), toIntervalNanosecond(100)) % 10000000), 1, 4), 4, '0'), substring(toString(intDiv(toIntervalNanosecond(45055123000000), toIntervalNanosecond(100)) % 10000000), 1, 4)), ']', '')"
         },
         {
             "print v1=format_timespan(time('29.09:00:05.12345'), 'dd.hh:mm:ss:FF')",
-            "SELECT concat(leftPad('29', 2, '0'), substring(toString(formatDateTime(toDateTime64(CAST('2538005.12345', 'Float64'), 9, 'UTC'), '.%H:%i:%S:')), 1, (length(toString(formatDateTime(toDateTime64(CAST('2538005.12345', 'Float64'), 9, 'UTC'), '.%H:%i:%S:'))) - position(reverse(toString(formatDateTime(toDateTime64(CAST('2538005.12345', 'Float64'), 9, 'UTC'), '.%H:%i:%S:'))), ':')) + 1), substring(substring(toString(toDateTime64(CAST('2538005.12345', 'Float64'), 9, 'UTC')), position(toString(toDateTime64(CAST('2538005.12345', 'Float64'), 9, 'UTC')), '.') + 1), 1, 2)) AS v1"
+            "SELECT concat(if(length(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(86400000000000)))) < 2, leftPad(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(86400000000000))), 2, '0'), toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(86400000000000)))), '.', if(length(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(3600000000000)) % 24)) < 2, leftPad(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(3600000000000)) % 24), 2, '0'), toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(3600000000000)) % 24)), ':', if(length(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(60000000000)) % 60)) < 2, leftPad(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(60000000000)) % 60), 2, '0'), toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(60000000000)) % 60)), ':', if(length(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(1000000000)) % 60)) < 2, leftPad(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(1000000000)) % 60), 2, '0'), toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(1000000000)) % 60)), ':', substring(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(100)) % 10000000), 1, 2), '') AS v1"
         },
         {
             "print v2=format_timespan(time('29.09:00:05.12345'), 'ddd.h:mm:ss [fffffff]');",
-            "SELECT concat(leftPad('29', 3, '0'), substring(toString(formatDateTime(toDateTime64(CAST('2538005.12345', 'Float64'), 9, 'UTC'), '.%H:%i:%S []')), 1, length(toString(formatDateTime(toDateTime64(CAST('2538005.12345', 'Float64'), 9, 'UTC'), '.%H:%i:%S []'))) - position(reverse(toString(formatDateTime(toDateTime64(CAST('2538005.12345', 'Float64'), 9, 'UTC'), '.%H:%i:%S []'))), ']')), substring(substring(toString(toDateTime64(CAST('2538005.12345', 'Float64'), 9, 'UTC')), position(toString(toDateTime64(CAST('2538005.12345', 'Float64'), 9, 'UTC')), '.') + 1), 1, 7), substring(toString(formatDateTime(toDateTime64(CAST('2538005.12345', 'Float64'), 9, 'UTC'), '.%H:%i:%S []')), position(toString(formatDateTime(toDateTime64(CAST('2538005.12345', 'Float64'), 9, 'UTC'), '.%H:%i:%S []')), ']'), length(toString(formatDateTime(toDateTime64(CAST('2538005.12345', 'Float64'), 9, 'UTC'), '.%H:%i:%S []'))))) AS v2"
+            "SELECT concat(if(length(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(86400000000000)))) < 3, leftPad(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(86400000000000))), 3, '0'), toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(86400000000000)))), '.', if(length(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(3600000000000)) % 24)) < 1, leftPad(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(3600000000000)) % 24), 1, '0'), toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(3600000000000)) % 24)), ':', if(length(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(60000000000)) % 60)) < 2, leftPad(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(60000000000)) % 60), 2, '0'), toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(60000000000)) % 60)), ':', if(length(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(1000000000)) % 60)) < 2, leftPad(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(1000000000)) % 60), 2, '0'), toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(1000000000)) % 60)), ' ', '[', if(length(substring(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(100)) % 10000000), 1, 7)) < 7, rightPad(substring(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(100)) % 10000000), 1, 7), 7, '0'), substring(toString(intDiv(toIntervalNanosecond(2538005123450000), toIntervalNanosecond(100)) % 10000000), 1, 7)), ']', '') AS v2"
         },
         {
             "print datetime_part('day', datetime(2017-10-30 01:02:03.7654321))",
@@ -188,19 +188,19 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print totimespan(time(1d))",
-            "SELECT CAST('86400', 'Float64')"
+            "SELECT toIntervalNanosecond(86400000000000)"
         },
         {
             "print totimespan('0.01:34:23')",
-            "SELECT CAST('5663', 'Float64')"
+            "SELECT toIntervalNanosecond(5663000000000)"
         },
         {
             "print totimespan(time('-1:12:34'))",
-            "SELECT CAST('-4354', 'Float64')"
+            "SELECT toIntervalNanosecond(-4354000000000)"
         },
         {
             "print totimespan(-1d)",
-            "SELECT -86400"
+            "SELECT -toIntervalNanosecond(86400000000000)"
         },
         {
             "print totimespan('abc')",
@@ -208,11 +208,11 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print time(2)",
-            "SELECT CAST('172800', 'Float64')"
+            "SELECT toIntervalNanosecond(172800000000000)"
         },
         {
             "hits | project bin(datetime(EventTime), 1m)",
-            "SELECT toDateTime64(toInt64(toFloat64(if((toTypeName(EventTime) = 'Int64') OR (toTypeName(EventTime) = 'Int32') OR (toTypeName(EventTime) = 'Float64') OR (toTypeName(EventTime) = 'UInt32') OR (toTypeName(EventTime) = 'UInt64'), toDateTime64(EventTime, 9, 'UTC'), parseDateTime64BestEffortOrNull(CAST(EventTime, 'String'), 9, 'UTC'))) / toFloat64(60)) * toFloat64(60), 4, 'UTC')\nFROM hits"
+            "SELECT kql_bin(if((toTypeName(EventTime) = 'Int64') OR (toTypeName(EventTime) = 'Int32') OR (toTypeName(EventTime) = 'Float64') OR (toTypeName(EventTime) = 'UInt32') OR (toTypeName(EventTime) = 'UInt64'), toDateTime64(EventTime, 9, 'UTC'), parseDateTime64BestEffortOrNull(CAST(EventTime, 'String'), 9, 'UTC')), toIntervalNanosecond(60000000000))\nFROM hits"
         }
 
 })));

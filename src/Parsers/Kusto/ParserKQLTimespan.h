@@ -9,7 +9,7 @@ namespace DB
 {
 std::string kqlTicksToInterval(std::optional<Int64> ticks);
 
-class KQLTimespanParser
+class ParserKQLTimespan
 {
 public:
     static std::optional<Int64> parse(const std::string & expression);

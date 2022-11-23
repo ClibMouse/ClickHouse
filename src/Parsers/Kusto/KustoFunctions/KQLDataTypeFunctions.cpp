@@ -3,7 +3,7 @@
 #include <Parsers/IParserBase.h>
 #include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
 #include <Parsers/Kusto/KustoFunctions/KQLDataTypeFunctions.h>
-#include <Parsers/Kusto/KQLTimespanParser.h>
+#include <Parsers/Kusto/ParserKQLTimespan.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLStatement.h>
 #include <Parsers/Kusto/Utilities.h>
@@ -199,7 +199,7 @@ bool DatatypeTimespan::convertImpl(String & out, IParser::Pos & pos)
         return getArgument(fn_name, pos, ArgumentState::Raw);
     });
 
-    const auto ticks = KQLTimespanParser::parse(argument);
+    const auto ticks = ParserKQLTimespan::parse(argument);
     out = kqlTicksToInterval(ticks);
 
     return true;
