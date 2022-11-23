@@ -1,4 +1,4 @@
-#include "KQLTimespanParser.h"
+#include "ParserKQLTimespan.h"
 #include "Utilities.h"
 
 #include <boost/spirit/home/x3.hpp>
@@ -206,7 +206,7 @@ std::string kqlTicksToInterval(const std::optional<Int64> ticks)
     return std::format("toIntervalNanosecond({})", ticks ? std::to_string(*ticks * 100) : "null");
 }
 
-std::optional<Int64> KQLTimespanParser::parse(const std::string & expression)
+std::optional<Int64> ParserKQLTimespan::parse(const std::string & expression)
 {
     const auto throw_exception
         = [&expression] { throw Exception(ErrorCodes::BAD_ARGUMENTS, "Not a correct timespan expression: {}", expression); };
@@ -242,7 +242,7 @@ std::optional<Int64> KQLTimespanParser::parse(const std::string & expression)
         kql_timespan_variant);
 }
 
-bool KQLTimespanParser::tryParse(const std::string & expression, std::optional<Int64> & ticks)
+bool ParserKQLTimespan::tryParse(const std::string & expression, std::optional<Int64> & ticks)
 {
     try
     {

@@ -60,14 +60,14 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Aggregate, ParserKQLTest,
         },
         {
             "Customers | summarize count() by bin(Age, 10)",
-            "SELECT\n    CAST(multiIf(toFloat64(10) > 0, toInt64(toFloat64(Age) / toFloat64(10)) * toFloat64(10), (toFloat64(10) < 0) AND (abs(toFloat64(10)) < toFloat64(Age)), ceil(toFloat64(Age) / abs(toFloat64(10))) * abs(toFloat64(10)), (abs(toFloat64(10)) > toFloat64(Age)) AND (toFloat64(10) < 0), toFloat64(10), NULL), toTypeName(Age)) AS Age,\n    count() AS count_\nFROM Customers\nGROUP BY Age"
+            "SELECT\n    kql_bin(Age, 10) AS Age,\n    count() AS count_\nFROM Customers\nGROUP BY Age"
         },
         {
             "Customers | summarize count(Age+1) by bin(Age+1, 10)",
-            "SELECT\n    CAST(multiIf(toFloat64(10) > 0, toInt64(toFloat64(Age + 1) / toFloat64(10)) * toFloat64(10), (toFloat64(10) < 0) AND (abs(toFloat64(10)) < toFloat64(Age + 1)), ceil(toFloat64(Age + 1) / abs(toFloat64(10))) * abs(toFloat64(10)), (abs(toFloat64(10)) > toFloat64(Age + 1)) AND (toFloat64(10) < 0), toFloat64(10), NULL), toTypeName(Age + 1)) AS Columns1,\n    count(Age + 1) AS count_\nFROM Customers\nGROUP BY Columns1"
+            "SELECT\n    kql_bin(Age + 1, 10) AS Columns1,\n    count(Age + 1) AS count_\nFROM Customers\nGROUP BY Columns1"
         },
         {
             "Customers | summarize count(Age) by bin(Age, 10)",
-            "SELECT\n    CAST(multiIf(toFloat64(10) > 0, toInt64(toFloat64(Age) / toFloat64(10)) * toFloat64(10), (toFloat64(10) < 0) AND (abs(toFloat64(10)) < toFloat64(Age)), ceil(toFloat64(Age) / abs(toFloat64(10))) * abs(toFloat64(10)), (abs(toFloat64(10)) > toFloat64(Age)) AND (toFloat64(10) < 0), toFloat64(10), NULL), toTypeName(Age)) AS Age,\n    count(Age) AS count_Age\nFROM Customers\nGROUP BY Age"
+            "SELECT\n    kql_bin(Age, 10) AS Age,\n    count(Age) AS count_Age\nFROM Customers\nGROUP BY Age"
         }
 })));
