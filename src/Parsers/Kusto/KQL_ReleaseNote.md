@@ -1,5 +1,5 @@
 ## KQL implemented features  
-# November 21, 2022
+# November 23, 2022
 
 ## Operator
 - [join](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/joinoperator?pivots=azuredataexplorer)  
@@ -92,8 +92,12 @@
    ```
 
 ## Bugs fixed
+   - [KQL phase 2 - timespan calculation results in exception](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1129)  
+   - [KQL phase 2 - format_timespan returns incorrect results](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1133)  
+   - [Bin function should support time intervals less than 1 second](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1207)  
+   - [KQL Phase 2: datetime subtraction results in exception](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1321)  
+   - [Timespan() doesn't parse bareword arguments.](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1329)
    - [KQL-phase2 distinct operator does not support alias](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1505)  
-
 
 # November 7, 2022
 ## Improvement
