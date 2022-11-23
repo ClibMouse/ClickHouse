@@ -1157,7 +1157,8 @@ class FunctionBinaryArithmetic : public IFunction
         return function->execute(new_arguments, result_type, input_rows_count);
     }
 
-    ColumnPtr executeInterval(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const size_t input_rows_count) const
+    ColumnPtr
+    executeInterval(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const size_t input_rows_count) const
     {
         const auto convert_argument = [this, &input_rows_count](const ColumnWithTypeAndName & argument)
         {
@@ -1168,17 +1169,19 @@ class FunctionBinaryArithmetic : public IFunction
                     createConstColumnWithTypeAndName<DataTypeString>(
                         DataTypeNumber<DataTypeInterval::FieldType>().getName(), "target_type")};
 
-                const auto [converted_column, converted_data_type] = executeFunctionCall(context, "cast", conversion_args, input_rows_count);
-                return ColumnWithTypeAndName(converted_column, converted_data_type, argument.name);
+                const auto converted = executeFunctionCall(context, "cast", conversion_args, input_rows_count);
+                return asArgument(converted, argument.name);
             }
 
             return argument;
         };
 
-        const ColumnsWithTypeAndName adjusted_args { convert_argument(arguments.front()), convert_argument(arguments.back()) };
-        const auto [intermediate_column, intermediate_data_type] = executeFunctionCall(context, name, adjusted_args, input_rows_count);
+        const ColumnsWithTypeAndName adjusted_args{convert_argument(arguments.front()), convert_argument(arguments.back())};
+        const auto intermediate = executeFunctionCall(context, name, adjusted_args, input_rows_count);
 
-        const ColumnsWithTypeAndName conversion_args = { { intermediate_column, intermediate_data_type, "intermediate" }, createConstColumnWithTypeAndName<DataTypeString>(result_type->getName(), "target_type") };
+        const ColumnsWithTypeAndName conversion_args
+            = {asArgument(intermediate, "intermediate"),
+               createConstColumnWithTypeAndName<DataTypeString>(result_type->getName(), "target_type")};
         return executeFunctionCall(context, "accurateCastOrNull", conversion_args, input_rows_count).first;
     }
 
