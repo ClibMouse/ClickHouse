@@ -12,7 +12,7 @@
 #include <Parsers/Kusto/KustoFunctions/KQLIPFunctions.h>
 #include <Parsers/Kusto/KustoFunctions/KQLStringFunctions.h>
 #include <Parsers/Kusto/KustoFunctions/KQLTimeSeriesFunctions.h>
-#include <Parsers/Kusto/KQLTimespanParser.h>
+#include <Parsers/Kusto/ParserKQLTimespan.h>
 #include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLStatement.h>
@@ -362,7 +362,7 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
                 --pos;
             }
 
-            if (std::optional<Int64> ticks; KQLTimespanParser::tryParse(extractTokenWithoutQuotes(pos), ticks) && ticks)
+            if (std::optional<Int64> ticks; ParserKQLTimespan::tryParse(extractTokenWithoutQuotes(pos), ticks) && ticks)
                 arg = kqlTicksToInterval(ticks);
         }
     }

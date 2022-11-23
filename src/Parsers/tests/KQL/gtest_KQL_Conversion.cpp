@@ -70,11 +70,11 @@ INSTANTIATE_TEST_SUITE_P(
         },
         {
             "print time(9nanoseconds)",
-            "SELECT CAST('9e-09', 'Float64')"
+            "SELECT toIntervalNanosecond(0)"
         },
         {
             "print time(1tick)",
-            "SELECT CAST('1e-07', 'Float64')"
+            "SELECT toIntervalNanosecond(100)"
         }
 
 })));
