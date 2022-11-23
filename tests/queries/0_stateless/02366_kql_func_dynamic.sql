@@ -188,3 +188,4 @@ print '-- array_sort with partial alias';
 visit | project pageid, (a,b) = array_sort_asc(ip_country, hit, duration) | order by pageid asc;
 print '-- array_sort with all alias';
 visit | project pageid, (a,b,c) = array_sort_asc(ip_country, hit, duration) | order by pageid asc;
+print zip(repeat(1,4), repeat(2,4));
