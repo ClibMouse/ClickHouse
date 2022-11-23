@@ -13,13 +13,12 @@ interpretAsInterval(const DB::ContextPtr & context, const DB::ColumnWithTypeAndN
 
     const DB::ColumnsWithTypeAndName multiply_args{
         argument, DB::createConstColumnWithTypeAndName<DB::DataTypeUInt32>(NANOSECONDS_PER_SECOND, argument.name)};
+    const auto product = executeFunctionCall(context, "multiply", multiply_args, input_rows_count);
 
-    const auto [product_column, product_data_type] = executeFunctionCall(context, "multiply", multiply_args, input_rows_count);
+    const DB::ColumnsWithTypeAndName to_interval_args{asArgument(product, argument.name)};
+    const auto interval = executeFunctionCall(context, "toIntervalNanosecond", to_interval_args, input_rows_count);
 
-    const DB::ColumnsWithTypeAndName to_interval_args{{product_column, product_data_type, argument.name}};
-    const auto [interval_column, interval_data_type]
-        = executeFunctionCall(context, "toIntervalNanosecond", to_interval_args, input_rows_count);
-    return {interval_column, interval_data_type, argument.name};
+    return asArgument(interval, argument.name);
 }
 }
 
@@ -48,7 +47,7 @@ private:
 ColumnPtr
 FunctionKqlBin::executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const size_t input_rows_count) const
 {
-    const auto [intermediate_column, intermediate_data_type] = std::invoke(
+    const auto intermediate = std::invoke(
         [this, &arguments, &input_rows_count]
         {
             const auto & round_to_argument = arguments.back();
@@ -65,19 +64,17 @@ FunctionKqlBin::executeImpl(const ColumnsWithTypeAndName & arguments, const Data
             if (value_which_data_type.isDateTime64())
                 return executeFunctionCall(context, "toStartOfIntervalOrNull", adjusted_args, input_rows_count);
 
-            const auto [quotient_column, quotient_data_type] = executeFunctionCall(context, "divide", adjusted_args, input_rows_count);
+            const auto quotient = executeFunctionCall(context, "divide", adjusted_args, input_rows_count);
 
-            const ColumnsWithTypeAndName floor_args{{quotient_column, quotient_data_type, adjusted_round_to.name}};
-            const auto [floored_column, floored_data_type] = executeFunctionCall(context, "floor", floor_args, input_rows_count);
+            const ColumnsWithTypeAndName floor_args{asArgument(quotient, adjusted_round_to.name)};
+            const auto floored = executeFunctionCall(context, "floor", floor_args, input_rows_count);
 
-            const ColumnsWithTypeAndName multiply_args{{floored_column, floored_data_type, adjusted_round_to.name}, adjusted_round_to};
+            const ColumnsWithTypeAndName multiply_args{asArgument(floored, adjusted_round_to.name), adjusted_round_to};
             return executeFunctionCall(context, "multiply", multiply_args, input_rows_count);
         });
 
     const ColumnsWithTypeAndName conversion_args{
-        {intermediate_column, intermediate_data_type, "intermediate"},
-        createConstColumnWithTypeAndName<DataTypeString>(result_type->getName(), "target_type")};
-
+        asArgument(intermediate, "intermediate"), createConstColumnWithTypeAndName<DataTypeString>(result_type->getName(), "target_type")};
     return executeFunctionCall(context, "accurateCastOrNull", conversion_args, input_rows_count).first;
 }
 
