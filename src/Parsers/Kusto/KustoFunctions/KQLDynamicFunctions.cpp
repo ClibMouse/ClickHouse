@@ -371,7 +371,7 @@ bool Zip::convertImpl(String & out, IParser::Pos & pos)
                 lengths.append(i > 0 ? ", " : "");
                 lengths.append(std::format(
                     "length(if(match(toTypeName({0}), 'Array\\(Nullable\\(.*\\)\\)'), {0}, "
-                    "cast({0}, concat('Array(Nullable(', extract(toTypeName({0}), 'Array\\((.*)\\)'), '))'))) as arg{1}_{2})",
+                    "cast({0}, concat('Array(', extract(toTypeName(if(length({0}) = 0, [NULL], {0})), 'Array\\((.*)\\)'), ')'))) as arg{1}_{2})",
                     arguments[i],
                     i,
                     unique_identifier));
