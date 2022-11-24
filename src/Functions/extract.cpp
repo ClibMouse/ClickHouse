@@ -70,4 +70,63 @@ REGISTER_FUNCTION(Extract)
     factory.registerFunction<FunctionExtract>();
 }
 
+struct KqlExtractImpl
+{
+    static void vector(
+        const ColumnString::Chars & data,
+        const ColumnString::Offsets & offsets,
+        const std::string & pattern,
+        unsigned capture,
+        ColumnString::Chars & res_data,
+        ColumnString::Offsets & res_offsets)
+    {
+        res_data.reserve(data.size() / 5);
+        res_offsets.resize(offsets.size());
+
+        const Regexps::Regexp regexp = Regexps::createRegexp<false, false, false>(pattern);
+
+        OptimizedRegularExpression::MatchVec matches;
+        matches.reserve(capture + 1);
+        size_t prev_offset = 0;
+        size_t res_offset = 0;
+
+        for (size_t i = 0; i < offsets.size(); ++i)
+        {
+            size_t cur_offset = offsets[i];
+
+            unsigned count
+                = regexp.match(reinterpret_cast<const char *>(&data[prev_offset]), cur_offset - prev_offset - 1, matches, capture + 1);
+            if (count > capture && matches[capture].offset != std::string::npos)
+            {
+                const auto & match = matches[capture];
+                res_data.resize(res_offset + match.length + 1);
+                memcpySmallAllowReadWriteOverflow15(&res_data[res_offset], &data[prev_offset + match.offset], match.length);
+                res_offset += match.length;
+            }
+            else
+            {
+                res_data.resize(res_offset + 1);
+            }
+
+            res_data[res_offset] = 0;
+            ++res_offset;
+            res_offsets[i] = res_offset;
+
+            prev_offset = cur_offset;
+        }
+    }
+};
+
+struct NameKqlExtract
+{
+    static constexpr auto name = "kql_extract";
+};
+
+using FunctionKqlExtract = KqlStringSearchToString<KqlExtractImpl, NameKqlExtract>;
+
+REGISTER_FUNCTION(KqlExtract)
+{
+    factory.registerFunction<FunctionKqlExtract>();
+}
+
 }
