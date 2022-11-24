@@ -67,9 +67,9 @@
    - semi join flavor  
       ADX : only returns left side or right side columns  
       KQL-CH : returns columns from both side  
-      
+   - Join hints : not supported yet
 - [lookup](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/lookupoperator)  
-   lookup is a sunset of join, only support : kind=leftouter and kind=inner. if kind unspecified, kind=leftouter  
+   lookup is a subset of join, only support : kind=leftouter and kind=inner. if kind unspecified, kind=leftouter  
    ```
    DROP TABLE IF EXISTS FactTable;
    CREATE TABLE FactTable (Row String, Personal String, Family String) ENGINE = Memory;
@@ -92,6 +92,7 @@
    ```
 
 ## Bugs fixed
+   - [Incorrect Regx convertion](https://github.ibm.com/ClickHouse/issue-repo/issues/1817)  
    - [KQL phase 2 - timespan calculation results in exception](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1129)  
    - [KQL phase 2 - format_timespan returns incorrect results](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1133)  
    - [Bin function should support time intervals less than 1 second](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1207)  
