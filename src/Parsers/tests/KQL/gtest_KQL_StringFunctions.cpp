@@ -132,31 +132,31 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "print extract('x=([0-9.]+)', 1, 'hello x=456|wo' , typeof(bool));",
-            "SELECT accurateCastOrNull(toInt64OrNull(extract('hello x=456|wo', '[0-9.]+')), 'Boolean')"
+            "SELECT accurateCastOrNull(toInt64OrNull(kql_extract('hello x=456|wo', 'x=([0-9.]+)', 1)), 'Boolean')"
         },
         {
             "print extract('x=([0-9.]+)', 1, 'hello x=456|wo' , typeof(date));",
-            "SELECT accurateCastOrNull(extract('hello x=456|wo', '[0-9.]+'), 'DateTime')"
+            "SELECT accurateCastOrNull(kql_extract('hello x=456|wo', 'x=([0-9.]+)', 1), 'DateTime')"
         },
         {
             "print extract('x=([0-9.]+)', 1, 'hello x=456|wo' , typeof(guid));",
-            "SELECT accurateCastOrNull(extract('hello x=456|wo', '[0-9.]+'), 'UUID')"
+            "SELECT accurateCastOrNull(kql_extract('hello x=456|wo', 'x=([0-9.]+)', 1), 'UUID')"
         },
         {
             "print extract('x=([0-9.]+)', 1, 'hello x=456|wo' , typeof(int));",
-            "SELECT accurateCastOrNull(extract('hello x=456|wo', '[0-9.]+'), 'Int32')"
+            "SELECT accurateCastOrNull(kql_extract('hello x=456|wo', 'x=([0-9.]+)', 1), 'Int32')"
         },
         {
             "print extract('x=([0-9.]+)', 1, 'hello x=456|wo' , typeof(long));",
-            "SELECT accurateCastOrNull(extract('hello x=456|wo', '[0-9.]+'), 'Int64')"
+            "SELECT accurateCastOrNull(kql_extract('hello x=456|wo', 'x=([0-9.]+)', 1), 'Int64')"
         },
         {
             "print extract('x=([0-9.]+)', 1, 'hello x=456|wo' , typeof(real));",
-            "SELECT accurateCastOrNull(extract('hello x=456|wo', '[0-9.]+'), 'Float64')"
+            "SELECT accurateCastOrNull(kql_extract('hello x=456|wo', 'x=([0-9.]+)', 1), 'Float64')"
         },
         {
             "print extract('x=([0-9.]+)', 1, 'hello x=456|wo' , typeof(decimal));",
-            "SELECT toDecimal128OrNull(if(countSubstrings(extract('hello x=456|wo', '[0-9.]+'), '.') > 1, NULL, extract('hello x=456|wo', '[0-9.]+')), length(substr(extract('hello x=456|wo', '[0-9.]+'), position(extract('hello x=456|wo', '[0-9.]+'), '.') + 1)))"
+            "SELECT toDecimal128OrNull(if(countSubstrings(kql_extract('hello x=456|wo', 'x=([0-9.]+)', 1), '.') > 1, NULL, kql_extract('hello x=456|wo', 'x=([0-9.]+)', 1)), length(substr(kql_extract('hello x=456|wo', 'x=([0-9.]+)', 1), position(kql_extract('hello x=456|wo', 'x=([0-9.]+)', 1), '.') + 1)))"
         },
         {
             "print parse_version('1.2.3.40')",
