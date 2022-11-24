@@ -128,7 +128,7 @@ bool Extract::convertImpl(String & out, IParser::Pos & pos)
     String regex = getConvertedArgument(fn_name, pos);
 
     ++pos;
-    size_t capture_group = stoi(getConvertedArgument(fn_name, pos));
+    String capture_group = getConvertedArgument(fn_name, pos);
 
     ++pos;
     String source = getConvertedArgument(fn_name, pos);
@@ -157,47 +157,7 @@ bool Extract::convertImpl(String & out, IParser::Pos & pos)
         }
     }
 
-    if (capture_group == 0)
-    {
-        String tmp_regex;
-        for (auto c : regex)
-        {
-            if (c != '(' && c != ')')
-                tmp_regex += c;
-        }
-        regex = std::move(tmp_regex);
-    }
-    else
-    {
-        size_t group_idx = 0;
-        size_t str_idx = -1;
-        for (size_t i = 0; i < regex.length(); ++i)
-        {
-            if (regex[i] == '(')
-            {
-                ++group_idx;
-                if (group_idx == capture_group)
-                {
-                    str_idx = i + 1;
-                    break;
-                }
-            }
-        }
-        String tmp_regex;
-        if (str_idx > 0)
-        {
-            for (size_t i = str_idx; i < regex.length(); ++i)
-            {
-                if (regex[i] == ')')
-                    break;
-                tmp_regex += regex[i];
-            }
-        }
-        regex = "'" + tmp_regex + "'";
-    }
-
-    out = "extract(" + source + ", " + regex + ")";
-
+    out = std::format("kql_extract({}, {}, {})", source, regex, capture_group);
     if (type_literal == "Decimal")
     {
         out = std::format("countSubstrings({0}, '.') > 1 ? NULL: {0}, length(substr({0}, position({0},'.') + 1)))", out);

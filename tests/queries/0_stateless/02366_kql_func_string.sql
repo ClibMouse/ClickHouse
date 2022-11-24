@@ -179,6 +179,7 @@ print extract("x=([0-9.]+)", 1, "hello x=45.6|wo" , typeof(int));
 print extract("x=([0-9.]+)", 1, "hello x=45.6|wo" , typeof(long));
 print extract("x=([0-9.]+)", 1, "hello x=45.6|wo" , typeof(real));
 print extract("x=([0-9.]+)", 1, "hello x=45.6|wo" , typeof(decimal));
+print extract(".*Action=(\\w+)",1, "dstPostNATPort=80 proto=tcp Action=alert");
 print '';
 print '-- extract_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractallfunction); TODO: captureGroups not supported yet';
 Customers | project extract_all('(\\w)(\\w+)(\\w)','The price of PINEAPPLE ice cream is 20') | take 1;

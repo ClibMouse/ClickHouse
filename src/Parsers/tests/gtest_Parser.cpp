@@ -512,19 +512,19 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery, ParserKQLTest,
         },
         {
             "Customers | project extract('(\\b[A-Z]+\\b).+(\\b\\d+)', 0, 'The price of PINEAPPLE ice cream is 10')",
-            "SELECT extract('The price of PINEAPPLE ice cream is 10', '\\b[A-Z]+\\b.+\\b\\\\d+')\nFROM Customers"
+            "SELECT kql_extract('The price of PINEAPPLE ice cream is 10', '(\\b[A-Z]+\\b).+(\\b\\\\d+)', 0)\nFROM Customers"
         },
         {
             "Customers | project extract('(\\b[A-Z]+\\b).+(\\b\\d+)', 1, 'The price of PINEAPPLE ice cream is 20')",
-            "SELECT extract('The price of PINEAPPLE ice cream is 20', '\\b[A-Z]+\\b')\nFROM Customers"
+            "SELECT kql_extract('The price of PINEAPPLE ice cream is 20', '(\\b[A-Z]+\\b).+(\\b\\\\d+)', 1)\nFROM Customers"
         },
         {
             "Customers | project extract('(\\b[A-Z]+\\b).+(\\b\\d+)', 2, 'The price of PINEAPPLE ice cream is 30')",
-            "SELECT extract('The price of PINEAPPLE ice cream is 30', '\\b\\\\d+')\nFROM Customers"
+            "SELECT kql_extract('The price of PINEAPPLE ice cream is 30', '(\\b[A-Z]+\\b).+(\\b\\\\d+)', 2)\nFROM Customers"
         },
         {
             "Customers | project extract('(\\b[A-Z]+\\b).+(\\b\\d+)', 2, 'The price of PINEAPPLE ice cream is 40', typeof(int))",
-            "SELECT accurateCastOrNull(extract('The price of PINEAPPLE ice cream is 40', '\\b\\\\d+'), 'Int32')\nFROM Customers"
+            "SELECT accurateCastOrNull(kql_extract('The price of PINEAPPLE ice cream is 40', '(\\b[A-Z]+\\b).+(\\b\\\\d+)', 2), 'Int32')\nFROM Customers"
         },
         {
             "Customers | project extract_all('(\\w)(\\w+)(\\w)','The price of PINEAPPLE ice cream is 50')",
