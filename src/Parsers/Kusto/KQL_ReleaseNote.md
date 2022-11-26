@@ -1,4 +1,13 @@
 ## KQL implemented features  
+
+# December 7, 2022
+
+## Functions
+- [count_distinct](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/count-distinct-aggfunction)  
+   `Customers | summarize count_distinct(Education);`  
+- [count_distinctif](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/count-distinctif-aggfunction)  
+   `Customers | summarize count_distinctif(Education, Age > 30);`  
+
 # November 23, 2022
 
 ## Operator

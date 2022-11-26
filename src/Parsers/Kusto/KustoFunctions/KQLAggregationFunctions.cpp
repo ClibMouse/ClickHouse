@@ -15,6 +15,7 @@
 #include <Parsers/Kusto/ParserKQLStatement.h>
 #include <Parsers/ParserSetQuery.h>
 #include <Common/StringUtils/StringUtils.h>
+#include <format>
 
 namespace DB
 {
@@ -485,4 +486,31 @@ bool VarianceIf::convertImpl(String & out, IParser::Pos & pos)
     out = res;
     return false;
 }
+
+bool CountDistinct::convertImpl(String & out,IParser::Pos & pos)
+{
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const String expr = getArgument(fn_name, pos);
+    out = std::format("count(DISTINCT {})", expr);
+
+    return true;
+}
+
+
+bool CountDistinctIf::convertImpl(String & out,IParser::Pos & pos)
+{
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const String expr = getArgument(fn_name, pos);
+    const String predicate = getArgument(fn_name, pos);
+    out = std::format("countIf(DISTINCT {}, {})", expr, predicate);
+
+    return true;
+}
+
 }
