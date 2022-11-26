@@ -263,5 +263,18 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class CountDistinct : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "count_distinct()"; }
+    bool convertImpl(String &out,IParser::Pos &pos) override;
+};
+
+class CountDistinctIf : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "count_distinctif()"; }
+    bool convertImpl(String &out,IParser::Pos &pos) override;
+};
 
 }
