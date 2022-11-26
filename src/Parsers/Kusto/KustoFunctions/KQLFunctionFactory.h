@@ -153,6 +153,8 @@ namespace DB
         take_anyif,
         variance,
         varianceif,
+        count_distinct,
+        count_distinctif,
 
         series_fir,
         series_iir,

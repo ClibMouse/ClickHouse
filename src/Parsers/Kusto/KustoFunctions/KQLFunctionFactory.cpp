@@ -174,6 +174,8 @@ namespace DB
         {"take_anyif", KQLFunctionValue::take_anyif},
         {"variance", KQLFunctionValue::variance},
         {"varianceif", KQLFunctionValue::varianceif},
+        {"count_distinct", KQLFunctionValue::count_distinct},
+        {"count_distinctif", KQLFunctionValue::count_distinctif},
 
         {"series_fir", KQLFunctionValue::series_fir},
         {"series_iir", KQLFunctionValue::series_iir},
@@ -667,6 +669,13 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(String &kql_function
 
         case KQLFunctionValue::varianceif:
             return std::make_unique<VarianceIf>();
+
+        case KQLFunctionValue::count_distinct:
+            return std::make_unique<CountDistinct>();
+
+        case KQLFunctionValue::count_distinctif:
+            return std::make_unique<CountDistinctIf>();
+
 
         case KQLFunctionValue::series_fir:
             return std::make_unique<SeriesFir>();
