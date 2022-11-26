@@ -90,3 +90,7 @@ Management abcd defg	['Stephanie']
 Skilled Manual	['Theodore','Peter','Edward','Christine','Apple']	[28,26,36,33,28]
 Professional	['Latoya','Joshua','Dalton','Cameron','Angel',NULL]	[25,26,42,28,46,38]
 Management abcd defg	['Stephanie']	[33]
+-- count_distinct --
+4
+-- count_distinctif --
+3
