@@ -103,6 +103,10 @@ print '-- make_list_with_nulls --';
 Customers | summarize t = make_list_with_nulls(FirstName);
 Customers | summarize f_list = make_list_with_nulls(FirstName) by Occupation;
 Customers | summarize f_list = make_list_with_nulls(FirstName), a_list = make_list_with_nulls(Age) by Occupation;
+print '-- count_distinct --';
+Customers | summarize count_distinct(Education);
+print '-- count_distinctif --';
+Customers | summarize count_distinctif(Education, Age > 30);
 -- TODO:
 -- arg_max()
 -- arg_min()
