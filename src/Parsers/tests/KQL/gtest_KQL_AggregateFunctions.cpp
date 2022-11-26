@@ -69,5 +69,13 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Aggregate, ParserKQLTest,
         {
             "Customers | summarize count(Age) by bin(Age, 10)",
             "SELECT\n    kql_bin(Age, 10) AS Age,\n    count(Age) AS count_Age\nFROM Customers\nGROUP BY Age"
+        },
+        {
+            "Customers | summarize count_distinct(Education)",
+            "SELECT countDistinct(Education) AS Columns1\nFROM Customers"
+        },
+        {
+            "Customers | summarize count_distinctif(Education,Age >30)",
+            "SELECT countIfDistinct(Education, Age > 30) AS Columns1\nFROM Customers"
         }
 })));
