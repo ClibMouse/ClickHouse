@@ -29,6 +29,12 @@ private:
 class IParserKQLFunction
 {
 public:
+    enum class ArgumentState
+    {
+        Parsed,
+        Raw
+    };
+
     template <typename F>
     ALWAYS_INLINE static bool wrapConvertImpl(IParser::Pos & pos, const F & func)
     {
@@ -59,28 +65,22 @@ public:
     virtual const char * getName() const = 0;
     virtual ~IParserKQLFunction() = default;
 
+    static String generateUniqueIdentifier();
+    static String getArgument(const String & function_name, DB::IParser::Pos & pos, ArgumentState argument_state = ArgumentState::Parsed);
+    static String getConvertedArgument(const String & fn_name, IParser::Pos & pos);
     static String getExpression(IParser::Pos & pos);
+    static String getKQLFunctionName(IParser::Pos & pos);
+    static std::optional<String>
+    getOptionalArgument(const String & function_name, DB::IParser::Pos & pos, ArgumentState argument_state = ArgumentState::Parsed);
 
 protected:
-    enum class ArgumentState
-    {
-        Parsed,
-        Raw
-    };
-
     virtual bool convertImpl(String & out, IParser::Pos & pos) = 0;
 
     static bool directMapping(
         String & out, IParser::Pos & pos, std::string_view ch_fn, const Interval & argument_count_interval = {0, Interval::max_bound});
-    static String generateUniqueIdentifier();
-    static String getArgument(const String & function_name, DB::IParser::Pos & pos, ArgumentState argument_state = ArgumentState::Parsed);
-    static String getConvertedArgument(const String & fn_name, IParser::Pos & pos);
-    static std::optional<String>
-    getOptionalArgument(const String & function_name, DB::IParser::Pos & pos, ArgumentState argument_state = ArgumentState::Parsed);
     static String
     kqlCallToExpression(std::string_view function_name, std::initializer_list<const std::string_view> params, uint32_t max_depth);
     static String kqlCallToExpression(std::string_view function_name, std::span<const std::string_view> params, uint32_t max_depth);
     static void validateEndOfFunction(const String & fn_name, IParser::Pos & pos);
-    static String getKQLFunctionName(IParser::Pos & pos);
 };
 }
