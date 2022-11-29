@@ -205,10 +205,8 @@ enum class KQLFunctionValue : uint16_t
     datatype_int,
     datatype_long,
     datatype_real,
-    datatype_string,
     datatype_timespan,
-    datatype_decimal,
-    round
+    datatype_decimal
 };
 class KQLFunctionFactory
 {

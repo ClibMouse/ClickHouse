@@ -53,13 +53,6 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
-class DatatypeString : public IParserKQLFunction
-{
-protected:
-    const char * getName() const override { return "string()"; }
-    bool convertImpl(String & out, IParser::Pos & pos) override;
-};
-
 class DatatypeTimespan : public IParserKQLFunction
 {
 protected:
@@ -73,5 +66,4 @@ protected:
     const char * getName() const override { return "decimal()"; }
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
-
 }
