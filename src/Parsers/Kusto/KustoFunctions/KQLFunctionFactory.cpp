@@ -229,7 +229,6 @@ namespace DB
         {"long", KQLFunctionValue::datatype_long},
         {"real", KQLFunctionValue::datatype_real},
         {"double", KQLFunctionValue::datatype_real},
-        {"string", KQLFunctionValue::datatype_string},
         {"timespan", KQLFunctionValue::datatype_timespan},
         {"time", KQLFunctionValue::datatype_timespan},
         {"decimal", KQLFunctionValue::datatype_decimal}
@@ -811,9 +810,6 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(String &kql_function
 
         case KQLFunctionValue::datatype_real:
             return std::make_unique<DatatypeReal>();
-
-        case KQLFunctionValue::datatype_string:
-            return std::make_unique<DatatypeString>();
 
         case KQLFunctionValue::datatype_timespan:
             return std::make_unique<DatatypeTimespan>();
