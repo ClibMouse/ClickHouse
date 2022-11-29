@@ -12,17 +12,43 @@
 #include <format>
 #include <regex>
 
-namespace DB
+namespace DB::ErrorCodes
 {
-namespace ErrorCodes
-{
-    extern const int BAD_ARGUMENTS;
-    extern const int SYNTAX_ERROR;
+extern const int BAD_ARGUMENTS;
+extern const int SYNTAX_ERROR;
 }
 
+namespace
+{
+bool mapToAccurateCast(std::string & out, DB::IParser::Pos & pos, const std::string_view type_name)
+{
+    const auto function_name = DB::IParserKQLFunction::getKQLFunctionName(pos);
+    if (function_name.empty())
+        return false;
+
+    ++pos;
+    if (const auto & type = pos->type; type == DB::TokenType::QuotedIdentifier || type == DB::TokenType::StringLiteral)
+        throw DB::Exception(DB::ErrorCodes::BAD_ARGUMENTS, "String cannot be parsed as a literal of type {}", type_name);
+
+    --pos;
+
+    const auto arg = DB::IParserKQLFunction::getArgument(function_name, pos);
+    out = std::format(
+        "if(toTypeName({0}) = 'IntervalNanosecond' or isNull(accurateCastOrNull({0}, '{1}') as cast_value_{2}) != isNull({0}), "
+        "accurateCastOrNull(throwIf(true, 'Failed to parse {1} literal'), '{1}'), cast_value_{2})",
+        arg,
+        type_name,
+        DB::IParserKQLFunction::generateUniqueIdentifier());
+
+    return true;
+}
+}
+
+namespace DB
+{
 bool DatatypeBool::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "toBool");
+    return mapToAccurateCast(out, pos, "Bool");
 }
 
 bool DatatypeDatetime::convertImpl(String & out, IParser::Pos & pos)
@@ -134,49 +160,17 @@ bool DatatypeGuid::convertImpl(String & out, IParser::Pos & pos)
 
 bool DatatypeInt::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
-    if (fn_name.empty())
-        return false;
-    String guid_str;
-
-    ++pos;
-    if (pos->type == TokenType::QuotedIdentifier || pos->type == TokenType::StringLiteral)
-        throw Exception(ErrorCodes::BAD_ARGUMENTS, "String is not parsed as int literal.");
-    else
-    {
-        auto arg = getConvertedArgument(fn_name, pos);
-        out = std::format("toInt32({})", arg);
-    }
-    return true;
+    return mapToAccurateCast(out, pos, "Int32");
 }
 
 bool DatatypeLong::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "toInt64");
+    return mapToAccurateCast(out, pos, "Int64");
 }
 
 bool DatatypeReal::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
-    if (fn_name.empty())
-        return false;
-
-    ++pos;
-    if (pos->type == TokenType::QuotedIdentifier || pos->type == TokenType::StringLiteral)
-        throw Exception(ErrorCodes::BAD_ARGUMENTS, "String is not parsed as double literal.");
-    else
-    {
-        auto arg = getConvertedArgument(fn_name, pos);
-        out = std::format("toFloat64({})", arg);
-    }
-    return true;
-}
-
-bool DatatypeString::convertImpl(String & out, IParser::Pos & pos)
-{
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    return mapToAccurateCast(out, pos, "Float64");
 }
 
 bool DatatypeTimespan::convertImpl(String & out, IParser::Pos & pos)
@@ -255,5 +249,4 @@ bool DatatypeDecimal::convertImpl(String & out, IParser::Pos & pos)
 
     return true;
 }
-
 }

@@ -6,20 +6,29 @@ str String
 INSERT INTO tb1 VALUES ('123.561') , ('653.4');
 
 set dialect = 'kusto';
-print '-- bool'
-print bool(true);
+print '-- bool';
 print bool(true);
 print bool(null);
+print bool('false'); -- { clientError BAD_ARGUMENTS }
 print '-- int';
 print int(123);
 print int(null);
+print int(-2147483648);
+print int(2147483647);
 print int('4'); -- { clientError BAD_ARGUMENTS }
+print int(-2147483649); -- { serverError FUNCTION_THROW_IF_VALUE_IS_NON_ZERO }
+print int(2147483648); -- { serverError FUNCTION_THROW_IF_VALUE_IS_NON_ZERO }
 print '-- long';
 print long(123);
 print long(0xff);
 print long(-1);
 print long(null);
+print long(-9223372036854775808);
+print long(9223372036854775807);
 print 456;
+-- print long(-9223372036854775809); -- { serverError FUNCTION_THROW_IF_VALUE_IS_NON_ZERO }
+print long(9223372036854775808); -- { serverError FUNCTION_THROW_IF_VALUE_IS_NON_ZERO }
+print long('9023'); -- { clientError BAD_ARGUMENTS }
 print '-- real';
 print real(0.01);
 print real(null);
@@ -79,6 +88,14 @@ print timespan(1tick); --           100 nanoseconds
 --print timespan(1.5h) / timespan(30m);
 print timespan('12.23:12:23') / timespan(1s);
 print (timespan(1.5d) / timespan(0.6d)) * timespan(0.6d);
+print tobool(timespan(0s));
+print tobool(timespan(1d));
+print todouble(timespan(1d));
+-- print toint(timespan(1d)); -> 711573504
+print tolong(timespan(1d));
+print tostring(timespan(1d));
+print tostring(timespan(2d) + timespan(4h) + timespan(8m) + timespan(16s) + timespan(123millis) + timespan(456micros) + timespan(789nanos));
+print todecimal(timespan(1d));
 print '-- guid'
 print guid(74be27de-1e4e-49d9-b579-fe0b331d3642);
 print guid(null);
@@ -123,7 +140,7 @@ print toint("123") == int(123);
 print toint('abc');
 print '-- tostring()';
 print tostring(123);
-print tostring(null) == '';
+print tostring(null);
 print '-- todatetime()';
 print todatetime("2015-12-24") == datetime(2015-12-24);
 print todatetime('abc') == null;
@@ -140,5 +157,7 @@ print '-- todecimal()';
 print todecimal(123.345);
 print todecimal(null);
 print todecimal('abc');
-tb1| project todecimal(str);
+print todecimal(1e5);
+print todecimal(1e-5);
+tb1 | project todecimal(str);
 -- print todecimal(4 * 2 + 3); -> 11
