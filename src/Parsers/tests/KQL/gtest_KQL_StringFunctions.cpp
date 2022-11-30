@@ -221,5 +221,37 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         {
             "Customers | project name_abbr = strcat(substring(FirstName,0,3), ' ', substring(LastName,2))| order by LastName",
             "SELECT concat(if(toInt64(length(FirstName)) <= 0, '', substr(FirstName, (((0 % toInt64(length(FirstName))) + toInt64(length(FirstName))) % toInt64(length(FirstName))) + 1, 3)), ' ', if(toInt64(length(LastName)) <= 0, '', substr(LastName, (((2 % toInt64(length(LastName))) + toInt64(length(LastName))) % toInt64(length(LastName))) + 1))) AS name_abbr\nFROM Customers\nORDER BY LastName DESC"
+        },
+        {
+            "print idx1 = indexof('abcdefg','cde')",
+            "SELECT kql_indexof('abcdefg', 'cde', 0, -1, 1) AS idx1"
+        },
+        {
+            "print idx2 = indexof('abcdefg','cde',0,3)",
+            "SELECT kql_indexof('abcdefg', 'cde', 0, 3, 1) AS idx2"
+        },
+        {
+            "print idx3 = indexof('abcdefg','cde',1,2)",
+            "SELECT kql_indexof('abcdefg', 'cde', 1, 2, 1) AS idx3"
+        },
+        {
+            "print idx5 = indexof('abcdefg','cde',-5) ",
+            "SELECT kql_indexof('abcdefg', 'cde', -5, -1, 1) AS idx5"
+        },
+        {
+            "print idx6 = indexof(1234567,5,1,4)   ",
+            "SELECT kql_indexof(1234567, 5, 1, 4, 1) AS idx6"
+        },
+        {
+            "print idx7 = indexof('abcdefg','cde',2,-1)",
+            "SELECT kql_indexof('abcdefg', 'cde', 2, -1, 1) AS idx7"
+        },
+        {
+            "print idx8 = indexof('abcdefgabcdefg', 'cde', 3)",
+            "SELECT kql_indexof('abcdefgabcdefg', 'cde', 3, -1, 1) AS idx8"
+        },
+        {
+            "print idx9 = indexof('abcdefgabcdefg', 'cde', 1, 13, 3) ",
+            "SELECT kql_indexof('abcdefgabcdefg', 'cde', 1, 13, 3) AS idx9"
         }
 })));

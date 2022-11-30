@@ -214,10 +214,6 @@ print '-- strcat_delim (https://docs.microsoft.com/en-us/azure/data-explorer/kus
 Customers | project strcat_delim('-', '1', '2', strcat('A','b')) | take 1;
 -- Customers | project strcat_delim('-', '1', '2', 'A' , 1s);
 print '';
-print '-- indexof (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/indexoffunction); TODO: length and occurrence not supported yet';
-Customers | project indexof('abcdefg','cde') | take 1;
-Customers | project indexof('abcdefg','cde',2) | take 1;
-Customers | project indexof('abcdefg','cde',6) | take 1;
 print '-- base64_encode_fromguid()';
 -- print base64_encode_fromguid(guid(null));
 print base64_encode_fromguid(guid('ae3133f2-6e22-49ae-b06a-16e6a9b212eb'));
@@ -314,3 +310,19 @@ print result=parse_csv('aa,b,cc');
 print result_multi_record=parse_csv('record1,a,b,c\nrecord2,x,y,z');
 -- print result=parse_csv('aa,"b,b,b",cc,"Escaping quotes: ""Title""","line1\nline2"'); -> ["aa","b,b,b","cc","Escaping quotes: \"Title\"","line1\nline2"]
 -- print parse_csv(strcat(strcat_delim(',', 'aa', '"b,b,b"', 'cc', '"Escaping quotes: ""Title"""', '"line1\nline2"'), '\r\n', strcat_delim(',', 'asd', 'qcf'))); -> ["aa","b,b,b","cc","Escaping quotes: \"Title\"","line1\nline2"]
+print '-- indexof (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/indexoffunction)';
+
+Customers | project indexof('abcdefgabcdefg', 'cde', 1, 10, 2) | take 1;
+print  indexof('abcdefg','cde');
+print idx2 = indexof('abcdefg','cde',0,3);
+print idx3 = indexof('abcdefg','cde',1,2);
+print idx4 = indexof('abcdefg','cde',3,4);
+print idx5 = indexof('abcdefg','cde',-5);
+print idx6 = indexof(1234567,5,1,4);
+print idx7 = indexof('abcdefg','cde',2,-1);
+print idx8 = indexof('abcdefgabcdefg', 'cde', 1, 10, 2);
+print idx9 = indexof('abcdefgabcdefg', 'cde', 1, -1, 3);
+print indexof('abcdefgabcdefg','cde', -1);
+print indexof('abcdefgabcdefg','cde', -4);
+print indexof('abcdefgabcdefg','cde', -5);
+print indexof('abcdefgabcdefg','cde', -105);
