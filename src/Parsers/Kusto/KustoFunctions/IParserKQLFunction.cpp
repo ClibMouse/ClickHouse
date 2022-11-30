@@ -138,18 +138,25 @@ String IParserKQLFunction::getArgument(const String & function_name, DB::IParser
     throw Exception(std::format("Required argument was not provided in {}", function_name), ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH);
 }
 
+std::vector<std::string> IParserKQLFunction::getArguments(const String & function_name, DB::IParser::Pos & pos, const ArgumentState argument_state)
+{
+    std::vector<std::string> arguments;
+    while (auto argument = getOptionalArgument(function_name, pos, argument_state))
+        arguments.push_back(std::move(*argument));
+
+    return arguments;
+}
+
 String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser::Pos & pos)
 {
-    String converted_arg;
-    std::vector<String> tokens;
-    //std::unique_ptr<IParserKQLFunction> fun;
     int32_t round_bracket_count = 0, square_bracket_count = 0;
     if (pos->type == TokenType::ClosingRoundBracket || pos->type == TokenType::ClosingSquareBracket)
-        return converted_arg;
+        return {};
 
     if (pos->isEnd() || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
         throw Exception("Need more argument(s) in function: " + fn_name, ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH);
 
+    std::vector<String> tokens;
     while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
     {
         if (pos->type == TokenType::OpeningRoundBracket)
@@ -162,7 +169,6 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
         if (pos->type == TokenType::ClosingSquareBracket)
             --square_bracket_count;
 
-        String new_token;
         if (!KQLOperators().convert(tokens, pos))
         {
             if (pos->type == TokenType::BareWord)
@@ -203,6 +209,7 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
                 tokens.push_back(token);
             }
         }
+
         ++pos;
         if (pos->type == TokenType::Comma || pos->type == TokenType::ClosingRoundBracket || pos->type == TokenType::ClosingSquareBracket)
         {
@@ -214,8 +221,10 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
                 break;
         }
     }
-    for (auto token : tokens)
-        converted_arg = converted_arg.empty() ? token : converted_arg + " " + token;
+
+    String converted_arg;
+    for (const auto & token : tokens)
+        converted_arg.append((converted_arg.empty() ? "" : " ") + token);
 
     return converted_arg;
 }
@@ -322,7 +331,7 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
     String arg(pos->begin, pos->end);
     if (pos->type == TokenType::BareWord)
     {
-        auto fun = KQLFunctionFactory::get(arg);
+        const auto fun = KQLFunctionFactory::get(arg);
         if (String new_arg; fun && fun->convert(new_arg, pos))
         {
             validateEndOfFunction(arg, pos);

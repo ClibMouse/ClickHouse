@@ -1,3 +1,12 @@
+-- datatable(FirstName:string, LastName:string, Occupation:string, Education:string, Age:int) [
+--     'Theodore', 'Diaz', 'Skilled Manual', 'Bachelors', 28,
+--     'Stephanie', 'Cox', 'Management abcd defg', 'Bachelors', 33,
+--     'Peter', 'Nara', 'Skilled Manual', 'Graduate Degree', 26,
+--     'Latoya', 'Shen', 'Professional', 'Graduate Degree', 25,
+--     'Apple', '', 'Skilled Manual', 'Bachelors', 28,
+--     '', 'why', 'Professional', 'Partial College', 38
+-- ]
+
 DROP TABLE IF EXISTS Customers;
 CREATE TABLE Customers
 (    
@@ -235,6 +244,9 @@ print '-- parse_url()';
 print parse_url('');
 print '-- parse_urlquery()';
 print parse_urlquery('k1=v1&k2=v2&k3=v3');
+print '-- strcat --';
+print strcat('a', 1, 2, 3, timespan(5d));
+print strcat('a', null, 9 + 2, 1h + 1d);
 print '-- strcmp()';
 print strcmp('ABC','ABC'), strcmp('abc','ABC'), strcmp('ABC','abc'), strcmp('abcde','abc');
 print '-- substring()';
