@@ -268,10 +268,6 @@ iPhone
 -- strcat_delim (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/strcat-delimfunction); TODO: only support string now.
 1-2-Ab
 
--- indexof (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/indexoffunction); TODO: length and occurrence not supported yet
-2
-2
--1
 -- base64_encode_fromguid()
 8jMxriJurkmwahbmqbIS6w==
 -- base64_decode_toarray()
@@ -358,3 +354,18 @@ Latoya	Shen	Professional	Graduate Degree	25
 ['aaa']
 ['aa','b','cc']
 ['record1','a','b','c']
+-- indexof (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/indexoffunction)
+9
+2
+2
+2
+-1
+2
+4
+2
+9
+-1
+-1
+-1
+9
+2

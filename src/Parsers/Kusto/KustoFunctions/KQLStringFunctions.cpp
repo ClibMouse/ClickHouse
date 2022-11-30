@@ -288,12 +288,10 @@ bool HasAnyIndex::convertImpl(String & out, IParser::Pos & pos)
 
 bool IndexOf::convertImpl(String & out, IParser::Pos & pos)
 {
-    int start_index = 0, length = -1, occurrence = 1;
-
+    String start_index = "0", length = "-1", occurrence = "1";
     const String fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;
-
     ++pos;
     const String source = getConvertedArgument(fn_name, pos);
 
@@ -303,35 +301,23 @@ bool IndexOf::convertImpl(String & out, IParser::Pos & pos)
     if (pos->type == TokenType::Comma)
     {
         ++pos;
-        start_index = stoi(getConvertedArgument(fn_name, pos));
+        start_index = getConvertedArgument(fn_name, pos);
 
         if (pos->type == TokenType::Comma)
         {
             ++pos;
-            length = stoi(getConvertedArgument(fn_name, pos));
+            length = getConvertedArgument(fn_name, pos);
 
             if (pos->type == TokenType::Comma)
             {
                 ++pos;
-                occurrence = stoi(getConvertedArgument(fn_name, pos));
+                occurrence = getConvertedArgument(fn_name, pos);
             }
         }
     }
 
-    if (pos->type == TokenType::ClosingRoundBracket)
-    {
-        if (occurrence < 0 || length < -1)
-            out = "";
-        else if (length == -1)
-            out = "position(" + source + ", " + lookup + ", " + std::to_string(start_index + 1) + ") - 1";
-        else
-        {
-        }
-
-        return true;
-    }
-
-    return false;
+    out = std::format("kql_indexof({},{},{},{},{})", source, lookup, start_index, length , occurrence);
+    return true;
 }
 
 bool IsEmpty::convertImpl(String & out, IParser::Pos & pos)
