@@ -47,16 +47,19 @@ FunctionKqlToString::executeImpl(const ColumnsWithTypeAndName & arguments, const
         for (size_t i = 0; i < input_rows_count; ++i)
         {
             const auto value = in_column.getInt(i);
-            const auto ticks = value / 100;
+            const auto abs_ticks = std::abs(value / 100);
 
-            std::string timespan_as_string;
-            if (ticks >= TICKS_PER_DAY)
-                timespan_as_string.append(std::format("{}.", ticks / TICKS_PER_DAY));
+            std::string timespan_as_string = value < 0 ? "-" : "";
+            if (abs_ticks >= TICKS_PER_DAY)
+                timespan_as_string.append(std::format("{}.", abs_ticks / TICKS_PER_DAY));
 
             timespan_as_string.append(std::format(
-                "{:02}:{:02}:{:02}", (ticks / TICKS_PER_HOUR) % 24, (ticks / TICKS_PER_MINUTE) % 60, (ticks / TICKS_PER_SECOND) % 60));
+                "{:02}:{:02}:{:02}",
+                (abs_ticks / TICKS_PER_HOUR) % 24,
+                (abs_ticks / TICKS_PER_MINUTE) % 60,
+                (abs_ticks / TICKS_PER_SECOND) % 60));
 
-            if (const auto fractional_second = ticks % TICKS_PER_SECOND)
+            if (const auto fractional_second = abs_ticks % TICKS_PER_SECOND)
                 timespan_as_string.append(std::format(".{:07}", fractional_second));
 
             const auto chars_old_length = chars.size();
