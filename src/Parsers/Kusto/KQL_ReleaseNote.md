@@ -7,7 +7,8 @@
    `Customers | summarize count_distinct(Education);`  
 - [count_distinctif](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/count-distinctif-aggfunction)  
    `Customers | summarize count_distinctif(Education, Age > 30);`  
-
+## bug fixed
+- [indexOf function doesn't work for extended parameters](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1272)  
 # November 23, 2022
 
 ## Operator
