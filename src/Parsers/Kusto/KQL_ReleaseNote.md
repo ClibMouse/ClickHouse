@@ -9,6 +9,9 @@
    `Customers | summarize count_distinctif(Education, Age > 30);`  
 ## bug fixed
 - [indexOf function doesn't work for extended parameters](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1272)  
+- [Create generic function for time arithmetic](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1442)  
+- [KQL Phase 2: tolong should return the number of ticks when supplied with a timespan](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1520)  
+
 # November 23, 2022
 
 ## Operator
