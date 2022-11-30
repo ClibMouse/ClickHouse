@@ -95,7 +95,13 @@ print todouble(timespan(1d));
 print tolong(timespan(1d));
 print tostring(timespan(1d));
 print tostring(timespan(2d) + timespan(4h) + timespan(8m) + timespan(16s) + timespan(123millis) + timespan(456micros) + timespan(789nanos));
+-- print tostring((1h + 90d) * 2 + (6h + 32s + 30d + 2m) * 5); -> 331.08:12:40
+-- print tostring(((1h + 90d) * 2 + (6h + 32s + 30d + 2m) * 5) / 2); -> 165.16:06:20
 print todecimal(timespan(1d));
+print 49h + (1h + 1m) * 999999h + 1s; -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
+print 1h * 1h; -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
+print 2h + 2; -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
+print 2h - 2; -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
 print '-- guid'
 print guid(74be27de-1e4e-49d9-b579-fe0b331d3642);
 print guid(null);

@@ -347,16 +347,7 @@ bool Zip::convertImpl(String & out, IParser::Pos & pos)
     if (function_name.empty())
         return false;
 
-    const auto arguments = std::invoke(
-        [&function_name, &pos]
-        {
-            std::vector<String> result;
-            while (auto argument = getOptionalArgument(function_name, pos))
-                result.push_back(std::move(*argument));
-
-            return result;
-        });
-
+    const auto arguments = getArguments(function_name, pos);
     if (const auto size = arguments.size(); size < 2 || size > 16)
         throw Exception(
             ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "Between 2 and 16 arguments are expected, but {} were provided", size);
