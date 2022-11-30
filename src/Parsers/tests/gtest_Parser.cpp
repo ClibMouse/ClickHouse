@@ -492,11 +492,11 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery, ParserKQLTest,
         },
         {
             "Customers|where Occupation has_all (strcat('Skill','ed'),'Manual')",
-            "SELECT *\nFROM Customers\nWHERE hasTokenCaseInsensitive(Occupation, concat('Skill', 'ed')) AND hasTokenCaseInsensitive(Occupation, 'Manual')"
+            "SELECT *\nFROM Customers\nWHERE hasTokenCaseInsensitive(Occupation, concat(ifNull(kql_tostring('Skill'), ''), ifNull(kql_tostring('ed'), ''), '')) AND hasTokenCaseInsensitive(Occupation, 'Manual')"
         },
         {
             "Customers | where Occupation == strcat('Pro','fessional') | take 1",
-            "SELECT *\nFROM Customers\nWHERE Occupation = concat('Pro', 'fessional')\nLIMIT 1"
+            "SELECT *\nFROM Customers\nWHERE Occupation = concat(ifNull(kql_tostring('Pro'), ''), ifNull(kql_tostring('fessional'), ''), '')\nLIMIT 1"
         },
         {
             "Customers | project countof('The cat sat on the mat', 'at')",
@@ -544,7 +544,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery, ParserKQLTest,
         },
         {
             "print x=1, s=strcat('Hello', ', ', 'World!')",
-            "SELECT\n    1 AS x,\n    concat('Hello', ', ', 'World!') AS s"
+            "SELECT\n    1 AS x,\n    concat(ifNull(kql_tostring('Hello'), ''), ifNull(kql_tostring(', '), ''), ifNull(kql_tostring('World!'), ''), '') AS s"
         },
         {
             "print parse_urlquery('https://john:123@google.com:1234/this/is/a/path?k1=v1&k2=v2#fragment')",

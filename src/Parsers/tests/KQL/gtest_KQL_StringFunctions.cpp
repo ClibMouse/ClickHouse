@@ -36,7 +36,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "print trim_start('[^\\w]+', strcat('-  ','Te st1','// $'))",
-            "SELECT replaceRegexpOne(concat('-  ', 'Te st1', '// $'), concat('^', '[^\\\\w]+'), '')"
+            "SELECT replaceRegexpOne(concat(ifNull(kql_tostring('-  '), ''), ifNull(kql_tostring('Te st1'), ''), ifNull(kql_tostring('// $'), ''), ''), concat('^', '[^\\\\w]+'), '')"
         },
         {
             "print trim_end('.com', 'bing.com')",
@@ -48,7 +48,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "print bool(1)",
-            "SELECT toBool(1)"
+            "SELECT if((toTypeName(1) = 'IntervalNanosecond') OR (((accurateCastOrNull(1, 'Bool') AS cast_value_35694) IS NULL) != (1 IS NULL)), accurateCastOrNull(throwIf(true, 'Failed to parse Bool literal'), 'Bool'), cast_value_35694)"
         },
         {
             "print datetime(2015-12-31 23:59:59.9)",
@@ -76,15 +76,15 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "print int(32.5)",
-            "SELECT toInt32(32.5)"
+            "SELECT if((toTypeName(32.5) = 'IntervalNanosecond') OR (((accurateCastOrNull(32.5, 'Int32') AS cast_value_23123) IS NULL) != (32.5 IS NULL)), accurateCastOrNull(throwIf(true, 'Failed to parse Int32 literal'), 'Int32'), cast_value_23123)"
         },
         {
             "print long(32.5)",
-            "SELECT toInt64(32.5)"
+            "SELECT if((toTypeName(32.5) = 'IntervalNanosecond') OR (((accurateCastOrNull(32.5, 'Int64') AS cast_value_38182) IS NULL) != (32.5 IS NULL)), accurateCastOrNull(throwIf(true, 'Failed to parse Int64 literal'), 'Int64'), cast_value_38182)"
         },
         {
             "print real(32.5)",
-            "SELECT toFloat64(32.5)"
+            "SELECT if((toTypeName(32.5) = 'IntervalNanosecond') OR (((accurateCastOrNull(32.5, 'Float64') AS cast_value_46434) IS NULL) != (32.5 IS NULL)), accurateCastOrNull(throwIf(true, 'Failed to parse Float64 literal'), 'Float64'), cast_value_46434)"
         },
         {
             "print time('1.22:34:8.128')",
@@ -220,7 +220,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "Customers | project name_abbr = strcat(substring(FirstName,0,3), ' ', substring(LastName,2))| order by LastName",
-            "SELECT concat(if(toInt64(length(FirstName)) <= 0, '', substr(FirstName, (((0 % toInt64(length(FirstName))) + toInt64(length(FirstName))) % toInt64(length(FirstName))) + 1, 3)), ' ', if(toInt64(length(LastName)) <= 0, '', substr(LastName, (((2 % toInt64(length(LastName))) + toInt64(length(LastName))) % toInt64(length(LastName))) + 1))) AS name_abbr\nFROM Customers\nORDER BY LastName DESC"
+            "SELECT concat(ifNull(kql_tostring(if(toInt64(length(FirstName)) <= 0, '', substr(FirstName, (((0 % toInt64(length(FirstName))) + toInt64(length(FirstName))) % toInt64(length(FirstName))) + 1, 3))), ''), ifNull(kql_tostring(' '), ''), ifNull(kql_tostring(if(toInt64(length(LastName)) <= 0, '', substr(LastName, (((2 % toInt64(length(LastName))) + toInt64(length(LastName))) % toInt64(length(LastName))) + 1))), ''), '') AS name_abbr\nFROM Customers\nORDER BY LastName DESC"
         },
         {
             "print idx1 = indexof('abcdefg','cde')",

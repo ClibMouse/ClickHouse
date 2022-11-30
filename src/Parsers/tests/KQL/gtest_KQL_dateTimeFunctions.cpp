@@ -188,7 +188,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print totimespan(time(1d))",
-            "SELECT toIntervalNanosecond(86400000000000)"
+            "SELECT if(toTypeName(toIntervalNanosecond(86400000000000)) IN ['IntervalNanosecond', 'Nullable(IntervalNanosecond)'], toIntervalNanosecond(86400000000000), NULL)"
         },
         {
             "print totimespan('0.01:34:23')",
@@ -196,15 +196,15 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print totimespan(time('-1:12:34'))",
-            "SELECT toIntervalNanosecond(-4354000000000)"
+            "SELECT if(toTypeName(toIntervalNanosecond(-4354000000000)) IN ['IntervalNanosecond', 'Nullable(IntervalNanosecond)'], toIntervalNanosecond(-4354000000000), NULL)"
         },
         {
             "print totimespan(-1d)",
-            "SELECT -toIntervalNanosecond(86400000000000)"
+            "SELECT toIntervalNanosecond(-86400000000000)"
         },
         {
             "print totimespan('abc')",
-            "SELECT NULL"
+            "SELECT if(toTypeName('abc') IN ['IntervalNanosecond', 'Nullable(IntervalNanosecond)'], 'abc', NULL)"
         },
         {
             "print time(2)",
