@@ -161,7 +161,7 @@ https://www.test.com/hello word
 https%3A%2F%2Fwww.test.com%2Fhello%20word
 
 -- Customers | project name_abbr = strcat(substring(FirstName,0,3), \' \', substring(LastName,2))
-\N
+ y
 Lat en
 Pet ra
 The az
@@ -169,7 +169,7 @@ Ste x
 App 
 
 -- Customers | project name = strcat(FirstName, \' \', LastName)
-\N
+ why
 Latoya Shen
 Peter Nara
 Theodore Diaz
@@ -288,6 +288,9 @@ Kusto1
 {"Scheme":"","Host":"","Port":"","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
 -- parse_urlquery()
 {"Query Parameters":{"k1":"v1","k2":"v2","k3":"v3"}}
+-- strcat --
+a1235.00:00:00
+a111.01:00:00
 -- strcmp()
 0	1	-1	1
 -- substring()
