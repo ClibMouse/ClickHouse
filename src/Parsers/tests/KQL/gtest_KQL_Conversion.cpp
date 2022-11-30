@@ -18,23 +18,23 @@ INSTANTIATE_TEST_SUITE_P(
         },
         {
             "print todouble(A)",
-            "SELECT toFloat64OrNull(toString(A))"
+            "SELECT toFloat64OrNull(toString(A)) / if(toTypeName(A) = 'IntervalNanosecond', 100, 1)"
         },
         {
             "print toint(A)",
-            "SELECT toInt32OrNull(toString(A))"
+            "SELECT toInt32OrNull(toString(A)) / if(toTypeName(A) = 'IntervalNanosecond', 100, 1)"
         },
         {
             "print tolong(A)",
-            "SELECT toInt64OrNull(toString(A))"
+            "SELECT toInt64OrNull(toString(A)) / if(toTypeName(A) = 'IntervalNanosecond', 100, 1)"
         },
         {
             "print toreal(A)",
-            "SELECT toFloat64OrNull(toString(A))"
+            "SELECT toFloat64OrNull(toString(A)) / if(toTypeName(A) = 'IntervalNanosecond', 100, 1)"
         },
         {
             "print tostring(A)",
-            "SELECT ifNull(toString(A), '')"
+            "SELECT ifNull(kql_tostring(A), '')"
         },
         {
             "print decimal(123.345)",
@@ -50,7 +50,7 @@ INSTANTIATE_TEST_SUITE_P(
         },
         {
             "print todecimal(NULL)",
-            "SELECT NULL"
+            "SELECT toDecimal128OrNull(CAST(NULL, 'Nullable(String)'), 17) / if(toTypeName(NULL) = 'IntervalNanosecond', 100, 1)"
         },
         {
             "print todecimal(123456.3456)",

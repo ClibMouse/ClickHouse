@@ -91,7 +91,10 @@ bool ToTimeSpan::convertImpl(String & out, IParser::Pos & pos)
     }
     catch(...)
     {
-        out = "null";
+        Tokens tokens(argument.c_str(), argument.c_str() + argument.length());
+        IParser::Pos tokens_pos(tokens, pos.max_depth);
+        out = std::format(
+            "if(toTypeName({0}) in ['IntervalNanosecond', 'Nullable(IntervalNanosecond)'], {0}, null)", getExpression(tokens_pos));
     }
 
     return true;
