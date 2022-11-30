@@ -142,8 +142,8 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
 {
     String converted_arg;
     std::vector<String> tokens;
-    std::unique_ptr<IParserKQLFunction> fun;
-
+    //std::unique_ptr<IParserKQLFunction> fun;
+    int32_t round_bracket_count = 0, square_bracket_count = 0;
     if (pos->type == TokenType::ClosingRoundBracket || pos->type == TokenType::ClosingSquareBracket)
         return converted_arg;
 
@@ -152,6 +152,16 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
 
     while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
     {
+        if (pos->type == TokenType::OpeningRoundBracket)
+            ++round_bracket_count;
+        if (pos->type == TokenType::ClosingRoundBracket)
+            --round_bracket_count;
+
+        if (pos->type == TokenType::OpeningSquareBracket)
+            ++square_bracket_count;
+        if (pos->type == TokenType::ClosingSquareBracket)
+            --square_bracket_count;
+
         String new_token;
         if (!KQLOperators().convert(tokens, pos))
         {
@@ -163,7 +173,13 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
                 pos->type == TokenType::Comma || pos->type == TokenType::ClosingRoundBracket
                 || pos->type == TokenType::ClosingSquareBracket)
             {
-                break;
+                if (pos->type == TokenType::Comma)
+                    break;
+                if (pos->type == TokenType::ClosingRoundBracket && round_bracket_count == -1)
+                    break;
+                if (pos->type == TokenType::ClosingSquareBracket && round_bracket_count == 0)
+                    break;
+                tokens.push_back(String(pos->begin, pos->end));
             }
             else
             {
@@ -189,7 +205,14 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
         }
         ++pos;
         if (pos->type == TokenType::Comma || pos->type == TokenType::ClosingRoundBracket || pos->type == TokenType::ClosingSquareBracket)
-            break;
+        {
+            if (pos->type == TokenType::Comma)
+                break;
+            if (pos->type == TokenType::ClosingRoundBracket && round_bracket_count == -1)
+                break;
+            if (pos->type == TokenType::ClosingSquareBracket && round_bracket_count == 0)
+                break;
+        }
     }
     for (auto token : tokens)
         converted_arg = converted_arg.empty() ? token : converted_arg + " " + token;
