@@ -522,7 +522,21 @@ bool Split::convertImpl(String & out, IParser::Pos & pos)
 
 bool StrCat::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "concat");
+    const auto function_name = getKQLFunctionName(pos);
+    if (function_name.empty())
+        return false;
+
+    const auto arguments = getArguments(function_name, pos, ArgumentState::Raw);
+
+    out.append("concat(");
+    for (const auto & argument : arguments)
+    {
+        out.append(kqlCallToExpression("tostring", {argument}, pos.max_depth));
+        out.append(", ");
+    }
+
+    out.append("'')");
+    return true;
 }
 
 bool StrCatDelim::convertImpl(String & out, IParser::Pos & pos)

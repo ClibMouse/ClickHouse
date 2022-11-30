@@ -158,6 +158,15 @@ std::vector<std::string> IParserKQLFunction::getArguments(
     return arguments;
 }
 
+std::vector<std::string> IParserKQLFunction::getArguments(const String & function_name, DB::IParser::Pos & pos, const ArgumentState argument_state)
+{
+    std::vector<std::string> arguments;
+    while (auto argument = getOptionalArgument(function_name, pos, argument_state))
+        arguments.push_back(std::move(*argument));
+
+    return arguments;
+}
+
 String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser::Pos & pos)
 {
     int32_t round_bracket_count = 0, square_bracket_count = 0;
