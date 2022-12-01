@@ -94,3 +94,6 @@ Management abcd defg	['Stephanie']	[33]
 4
 -- count_distinctif --
 3
+-- format_datetime --
+70-01-01	1
+70-01-03	2
