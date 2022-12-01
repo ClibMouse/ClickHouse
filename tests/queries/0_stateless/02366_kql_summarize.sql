@@ -107,6 +107,9 @@ print '-- count_distinct --';
 Customers | summarize count_distinct(Education);
 print '-- count_distinctif --';
 Customers | summarize count_distinctif(Education, Age > 30);
+
+print '-- format_datetime --';
+EventLog | summarize count() by dt = format_datetime(bin(unixtime_seconds_todatetime(Created), 1d), 'yy-MM-dd') | order by dt asc
 -- TODO:
 -- arg_max()
 -- arg_min()
