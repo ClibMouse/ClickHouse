@@ -197,6 +197,8 @@ enum class KQLFunctionValue : uint16_t
     bin,
     bin_at,
     kase,
+    iff,
+    iif,
 
     datatype_bool,
     datatype_datetime,

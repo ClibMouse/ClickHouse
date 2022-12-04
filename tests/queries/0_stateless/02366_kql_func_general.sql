@@ -13,3 +13,7 @@ INSERT INTO Customers VALUES ('Theodore','Diaz','Skilled Manual','Bachelors',28)
 set dialect='kusto';
 print '-- case';
 Customers | extend t = case(Age <= 10, "A", Age <= 20, "B", Age <= 30, "C", "D");
+print '-- iff';
+Customers | extend t = iff(Age <= 10, "smaller", "bigger");
+print '-- iif';
+Customers | extend t = iif(Age <= 10, "smaller", "bigger");

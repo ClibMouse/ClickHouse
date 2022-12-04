@@ -25,4 +25,17 @@ protected:
     bool convertImpl(String &out,IParser::Pos &pos) override;
 };
 
+class Iff : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "iff()"; }
+    bool convertImpl(String &out,IParser::Pos &pos) override;
+};
+class Iif : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "iif()"; }
+    bool convertImpl(String &out,IParser::Pos &pos) override;
+};
+
 }
