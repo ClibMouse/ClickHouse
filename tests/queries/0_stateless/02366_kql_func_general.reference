@@ -9,3 +9,25 @@ Dalton	Wood	Professional	Partial College	42	D
 Christine	Nara	Skilled Manual	Partial College	33	D
 Cameron	Rodriguez	Professional	Partial College	28	C
 Angel	Stewart	Professional	Partial College	46	D
+-- iff
+Theodore	Diaz	Skilled Manual	Bachelors	28	bigger
+Stephanie	Cox	Management	Bachelors	33	bigger
+Peter	Nara	Skilled Manual	Graduate Degree	26	bigger
+Latoya	Shen	Professional	Graduate Degree	25	bigger
+Joshua	Lee	Professional	Partial College	26	bigger
+Edward	Hernandez	Skilled Manual	High School	36	bigger
+Dalton	Wood	Professional	Partial College	42	bigger
+Christine	Nara	Skilled Manual	Partial College	33	bigger
+Cameron	Rodriguez	Professional	Partial College	28	bigger
+Angel	Stewart	Professional	Partial College	46	bigger
+-- iif
+Theodore	Diaz	Skilled Manual	Bachelors	28	bigger
+Stephanie	Cox	Management	Bachelors	33	bigger
+Peter	Nara	Skilled Manual	Graduate Degree	26	bigger
+Latoya	Shen	Professional	Graduate Degree	25	bigger
+Joshua	Lee	Professional	Partial College	26	bigger
+Edward	Hernandez	Skilled Manual	High School	36	bigger
+Dalton	Wood	Professional	Partial College	42	bigger
+Christine	Nara	Skilled Manual	Partial College	33	bigger
+Cameron	Rodriguez	Professional	Partial College	28	bigger
+Angel	Stewart	Professional	Partial College	46	bigger
