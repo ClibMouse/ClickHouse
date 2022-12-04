@@ -218,6 +218,8 @@ namespace DB
         {"bin", KQLFunctionValue::bin},
         {"bin_at", KQLFunctionValue::bin_at},
         {"case", KQLFunctionValue::kase},
+        {"iff", KQLFunctionValue::iff},
+        {"iif", KQLFunctionValue::iif},
 
         {"bool", KQLFunctionValue::datatype_bool},
         {"boolean", KQLFunctionValue::datatype_bool},
@@ -789,6 +791,12 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(String &kql_function
         
         case KQLFunctionValue::kase:
             return std::make_unique<Case>();
+
+        case KQLFunctionValue::iff:
+             return std::make_unique<Iff>();
+
+        case KQLFunctionValue::iif:
+             return std::make_unique<Iif>();
 
         case KQLFunctionValue::datatype_bool:
             return std::make_unique<DatatypeBool>();
