@@ -7,6 +7,10 @@
    `Customers | summarize count_distinct(Education);`  
 - [count_distinctif](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/count-distinctif-aggfunction)  
    `Customers | summarize count_distinctif(Education, Age > 30);`  
+- [iff](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/ifffunction)  
+   `Customers | extend t = iff(Age <= 10, "smaller", "bigger");`  
+- [iif](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/iiffunction)  
+   `Customers | extend t = iif(Age <= 10, "smaller", "bigger");`  
 ## bug fixed
 - [indexOf function doesn't work for extended parameters](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1272)  
 - [Create generic function for time arithmetic](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1442)  
