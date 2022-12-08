@@ -310,7 +310,7 @@ print reverse(dynamic([]));
 print reverse(dynamic([1, 2, 3]));
 print reverse(dynamic(['Darth', "Vader"]));
 print reverse(datetime(2017-10-15 12:00));
--- print reverse(timespan(3h)); -> 00:00:30
+print reverse(timespan(3h));
 Customers | where Education contains 'degree' | order by reverse(FirstName);
 print '-- parse_csv()';
 print parse_csv('');
