@@ -474,15 +474,12 @@ bool ReplaceRegex::convertImpl(String & out, IParser::Pos & pos)
 
 bool Reverse::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
-    if (fn_name.empty())
+    const auto function_name = getKQLFunctionName(pos);
+    if (function_name.empty())
         return false;
 
-    ++pos;
-
-    auto arg = getConvertedArgument(fn_name, pos);
-
-    out = std::format("reverse(accurateCastOrNull({} , 'String'))", arg);
+    const auto argument = getArgument(function_name, pos, ArgumentState::Raw);
+    out = std::format("reverse({})", kqlCallToExpression("tostring", {argument}, pos.max_depth));
 
     return true;
 }
