@@ -1694,21 +1694,6 @@ public:
                     type_res = std::make_shared<DataTypeString>();
                 return true;
             }
-            else if constexpr (std::is_same_v<LeftDataType, DataTypeInterval> || std::is_same_v<RightDataType, DataTypeInterval>)
-            {
-                if constexpr (std::is_same_v<LeftDataType, DataTypeInterval> &&
-                              std::is_same_v<RightDataType, DataTypeInterval>)
-                {
-                    if constexpr (is_plus || is_minus)
-                    {
-                        if (left.getKind() == right.getKind())
-                        {
-                            type_res = std::make_shared<LeftDataType>(left.getKind());
-                            return true;
-                        }
-                    }
-                }
-            }
             else
             {
                 using ResultDataType = typename BinaryOperationTraits<Op, LeftDataType, RightDataType>::ResultDataType;
@@ -1788,7 +1773,7 @@ public:
 
                         if (nested_type)
                             type_res = makeNullable(nested_type);
-                        
+
                         return static_cast<bool>(nested_type);
                     }
                     else
