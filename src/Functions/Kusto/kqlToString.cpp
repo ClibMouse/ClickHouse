@@ -1,4 +1,5 @@
 #include <Columns/ColumnString.h>
+#include <DataTypes/DataTypesNumber.h>
 #include <DataTypes/DataTypeString.h>
 #include <Functions/FunctionFactory.h>
 #include <Functions/FunctionHelpers.h>
@@ -33,7 +34,7 @@ ColumnPtr
 FunctionKqlToString::executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr &, const size_t input_rows_count) const
 {
     const auto & argument = arguments.front();
-    if (WhichDataType(*argument.type).isInterval())
+    if (WhichDataType which_data_type(*argument.type); which_data_type.isInterval())
     {
         static const auto TICKS_PER_DAY = ParserKQLTimespan::parse("1d").value();
         static const auto TICKS_PER_HOUR = ParserKQLTimespan::parse("1h").value();
@@ -70,6 +71,15 @@ FunctionKqlToString::executeImpl(const ColumnsWithTypeAndName & arguments, const
         }
 
         return out_column;
+    }
+    else if (which_data_type.isDateOrDate32() || which_data_type.isDateTime() || which_data_type.isDateTime64())
+    {
+        const ColumnsWithTypeAndName to_datetime64_args{argument, createConstColumnWithTypeAndName<DataTypeUInt8>(7, "scale")};
+        const auto as_datetime64 = executeFunctionCall(context, "toDateTime64", to_datetime64_args, input_rows_count);
+
+        const ColumnsWithTypeAndName format_datetime_args{
+            asArgument(as_datetime64, "as_datetime64"), createConstColumnWithTypeAndName<DataTypeString>("%FT%T.%fZ", "format_string")};
+        return executeFunctionCall(context, "formatDateTime", format_datetime_args, input_rows_count).first;
     }
 
     return executeFunctionCall(context, "toString", arguments, input_rows_count).first;
