@@ -667,7 +667,10 @@ public:
                 {
                     const auto* first_arg_as_node = operands.front()->as<ASTFunction>();
                     if (first_arg_as_node && (first_arg_as_node->name == "kql_array_sort_asc" || first_arg_as_node->name == "kql_array_sort_desc"))
+                    {
                         cur_op.function_name = "tupleElement";
+                        cur_op.type = OperatorType::TupleElement;
+                    }
                 }
 
                 function = makeASTFunction(cur_op);
