@@ -1,3 +1,4 @@
+#include <DataTypes/DataTypeDateTime64.h>
 #include <DataTypes/DataTypeString.h>
 #include <DataTypes/DataTypesNumber.h>
 #include <Functions/FunctionFactory.h>
@@ -56,14 +57,31 @@ FunctionKqlBin::executeImpl(const ColumnsWithTypeAndName & arguments, const Data
             const WhichDataType value_which_data_type(*value_argument.type);
 
             const auto & adjusted_round_to
-                = (value_which_data_type.isDateTime64() || value_which_data_type.isInterval()) && !round_to_which_data_type.isInterval()
+                = (value_which_data_type.isDateOrDate32OrDateTimeOrDateTime64() || value_which_data_type.isInterval()) && !round_to_which_data_type.isInterval()
                 ? interpretAsInterval(context, round_to_argument, input_rows_count)
                 : round_to_argument;
 
-            const ColumnsWithTypeAndName adjusted_args{value_argument, adjusted_round_to};
-            if (value_which_data_type.isDateTime64())
-                return executeFunctionCall(context, "toStartOfIntervalOrNull", adjusted_args, input_rows_count);
+            if (value_which_data_type.isDateOrDate32OrDateTimeOrDateTime64())
+            {
+                const auto adjusted_args = std::invoke(
+                    [this, &adjusted_round_to, &input_rows_count, &value_argument, &value_which_data_type]() -> ColumnsWithTypeAndName
+                    {
+                        if (value_which_data_type.isDateTime64())
+                            return {value_argument, adjusted_round_to};
 
+                        const ColumnsWithTypeAndName to_datetime64_args{
+                            value_argument,
+                            createConstColumnWithTypeAndName<DataTypeUInt8>(7, "scale"),
+                            createConstColumnWithTypeAndName<DataTypeString>("UTC", "timezone")};
+
+                        const auto as_datetime64 = executeFunctionCall(context, "toDateTime64", to_datetime64_args, input_rows_count);
+                        return {asArgument(as_datetime64, "as_datetime64"), adjusted_round_to};
+                    });
+
+                return executeFunctionCall(context, "toStartOfIntervalOrNull", adjusted_args, input_rows_count);
+            }
+
+            const ColumnsWithTypeAndName adjusted_args{value_argument, adjusted_round_to};
             const auto quotient = executeFunctionCall(context, "divide", adjusted_args, input_rows_count);
 
             const ColumnsWithTypeAndName floor_args{asArgument(quotient, adjusted_round_to.name)};
@@ -80,23 +98,29 @@ FunctionKqlBin::executeImpl(const ColumnsWithTypeAndName & arguments, const Data
 
 DataTypePtr FunctionKqlBin::getReturnTypeImpl(const DataTypes & arguments) const
 {
-    const auto & value_argument = arguments.front();
-    const auto & round_to_argument = arguments.back();
-    if (const WhichDataType value_which_data_type(*value_argument);
-        value_which_data_type.isDateTime64() || value_which_data_type.isInterval() || isNumber(value_which_data_type))
-    {
-        const WhichDataType round_to_which_data_type(*round_to_argument);
-        return makeNullable(
-            isNumber(value_which_data_type) && (round_to_which_data_type.isFloat() || round_to_which_data_type.isDecimal())
-                ? round_to_argument
-                : value_argument);
-    }
+    const auto nested_type = std::invoke(
+        [this, &arguments]() -> DataTypePtr
+        {
+            const auto & value_argument = arguments.front();
+            const auto & round_to_argument = arguments.back();
+            if (const WhichDataType value_which_data_type(*value_argument); value_which_data_type.isInterval() || isNumber(value_which_data_type))
+            {
+                const WhichDataType round_to_which_data_type(*round_to_argument);
+                return isNumber(value_which_data_type) && (round_to_which_data_type.isFloat() || round_to_which_data_type.isDecimal())
+                    ? round_to_argument
+                    : value_argument;
+            }
+            else if (value_which_data_type.isDateOrDate32OrDateTimeOrDateTime64())
+                return std::make_shared<DataTypeDateTime64>(7, "UTC");
 
-    throw Exception(
-        ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT,
-        "Illegal type {} of first argument of function {}, expected DateTime64, Interval or Number",
-        value_argument->getName(),
-        getName());
+            throw Exception(
+                ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT,
+                "Illegal type {} of first argument of function {}, expected DateTime64, Interval or Number",
+                value_argument->getName(),
+                getName());
+        });
+
+    return makeNullable(nested_type);
 }
 
 REGISTER_FUNCTION(KqlBin)
