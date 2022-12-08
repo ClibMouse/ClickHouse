@@ -152,15 +152,15 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "print reverse(123)",
-            "SELECT reverse(accurateCastOrNull(123, 'String'))"
+            "SELECT reverse(ifNull(kql_tostring(123), ''))"
         },
         {
             "print reverse(123.34)",
-            "SELECT reverse(accurateCastOrNull(123.34, 'String'))"
+            "SELECT reverse(ifNull(kql_tostring(123.34), ''))"
         },
         {
             "print reverse('clickhouse')",
-            "SELECT reverse(accurateCastOrNull('clickhouse', 'String'))"
+            "SELECT reverse(ifNull(kql_tostring('clickhouse'), ''))"
         },
         {
             "print result=parse_csv('aa,b,cc')",
