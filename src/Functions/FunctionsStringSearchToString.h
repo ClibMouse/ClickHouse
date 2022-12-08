@@ -123,7 +123,7 @@ public:
     {
         const ColumnPtr column = arguments[0].column;
         const ColumnPtr column_needle = arguments[1].column;
-        const auto capture = arguments[2].column->get64(0);
+        const auto capture = arguments[2].column->getUInt(0);
 
         const ColumnConst * col_needle = typeid_cast<const ColumnConst *>(&*column_needle);
         if (!col_needle)
@@ -135,7 +135,7 @@ public:
 
             ColumnString::Chars & vec_res = col_res->getChars();
             ColumnString::Offsets & offsets_res = col_res->getOffsets();
-            Impl::vector(col->getChars(), col->getOffsets(), col_needle->getValue<String>(), capture, vec_res, offsets_res);
+            Impl::vector(col->getChars(), col->getOffsets(), col_needle->getValue<String>(), static_cast<unsigned>(capture), vec_res, offsets_res);
 
             return col_res;
         }
