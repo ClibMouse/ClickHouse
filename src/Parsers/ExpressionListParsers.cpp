@@ -675,8 +675,8 @@ public:
                         }
                         else if (first_arg_as_node->name == "arrayElement" && !first_arg_as_node->arguments->children.empty())
                         {
-                            auto &arg_name_inside = first_arg_as_node->arguments->children[0]->as<ASTFunction>()->name;
-                            if (arg_name_inside == "kql_array_sort_asc" || arg_name_inside == "kql_array_sort_desc")
+                            auto arg_inside = first_arg_as_node->arguments->children[0]->as<ASTFunction>();
+                            if (arg_inside && (arg_inside->name == "kql_array_sort_asc" || arg_inside->name == "kql_array_sort_desc"))
                                 first_arg_as_node->name = "tupleElement";
                         }
                     }
