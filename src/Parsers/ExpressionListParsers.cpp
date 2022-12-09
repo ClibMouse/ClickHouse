@@ -665,11 +665,20 @@ public:
                 /// enable using subscript operator for kql_array_sort
                 if (cur_op.function_name == "arrayElement" && !operands.empty())
                 {
-                    const auto* first_arg_as_node = operands.front()->as<ASTFunction>();
-                    if (first_arg_as_node && (first_arg_as_node->name == "kql_array_sort_asc" || first_arg_as_node->name == "kql_array_sort_desc"))
+                    auto* first_arg_as_node = operands.front()->as<ASTFunction>();
+                    if (first_arg_as_node)
                     {
-                        cur_op.function_name = "tupleElement";
-                        cur_op.type = OperatorType::TupleElement;
+                        if (first_arg_as_node->name == "kql_array_sort_asc" || first_arg_as_node->name == "kql_array_sort_desc")
+                        {
+                            cur_op.function_name = "tupleElement";
+                            cur_op.type = OperatorType::TupleElement;
+                        }
+                        else if (first_arg_as_node->name == "arrayElement" && !first_arg_as_node->arguments->children.empty())
+                        {
+                            auto &arg_name_inside = first_arg_as_node->arguments->children[0]->as<ASTFunction>()->name;
+                            if (arg_name_inside == "kql_array_sort_asc" || arg_name_inside == "kql_array_sort_desc")
+                                first_arg_as_node->name = "tupleElement";
+                        }
                     }
                 }
 
