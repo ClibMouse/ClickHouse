@@ -104,15 +104,15 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "print res = bin_at(6.5, 2.5, 7)",
-            "SELECT kql_bin(6.5 - 7, 2.5) + 7 AS res"
+            "SELECT kql_bin_at(6.5, 2.5, 7) AS res"
         },
         {
             "print res = bin_at(1h, 1d, 12h)",
-            "SELECT kql_bin(toIntervalNanosecond(3600000000000) - toIntervalNanosecond(43200000000000), toIntervalNanosecond(86400000000000)) + toIntervalNanosecond(43200000000000) AS res"
+            "SELECT kql_bin_at(toIntervalNanosecond(3600000000000), toIntervalNanosecond(86400000000000), toIntervalNanosecond(43200000000000)) AS res"
         },
         {
             "print res = bin_at(datetime(2017-05-15 10:20:00.0), 1d, datetime(1970-01-01 12:00:00.0))",
-            "SELECT kql_bin(parseDateTime64BestEffortOrNull('2017-05-15 10:20:00.0', 9, 'UTC') - parseDateTime64BestEffortOrNull('1970-01-01 12:00:00.0', 9, 'UTC'), toIntervalNanosecond(86400000000000)) + parseDateTime64BestEffortOrNull('1970-01-01 12:00:00.0', 9, 'UTC') AS res"
+            "SELECT kql_bin_at(parseDateTime64BestEffortOrNull('2017-05-15 10:20:00.0', 9, 'UTC'), toIntervalNanosecond(86400000000000), parseDateTime64BestEffortOrNull('1970-01-01 12:00:00.0', 9, 'UTC')) AS res"
         },
         {
             "print bin(4.5, 1)",

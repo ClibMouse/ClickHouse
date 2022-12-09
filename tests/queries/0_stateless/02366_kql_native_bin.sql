@@ -1,3 +1,4 @@
+select '-- kql_bin --';
 select '-- Numbers --';
 select kql_bin(4.5, 1.5);
 select kql_bin(4.5, 2);
@@ -38,3 +39,9 @@ select kql_bin(toDate32('2022-11-07'), toIntervalNanosecond(172800000000000));
 
 select '-- DateTime --';
 select kql_bin(toDateTime('2022-11-08 12:34:56', 'UTC'), toIntervalNanosecond(60000000000));
+
+select '-- kql_bin_at --';
+select kql_bin_at(6.5, 2.5, 7);
+select kql_bin_at(toIntervalNanosecond(3600000000000), toIntervalNanosecond(86400000000000), toIntervalNanosecond(43200000000000));
+select kql_bin_at(toDateTime64('2017-05-15 10:20:00.123', 5, 'UTC'), toIntervalNanosecond(86400000000000), toDateTime('1970-01-01 12:00:00', 'UTC'));
+select kql_bin_at(toDate('2017-05-17'), toIntervalNanosecond(604800000000000), toDate32('2017-06-04'));
