@@ -115,7 +115,7 @@ DataTypePtr FunctionKqlBin::getReturnTypeImpl(const DataTypes & arguments) const
 
             throw Exception(
                 ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT,
-                "Illegal type {} of first argument of function {}, expected DateTime64, Interval or Number",
+                "Illegal type {} of first argument of function {}, expected Date, Date32, DateTime, DateTime64, Interval or Number",
                 value_argument->getName(),
                 getName());
         });
