@@ -34,11 +34,10 @@ bool mapToAccurateCast(std::string & out, DB::IParser::Pos & pos, const std::str
 
     const auto arg = DB::IParserKQLFunction::getArgument(function_name, pos);
     out = std::format(
-        "if(toTypeName({0}) = 'IntervalNanosecond' or isNull(accurateCastOrNull({0}, '{1}') as cast_value_{2}) != isNull({0}), "
-        "accurateCastOrNull(throwIf(true, 'Failed to parse {1} literal'), '{1}'), cast_value_{2})",
+        "if(toTypeName({0}) = 'IntervalNanosecond' or isNull(accurateCastOrNull({0}, '{1}')) != isNull({0}), "
+        "accurateCastOrNull(throwIf(true, 'Failed to parse {1} literal'), '{1}'), accurateCastOrNull({0}, '{1}'))",
         arg,
-        type_name,
-        DB::IParserKQLFunction::generateUniqueIdentifier());
+        type_name);
 
     return true;
 }
