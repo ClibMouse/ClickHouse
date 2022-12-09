@@ -48,7 +48,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "print bool(1)",
-            "SELECT if((toTypeName(1) = 'IntervalNanosecond') OR (((accurateCastOrNull(1, 'Bool') AS cast_value_35694) IS NULL) != (1 IS NULL)), accurateCastOrNull(throwIf(true, 'Failed to parse Bool literal'), 'Bool'), cast_value_35694)"
+            "SELECT if((toTypeName(1) = 'IntervalNanosecond') OR ((accurateCastOrNull(1, 'Bool') IS NULL) != (1 IS NULL)), accurateCastOrNull(throwIf(true, 'Failed to parse Bool literal'), 'Bool'), accurateCastOrNull(1, 'Bool'))"
         },
         {
             "print datetime(2015-12-31 23:59:59.9)",
@@ -76,15 +76,15 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "print int(32.5)",
-            "SELECT if((toTypeName(32.5) = 'IntervalNanosecond') OR (((accurateCastOrNull(32.5, 'Int32') AS cast_value_23123) IS NULL) != (32.5 IS NULL)), accurateCastOrNull(throwIf(true, 'Failed to parse Int32 literal'), 'Int32'), cast_value_23123)"
+            "SELECT if((toTypeName(32.5) = 'IntervalNanosecond') OR ((accurateCastOrNull(32.5, 'Int32') IS NULL) != (32.5 IS NULL)), accurateCastOrNull(throwIf(true, 'Failed to parse Int32 literal'), 'Int32'), accurateCastOrNull(32.5, 'Int32'))"
         },
         {
             "print long(32.5)",
-            "SELECT if((toTypeName(32.5) = 'IntervalNanosecond') OR (((accurateCastOrNull(32.5, 'Int64') AS cast_value_38182) IS NULL) != (32.5 IS NULL)), accurateCastOrNull(throwIf(true, 'Failed to parse Int64 literal'), 'Int64'), cast_value_38182)"
+            "SELECT if((toTypeName(32.5) = 'IntervalNanosecond') OR ((accurateCastOrNull(32.5, 'Int64') IS NULL) != (32.5 IS NULL)), accurateCastOrNull(throwIf(true, 'Failed to parse Int64 literal'), 'Int64'), accurateCastOrNull(32.5, 'Int64'))"
         },
         {
             "print real(32.5)",
-            "SELECT if((toTypeName(32.5) = 'IntervalNanosecond') OR (((accurateCastOrNull(32.5, 'Float64') AS cast_value_46434) IS NULL) != (32.5 IS NULL)), accurateCastOrNull(throwIf(true, 'Failed to parse Float64 literal'), 'Float64'), cast_value_46434)"
+            "SELECT if((toTypeName(32.5) = 'IntervalNanosecond') OR ((accurateCastOrNull(32.5, 'Float64') IS NULL) != (32.5 IS NULL)), accurateCastOrNull(throwIf(true, 'Failed to parse Float64 literal'), 'Float64'), accurateCastOrNull(32.5, 'Float64'))"
         },
         {
             "print time('1.22:34:8.128')",
