@@ -165,7 +165,93 @@ String KQLOperators::genHasAnyAllOpExpr(std::vector<String> & tokens, IParser::P
     return new_expr;
 }
 
-String genEqOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos, const DB::String & ch_op)
+String KQLOperators::genEqOpExprCis(std::vector<String> &tokens, IParser::Pos &token_pos, String ch_op)
+{
+    String new_expr;
+    String tmp_arg = String(token_pos->begin, token_pos->end);
+    if(!tokens.empty() && tmp_arg == "~")
+    {
+        new_expr += "toString(lower(" + tokens.back() + "))";
+        new_expr += ch_op;
+        ++token_pos;
+        new_expr += " toString(lower(" + String(token_pos->begin, token_pos->end) + "))" + " ";
+        tokens.pop_back();
+    }
+    else
+        new_expr += tmp_arg;
+    return new_expr;
+}
+
+String KQLOperators::genInOpExprCis(std::vector<String> &tokens, IParser::Pos &token_pos, String kql_op, String ch_op)
+{
+    ParserKQLTaleFunction kqlfun_p;
+
+    ParserToken s_lparen(TokenType::OpeningRoundBracket);
+
+    ASTPtr select;
+    Expected expected;
+    String new_expr;
+
+    ++token_pos;
+    if (!s_lparen.ignore(token_pos, expected))
+        throw Exception("Syntax error near " + kql_op, ErrorCodes::SYNTAX_ERROR);
+
+    for(auto s : tokens)
+        new_expr += "toString(lower(" + s + "))" + " ";        
+
+    auto pos = token_pos;
+    if (kqlfun_p.parse(pos,select,expected))
+    {
+        new_expr = new_expr + ch_op + " kql";
+        auto tmp_pos = token_pos;
+        auto keep_pos = token_pos;
+        int pipe = 0;
+        bool desired_column_lowerd = false;
+        while (tmp_pos != pos) 
+        {
+            ++tmp_pos;
+            if(tmp_pos->type == TokenType::PipeMark)
+                pipe += 1;
+            if(pipe == 2 && !desired_column_lowerd)
+            {
+                new_expr = new_expr + " tostring(tolower(" + String(keep_pos->begin,keep_pos->end) + "))";
+                desired_column_lowerd = true;
+            }    
+            else
+                new_expr = new_expr + " " + String(keep_pos->begin,keep_pos->end);
+            ++keep_pos;
+        }
+
+        if (pos->type != TokenType::ClosingRoundBracket)
+            throw Exception("Syntax error near " + kql_op, ErrorCodes::SYNTAX_ERROR);
+
+        token_pos = pos;
+        tokens.pop_back();
+        return new_expr;
+    }
+    --token_pos;
+    --token_pos;
+
+    new_expr += ch_op + "( ";
+    while (!token_pos->isEnd() && token_pos->type != TokenType::PipeMark && token_pos->type != TokenType::Semicolon)
+    {
+        auto tmp_arg = String(token_pos->begin, token_pos->end);
+        if (token_pos->type != TokenType::Comma && token_pos->type != TokenType::ClosingRoundBracket && token_pos->type != TokenType::OpeningRoundBracket && token_pos->type != TokenType::OpeningSquareBracket && token_pos->type != TokenType::ClosingSquareBracket && tmp_arg != "~" && tmp_arg != "dynamic")
+            new_expr = new_expr + "toString(lower(" + tmp_arg + "))";
+        ++token_pos;
+        if (token_pos->type == TokenType::ClosingRoundBracket)
+            break;
+        else if (token_pos->type == TokenType::Comma)
+            new_expr += ", ";
+    }
+    ++token_pos;
+    new_expr += ")";
+
+    tokens.pop_back();
+    return new_expr;
+}
+
+String KQLOperators::genInOpExpr(IParser::Pos &token_pos, String kql_op, String ch_op)
 {
     DB::String tmp_arg(token_pos->begin, token_pos->end);
 
@@ -558,7 +644,6 @@ bool KQLOperators::convert(std::vector<String> & tokens, IParser::Pos & pos)
                 default:
                     break;
             }
-
             tokens.push_back(new_expr);
         }
         return true;

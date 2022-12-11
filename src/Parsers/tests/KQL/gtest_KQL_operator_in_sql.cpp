@@ -60,7 +60,51 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_operator_in_sql, ParserKQLTest,
             "SELECT *\nFROM view(\n    SELECT *\n    FROM Customers\n    WHERE NOT (FirstName ILIKE 'Peter%')\n)"
         },
         {
-            "select * from kql($$Customers | where FirstName !startswith_cs 'Peter'$$);",
-            "SELECT *\nFROM view(\n    SELECT *\n    FROM Customers\n    WHERE NOT startsWith(FirstName, 'Peter')\n)"
+            "select * from kql(Customers | where FirstName !startswith_cs 'Peter');",
+            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE NOT startsWith(FirstName, 'Peter')\n)"
+        },
+        {
+            "select * from kql(print t = 'a' in~ ('A', 'b', 'c'))",
+            "SELECT *\nFROM\n(\n    SELECT toString(lower('a')) IN (toString(lower('A')), toString(lower('b')), toString(lower('c'))) AS t\n)"
+        },
+        {
+            "select * from kql(Customers | where FirstName in~ ('peter', 'apple'))",
+            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE toString(lower(FirstName)) IN (toString(lower('peter')), toString(lower('apple')))\n)"
+        },
+        {
+            "select * from kql(Customers | where FirstName in~ ((Customers | project FirstName | where FirstName == 'Peter')))",
+            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE toString(lower(FirstName)) IN (\n        SELECT ifNull(kql_tostring(lower(FirstName)), '')\n        FROM Customers\n        WHERE FirstName = 'Peter'\n    )\n)"
+        },
+        {
+            "select * from kql(Customers | where FirstName in~ ((Customers | project FirstName | where Age < 30)))",
+            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE toString(lower(FirstName)) IN (\n        SELECT ifNull(kql_tostring(lower(FirstName)), '')\n        FROM Customers\n        WHERE Age < 30\n    )\n)"
+        },
+        {
+            "select * from kql(print t = 'a' !in~ ('A', 'b', 'c'))",
+            "SELECT *\nFROM\n(\n    SELECT toString(lower('a')) NOT IN (toString(lower('A')), toString(lower('b')), toString(lower('c'))) AS t\n)"
+        },
+        {
+            "select * from kql(print t = 'a' !in~ (dynamic(['A', 'b', 'c'])))",
+            "SELECT *\nFROM\n(\n    SELECT toString(lower('a')) NOT IN (toString(lower('A')), toString(lower('b')), toString(lower('c'))) AS t\n)"
+        },
+        {
+            "select * from kql(Customers | where FirstName !in~ ('peter', 'apple'))",
+            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE toString(lower(FirstName)) NOT IN (toString(lower('peter')), toString(lower('apple')))\n)"
+        },
+        {
+            "select * from kql(Customers | where FirstName !in~ ((Customers | project FirstName | where FirstName == 'Peter')))",
+            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE toString(lower(FirstName)) NOT IN (\n        SELECT ifNull(kql_tostring(lower(FirstName)), '')\n        FROM Customers\n        WHERE FirstName = 'Peter'\n    )\n)"
+        },
+        {
+            "select * from kql(Customers | where FirstName !in~ ((Customers | project FirstName | where Age < 30)))",
+            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE toString(lower(FirstName)) NOT IN (\n        SELECT ifNull(kql_tostring(lower(FirstName)), '')\n        FROM Customers\n        WHERE Age < 30\n    )\n)"
+        },
+        {
+            "select * from kql(Customers | where FirstName =~ 'peter' and LastName =~ 'naRA')",
+            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE (toString(lower(FirstName)) = toString(lower('peter'))) AND (toString(lower(LastName)) = toString(lower('naRA')))\n)"
+        },
+        {
+            "select * from kql(Customers | where FirstName !~ 'nEyMaR' and LastName =~ 'naRA')",
+            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE (toString(lower(FirstName)) != toString(lower('nEyMaR'))) AND (toString(lower(LastName)) = toString(lower('naRA')))\n)"
         }
 })));
