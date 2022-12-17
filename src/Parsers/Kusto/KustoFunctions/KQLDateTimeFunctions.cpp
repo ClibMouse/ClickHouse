@@ -1,55 +1,83 @@
+#include <Parsers/IParserBase.h>
+#include <Parsers/ParserSetQuery.h>
+#include <Parsers/ASTExpressionList.h>
+#include <Parsers/ASTSelectWithUnionQuery.h>
+#include <Parsers/Kusto/ParserKQLQuery.h>
+#include <Parsers/Kusto/ParserKQLStatement.h>
+#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
+#include <Parsers/Kusto/KustoFunctions/KQLDateTimeFunctions.h>
+#include <Parsers/Kusto/KustoFunctions/KQLStringFunctions.h>
+#include <Parsers/Kusto/KustoFunctions/KQLDynamicFunctions.h>
+#include <Parsers/Kusto/KustoFunctions/KQLCastingFunctions.h>
+#include <Parsers/Kusto/KustoFunctions/KQLAggregationFunctions.h>
+#include <Parsers/Kusto/KustoFunctions/KQLTimeSeriesFunctions.h>
+#include <Parsers/Kusto/KustoFunctions/KQLIPFunctions.h>
+#include <Parsers/Kusto/KustoFunctions/KQLBinaryFunctions.h>
+#include <Parsers/Kusto/KustoFunctions/KQLGeneralFunctions.h>
 #include <format>
 #include <regex>
 #include <optional>
-#include <Parsers/ASTExpressionList.h>
-#include <Parsers/ASTSelectWithUnionQuery.h>
-#include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
-#include <Parsers/Kusto/KustoFunctions/KQLAggregationFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLBinaryFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLCastingFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLDateTimeFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLDynamicFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLGeneralFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLIPFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLStringFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLTimeSeriesFunctions.h>
-#include <Parsers/Kusto/ParserKQLQuery.h>
-#include <Parsers/Kusto/ParserKQLStatement.h>
-#include <Parsers/ParserSetQuery.h>
-#include "Poco/String.h"
+
+namespace
+{
+bool mapToEndOfPeriod(std::string & out, DB::IParser::Pos & pos, const std::string_view period)
+{
+    const auto function_name = DB::IParserKQLFunction::getKQLFunctionName(pos);
+    if (function_name.empty())
+        return false;
+
+    const auto datetime = DB::IParserKQLFunction::getArgument(function_name, pos, DB::IParserKQLFunction::ArgumentState::Raw);
+    const auto offset = DB::IParserKQLFunction::getOptionalArgument(function_name, pos, DB::IParserKQLFunction::ArgumentState::Raw);
+    out = std::format(
+        "minus({}, {})",
+        DB::IParserKQLFunction::kqlCallToExpression(
+            std::format("startof{}", Poco::toLower(std::string(period))),
+            {datetime, std::format("{} + 1", offset.value_or("0"))},
+            pos.max_depth),
+        DB::IParserKQLFunction::kqlCallToExpression("timespan", {"1tick"}, pos.max_depth));
+    return true;
+}
+
+bool mapToStartOfPeriod(std::string & out, DB::IParser::Pos & pos, const std::string_view period)
+{
+    const auto function_name = DB::IParserKQLFunction::getKQLFunctionName(pos);
+    if (function_name.empty())
+        return false;
+
+    const auto datetime = DB::IParserKQLFunction::getArgument(function_name, pos);
+    const auto offset = DB::IParserKQLFunction::getOptionalArgument(function_name, pos);
+    out = std::format("toDateTime64(add{0}s(toStartOf{0}({1}), {2}), 9, 'UTC')", period, datetime, offset.value_or("0"));
+    return true;
+}
+}
+
 namespace DB::ErrorCodes
 {
 extern const int BAD_ARGUMENTS;
 extern const int SYNTAX_ERROR;
 }
+
 namespace DB
 {
 bool Ago::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
-    if (fn_name.empty())
+    const auto function_name = getKQLFunctionName(pos);
+    if (function_name.empty())
         return false;
 
-    ++pos;
-    if (pos->type != TokenType::ClosingRoundBracket)
-    {
-        const auto offset = getConvertedArgument(fn_name, pos);
-        out = std::format("now64(9,'UTC') - {}", offset);
-    }
-    else
-        out = "now64(9,'UTC')";
+    const auto offset = getOptionalArgument(function_name, pos, ArgumentState::Raw);
+    out = kqlCallToExpression(
+        "now", {std::format("-1 * {}", offset.value_or(kqlCallToExpression("timespan", {"0"}, pos.max_depth)))}, pos.max_depth);
     return true;
 }
 
 bool DatetimeAdd::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
+    const auto fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;
 
-    ++pos;
-    String period = getConvertedArgument(fn_name, pos);
+    auto period = getArgument(fn_name, pos);
     //remove quotes from period.
     trim(period);
     if (period.front() == '\"' || period.front() == '\'')
@@ -58,12 +86,11 @@ bool DatetimeAdd::convertImpl(String & out, IParser::Pos & pos)
         period.erase(0, 1); // erase the first quote
         period.erase(period.size() - 1); // erase the last quote
     }
-    ++pos;
-    const String offset = getConvertedArgument(fn_name, pos);
-    ++pos;
-    const String datetime = getConvertedArgument(fn_name, pos);
 
-    out = std::format("date_add({}, {}, {})", period, offset, datetime);
+    const auto offset = getArgument(fn_name, pos);
+    const auto datetime = getArgument(fn_name, pos);
+    
+    out = std::format("date_add({}, {}, {})",period,offset,datetime);
 
     return true;
 };
@@ -154,102 +181,22 @@ bool DayOfYear::convertImpl(String & out, IParser::Pos & pos)
 
 bool EndOfMonth::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
-    if (fn_name.empty())
-        return false;
-
-    ++pos;
-    const String datetime_str = getConvertedArgument(fn_name, pos);
-    String offset = "0";
-
-    if (pos->type == TokenType::Comma)
-    {
-        ++pos;
-        offset = getConvertedArgument(fn_name, pos);
-        if (offset.empty())
-            throw Exception(ErrorCodes::SYNTAX_ERROR, "Number of arguments do not match in function: {}", fn_name);
-    }
-    out = std::format(
-        "toDateTime(toLastDayOfMonth(toDateTime({}, 9, 'UTC') + toIntervalMonth({})), 9, 'UTC') + toIntervalHour(23) + "
-        "toIntervalMinute(59) + toIntervalSecond(60) - toIntervalMicrosecond(1)",
-        datetime_str,
-        toString(offset));
-
-    return true;
+    return mapToEndOfPeriod(out, pos, "Month");
 }
 
 bool EndOfDay::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
-    if (fn_name.empty())
-        return false;
-
-    ++pos;
-    const String datetime_str = getConvertedArgument(fn_name, pos);
-    String offset = "0";
-
-    if (pos->type == TokenType::Comma)
-    {
-        ++pos;
-        offset = getConvertedArgument(fn_name, pos);
-    }
-    out = std::format(
-        "toDateTime(toStartOfDay({}),9,'UTC') + (INTERVAL {} +1 DAY) - (INTERVAL 1 microsecond)", datetime_str, toString(offset));
-
-    return true;
+    return mapToEndOfPeriod(out, pos, "Day");
 }
 
 bool EndOfWeek::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
-    if (fn_name.empty())
-        return false;
-
-    ++pos;
-    const String datetime_str = getConvertedArgument(fn_name, pos);
-    String offset = "0";
-
-    if (pos->type == TokenType::Comma)
-    {
-        ++pos;
-        offset = getConvertedArgument(fn_name, pos);
-    }
-    out = std::format(
-        "toDateTime(toStartOfDay({}),9,'UTC') + (INTERVAL {} +1 WEEK) - (INTERVAL 1 microsecond)", datetime_str, toString(offset));
-
-    return true;
+    return mapToEndOfPeriod(out, pos, "Week");
 }
 
 bool EndOfYear::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
-    if (fn_name.empty())
-        return false;
-
-    ++pos;
-    const String datetime_str = getConvertedArgument(fn_name, pos);
-
-    if (datetime_str.empty())
-        throw Exception(ErrorCodes::SYNTAX_ERROR, "Number of arguments do not match in function: {}", fn_name);
-
-    String offset = "0";
-    if (pos->type == TokenType::Comma)
-    {
-        ++pos;
-        offset = getConvertedArgument(fn_name, pos);
-        if (offset.empty())
-            throw Exception(ErrorCodes::SYNTAX_ERROR, "Number of arguments do not match in function: {}", fn_name);
-        offset.erase(remove(offset.begin(), offset.end(), ' '), offset.end());
-    }
-
-    out = std::format(
-        "(((((toDateTime(toString(toLastDayOfMonth(toDateTime({0}, 9, 'UTC') + toIntervalYear({1}) + toIntervalMonth(12 - "
-        "toInt8(substring(toString(toDateTime({0}, 9, 'UTC')), 6, 2))))), 9, 'UTC') + toIntervalHour(23)) + toIntervalMinute(59)) + "
-        "toIntervalSecond(60)) - toIntervalMicrosecond(1)))",
-        datetime_str,
-        toString(offset));
-
-    return true;
+    return mapToEndOfPeriod(out, pos, "Year");
 }
 
 bool FormatDateTime::convertImpl(String & out, IParser::Pos & pos)
@@ -458,172 +405,95 @@ bool MakeTimeSpan::convertImpl(String & out, IParser::Pos & pos)
 
 bool MakeDateTime::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
-
+    const auto fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;
 
-    String year = "0",  month = "0", day = "0", hours = "0", minutes= "0", seconds = "0" , precision = "0";
-
-    year = getArgument(fn_name, pos);
-    month = getArgument(fn_name, pos);
-    day = getArgument(fn_name, pos);
-    const auto optional_hour = getOptionalArgument(fn_name, pos);
-    const auto optional_minutes = getOptionalArgument(fn_name, pos);
-    const auto optional_seconds = getOptionalArgument(fn_name, pos);
-    
-    if(optional_hour.has_value())
-        hours = optional_hour.value();
-    
-    if(optional_minutes.has_value())
-        minutes = optional_minutes.value();
-
-    if(optional_seconds.has_value())
-    {
-        String second_argument = optional_seconds.value();
-        seconds = std::format("toUInt64(position({0}::String, '.') > 0 ? substr({0}::String, 1 , position({0}::String,'.') - 1) :  {0}::String)", second_argument);
-        precision = std::format("toUInt64(position({0}::String, '.') > 0 ? substr({0}::String, position({0}::String,'.') + 1) : 0::String )", second_argument);
-    }
-    String condition = std::format( "{0}::UInt16 < 2300 AND {0}::UInt16 > 1899  AND  {1}::UInt16 < 13 AND {1}::UInt16 > 0 AND {2}::UInt16 < 32 AND {2}::UInt16 > 0 AND {3}::UInt16 < 25 AND {3}::UInt16 >= 0 AND {4}::UInt16 < 60 AND {4}::UInt16 >=0 AND {5}::UInt16 <60 AND {5}::UInt16 >= 0 ",year,month,day,hours,minutes,seconds);
-    //String condition = std::format( "{0}< '2300' AND {0} > '1899'  AND  {1} < '13' AND {1} > '0' AND {2} < '32' AND {2} > '0' AND {3} < '25' AND {3} >= 0 AND {4} < '60' AND {4} >='0' AND {5} <'60' AND {5} >= '0' ",year, month, day, hours, minutes, seconds);
-    out = std::format("{7} ? makeDateTime64({0},{1},{2},{3},{4},{5},{6},7,'UTC') : parseDateTime64BestEffort(NULL  , 9, 'UTC') ", year , month , day , hours, minutes, seconds, precision, condition);
+    const auto year = getArgument(fn_name, pos);
+    const auto month = getArgument(fn_name, pos);
+    const auto day = getArgument(fn_name, pos);
+    const auto hour = getOptionalArgument(fn_name, pos);
+    const auto minute = getOptionalArgument(fn_name, pos);
+    const auto second = getOptionalArgument(fn_name, pos);
+    out = std::format(
+        "if({0} between 1900 and 2261 and {1} between 1 and 12 and {3} between 0 and 59 and {4} between 0 and 59 and {5} >= 0 and {5} < 60 "
+        " and isNotNull(toModifiedJulianDayOrNull(concat(leftPad(toString({0}), 4, '0'), '-', leftPad(toString({1}), 2, '0'), '-', leftPad(toString({2}), 2, '0')))), "
+        "toDateTime64OrNull(toString(makeDateTime64({0}, {1}, {2}, {3}, {4}, truncate({5}), ({5} - truncate({5})) * 1e7, 7, 'UTC')), 9), null)",
+        year,
+        month,
+        day,
+        hour.value_or("0"),
+        minute.value_or("0"),
+        second.value_or("0"));
 
     return true;
 }
 
 bool Now::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
+    const auto fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;
 
-    ++pos;
-    if (pos->type != TokenType::ClosingRoundBracket)
-    {
-        const auto offset = getConvertedArgument(fn_name, pos);
-        out = std::format("now64(9,'UTC') + {}", offset);
-    }
-    else
-        out = "now64(9,'UTC')";
+    const auto offset = getOptionalArgument(fn_name, pos);
+    out = "now64(9, 'UTC')" + (offset ? " + " + *offset : "");
+
     return true;
 }
 
 bool StartOfDay::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
-
-    if (fn_name.empty())
-        return false;
-
-    ++pos;
-    const String datetime_str = getConvertedArgument(fn_name, pos);
-    String offset = "0";
-
-    if (pos->type == TokenType::Comma)
-    {
-        ++pos;
-        offset = getConvertedArgument(fn_name, pos);
-    }
-    out = std::format("date_add(DAY,{}, parseDateTime64BestEffortOrNull(toString((toStartOfDay({}))), 9, 'UTC')) ", offset, datetime_str);
-    return true;
+    return mapToStartOfPeriod(out, pos, "Day");
 }
 
 bool StartOfMonth::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
-    if (fn_name.empty())
-        return false;
-
-    ++pos;
-    const String datetime_str = getConvertedArgument(fn_name, pos);
-    String offset = "0";
-
-    if (pos->type == TokenType::Comma)
-    {
-        ++pos;
-        offset = getConvertedArgument(fn_name, pos);
-    }
-    out = std::format(
-        "date_add(MONTH,{}, parseDateTime64BestEffortOrNull(toString((toStartOfMonth({}))), 9, 'UTC')) ", offset, datetime_str);
-    return true;
+    return mapToStartOfPeriod(out, pos, "Month");
 }
 
 bool StartOfWeek::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
-    if (fn_name.empty())
-        return false;
-
-    ++pos;
-    const String datetime_str = getConvertedArgument(fn_name, pos);
-    String offset = "0";
-
-    if (pos->type == TokenType::Comma)
-    {
-        ++pos;
-        offset = getConvertedArgument(fn_name, pos);
-    }
-    out = std::format(
-        "date_add(Week,{}, parseDateTime64BestEffortOrNull(toString((toStartOfWeek({}))), 9, 'UTC')) ", offset, datetime_str);
-    return true;
+    return mapToStartOfPeriod(out, pos, "Week");
 }
 
 bool StartOfYear::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
-    if (fn_name.empty())
-        return false;
-
-    ++pos;
-    const String datetime_str = getConvertedArgument(fn_name, pos);
-    String offset = "0";
-
-    if (pos->type == TokenType::Comma)
-    {
-        ++pos;
-        offset = getConvertedArgument(fn_name, pos);
-    }
-    out = std::format(
-        "date_add(YEAR,{}, parseDateTime64BestEffortOrNull(toString((toStartOfYear({}, 'UTC'))), 9, 'UTC'))", offset, datetime_str);
-    return true;
+    return mapToStartOfPeriod(out, pos, "Year");
 }
 
 bool UnixTimeMicrosecondsToDateTime::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
+    const auto fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;
 
-    ++pos;
-    const String value = getConvertedArgument(fn_name, pos);
+    const auto value = getArgument(fn_name, pos);
+    out = std::format("toDateTime64(fromUnixTimestamp64Micro({}, 'UTC'), 9, 'UTC')", value);
 
-    out = std::format("fromUnixTimestamp64Micro({},'UTC')", value);
     return true;
 }
 
 bool UnixTimeMillisecondsToDateTime::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
+    const auto fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;
 
-    ++pos;
-    const String value = getConvertedArgument(fn_name, pos);
+    const auto value = getArgument(fn_name, pos);    
+    out = std::format("toDateTime64(fromUnixTimestamp64Milli({}, 'UTC'), 9, 'UTC')", value);
 
-    out = std::format("fromUnixTimestamp64Milli({},'UTC')", value);
     return true;
 }
 
 bool UnixTimeNanosecondsToDateTime::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
+    const auto fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;
 
-    ++pos;
-    const String value = getConvertedArgument(fn_name, pos);
+    const auto value = getArgument(fn_name, pos);     
+    out = std::format("toDateTime64(fromUnixTimestamp64Nano({}, 'UTC'), 9, 'UTC')", value);
 
-    out = std::format("fromUnixTimestamp64Nano({},'UTC')", value);
     return true;
 }
 
@@ -638,12 +508,7 @@ bool UnixTimeSecondsToDateTime::convertImpl(String & out, IParser::Pos & pos)
         throw Exception(ErrorCodes::BAD_ARGUMENTS, "{} accepts only long, int and double type of arguments", fn_name);
 
     String expression = getConvertedArgument(fn_name, pos);
-    out = std::format(
-        " if(toTypeName({0}) = 'Int64' OR toTypeName({0}) = 'Int32'OR toTypeName({0}) = 'Float64' OR  toTypeName({0}) = 'UInt32' OR  "
-        "toTypeName({0}) = 'UInt64', toDateTime64({0}, 9, 'UTC'), toDateTime64(throwIf(true, '{1} only accepts Int, Long and double type "
-        "of arguments'), 9, 'UTC'))",
-        expression,
-        fn_name);
+    out = std::format(" if(toTypeName({0}) in ['Int32', 'Int64', 'Float64', 'UInt32', 'UInt64'], toDateTime64({0}, 9, 'UTC') , toDateTime64(throwIf(true, '{1} only accepts Int , Long and double type of arguments'),9,'UTC'))", expression, fn_name);
 
     return true;
 }

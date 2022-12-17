@@ -171,10 +171,10 @@ NullPresence getNullPresense(const ColumnsWithTypeAndName & args);
 
 bool isDecimalOrNullableDecimal(const DataTypePtr & type);
 
-template <typename T>
-ColumnWithTypeAndName createConstColumnWithTypeAndName(const typename T::FieldType & value, const std::string & name)
+template <typename T, typename... Args>
+ColumnWithTypeAndName createConstColumnWithTypeAndName(const typename T::FieldType & value, const std::string & name, Args&&... args)
 {
-    return {T().createColumnConst(1, toField(value)), std::make_shared<T>(), name};
+    return {T().createColumnConst(1, toField(value)), std::make_shared<T>(std::forward<Args>(args)...), name};
 }
 
 std::pair<ColumnPtr, DataTypePtr> executeFunctionCall(
