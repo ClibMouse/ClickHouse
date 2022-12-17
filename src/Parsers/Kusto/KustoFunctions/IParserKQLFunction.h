@@ -73,16 +73,9 @@ public:
     static String getKQLFunctionName(IParser::Pos & pos);
     static std::optional<String>
     getOptionalArgument(const String & function_name, DB::IParser::Pos & pos, ArgumentState argument_state = ArgumentState::Parsed);
-
-protected:
-    virtual bool convertImpl(String & out, IParser::Pos & pos) = 0;
-
-    static bool directMapping(
-        String & out, IParser::Pos & pos, std::string_view ch_fn, const Interval & argument_count_interval = {0, Interval::max_bound});
     static String
     kqlCallToExpression(std::string_view function_name, std::initializer_list<const std::string_view> params, uint32_t max_depth);
     static String kqlCallToExpression(std::string_view function_name, std::span<const std::string_view> params, uint32_t max_depth);
-    static String escapeSingleQuotes(const String & input);
 
 protected:
     virtual bool convertImpl(String & out, IParser::Pos & pos) = 0;

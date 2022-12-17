@@ -71,7 +71,7 @@ FunctionKqlBin::executeImpl(const ColumnsWithTypeAndName & arguments, const Data
 
                         const ColumnsWithTypeAndName to_datetime64_args{
                             value_argument,
-                            createConstColumnWithTypeAndName<DataTypeUInt8>(7, "scale"),
+                            createConstColumnWithTypeAndName<DataTypeUInt8>(9, "scale"),
                             createConstColumnWithTypeAndName<DataTypeString>("UTC", "timezone")};
 
                         const auto as_datetime64 = executeFunctionCall(context, "toDateTime64", to_datetime64_args, input_rows_count);
@@ -111,7 +111,7 @@ DataTypePtr FunctionKqlBin::getReturnTypeImpl(const DataTypes & arguments) const
                     : value_argument;
             }
             else if (value_which_data_type.isDateOrDate32OrDateTimeOrDateTime64())
-                return std::make_shared<DataTypeDateTime64>(7, "UTC");
+                return std::make_shared<DataTypeDateTime64>(9, "UTC");
 
             throw Exception(
                 ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT,
