@@ -3,12 +3,14 @@
 #include <Parsers/IParserBase.h>
 #include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
 #include <Parsers/Kusto/KustoFunctions/KQLDataTypeFunctions.h>
-#include <Parsers/Kusto/ParserKQLTimespan.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLStatement.h>
+#include <Parsers/Kusto/ParserKQLTimespan.h>
 #include <Parsers/Kusto/Utilities.h>
 #include <Parsers/ParserSetQuery.h>
-#include "Poco/String.h"
+
+#include <boost/lexical_cast/try_lexical_convert.hpp>
+
 #include <format>
 #include <regex>
 
@@ -52,42 +54,22 @@ bool DatatypeBool::convertImpl(String & out, IParser::Pos & pos)
 
 bool DatatypeDatetime::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
+    const auto fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;
-    String datetime_str;
 
-    ++pos;
-    if (pos->type == TokenType::QuotedIdentifier)
-        datetime_str = std::format("'{}'", String(pos->begin + 1, pos->end - 1));
-    else if (pos->type == TokenType::StringLiteral)
-        datetime_str = String(pos->begin, pos->end);
-    else if (pos->type == TokenType::BareWord)
-    {
-        datetime_str = getConvertedArgument(fn_name, pos);
-        if (Poco::toUpper(datetime_str) == "NULL")
-            out = "NULL";
-        else
-            out = std::format(
-                "if(toTypeName({0}) = 'Int64' OR toTypeName({0}) = 'Int32'OR toTypeName({0}) = 'Float64' OR  toTypeName({0}) = 'UInt32' OR "
-                " toTypeName({0}) = 'UInt64', toDateTime64({0},9,'UTC'), parseDateTime64BestEffortOrNull({0}::String,9,'UTC'))",
-                datetime_str);
-        return true;
-    }
-    else
-    {
-        auto start = pos;
-        while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    const auto argument = extractLiteralArgumentWithoutQuotes(fn_name, pos);
+    const auto mutated_argument = std::invoke(
+        [&argument]
         {
-            ++pos;
-            if (pos->type == TokenType::ClosingRoundBracket)
-                break;
-        }
-        --pos;
-        datetime_str = std::format("'{}'", String(start->begin, pos->end));
-    }
-    out = std::format("parseDateTime64BestEffortOrNull({},9,'UTC')", datetime_str);
-    ++pos;
+            if (Int64 value; (boost::conversion::try_lexical_convert(argument, value) && (value < 1900 || value > 2261))
+                || Poco::toLower(argument) == "null")
+                return argument;
+
+            return "'" + argument + "'";
+        });
+
+    out = std::format("kql_datetime({})", mutated_argument);
     return true;
 }
 
@@ -178,20 +160,7 @@ bool DatatypeTimespan::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
 
-    const auto argument = std::invoke([&fn_name, &pos]
-    {
-        ++pos;
-        if (pos->type == TokenType::QuotedIdentifier || pos->type == TokenType::StringLiteral)
-        {
-            auto result = extractTokenWithoutQuotes(pos);
-            ++pos;
-            return result;
-        }
-        
-        --pos;
-        return getArgument(fn_name, pos, ArgumentState::Raw);
-    });
-
+    const auto argument = extractLiteralArgumentWithoutQuotes(fn_name, pos);
     const auto ticks = ParserKQLTimespan::parse(argument);
     out = kqlTicksToInterval(ticks);
 

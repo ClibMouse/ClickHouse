@@ -25,13 +25,7 @@ bool ToBool::convertImpl(String & out, IParser::Pos & pos)
 
 bool ToDateTime::convertImpl(String & out, IParser::Pos & pos)
 {
-    const auto function_name = getKQLFunctionName(pos);
-    if (function_name.empty())
-        return false;
-
-    const auto param = getArgument(function_name, pos);
-    out = std::format("parseDateTime64BestEffortOrNull(toString({0}), 9, 'UTC')", param);
-    return true;
+    return directMapping(out, pos, "kql_todatetime");
 }
 
 bool ToDouble::convertImpl(String & out, IParser::Pos & pos)

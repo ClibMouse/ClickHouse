@@ -5,6 +5,19 @@ str String
 )ENGINE = Memory;
 INSERT INTO tb1 VALUES ('123.561') , ('653.4');
 
+-- datatable(s:string, i:long) [
+--     '0', 0,
+--     '1899', 1899,
+--     '1900', 1900,
+--     '2261', 2261,
+--     '2262', 2262,
+--     '10000', 10000
+-- ]
+
+drop table if exists datetime_test;
+create table datetime_test(s String, i Int64) engine = Memory;
+insert into datetime_test values ('0', 0), ('1899', 1899), ('1900', 1900), ('2261', 2261), ('2262', 2262), ('10000', 10000);
+
 set dialect = 'kusto';
 print '-- bool';
 print bool(true);
@@ -47,6 +60,7 @@ print datetime(null);
 print datetime('2014-05-25T08:20:03.123456Z');
 print datetime('2014-11-08 15:55:55.123456Z');
 print datetime('2022') - datetime('2021');
+print datetime('1970-05-11 13:45:07.456345672');
 print '-- time';
 print time(null);
 print time(1.2:3:3);
@@ -150,7 +164,8 @@ print tostring(123);
 print tostring(null);
 print '-- todatetime()';
 print todatetime("2015-12-24") == datetime(2015-12-24);
-print todatetime('abc') == null;
+print isnull(todatetime('abc'));
+print todatetime('1970-05-11 13:45:07.456345672') == datetime('1970-05-11 13:45:07.456345672');
 print '-- totimespan()';
 print totimespan(1tick);
 print totimespan('0.00:01:00');
