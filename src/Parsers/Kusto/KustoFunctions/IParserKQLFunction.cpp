@@ -249,7 +249,7 @@ IParserKQLFunction::getOptionalArgument(const String & function_name, DB::IParse
             magic_enum::enum_type_name<ArgumentState>(),
             magic_enum::enum_name(argument_state));
 
-    String expression;
+    const auto* begin = pos->begin;
     std::stack<DB::TokenType> scopes;
     while (!pos->isEnd() && (!scopes.empty() || (pos->type != DB::TokenType::Comma && pos->type != DB::TokenType::ClosingRoundBracket)))
     {
@@ -265,19 +265,10 @@ IParserKQLFunction::getOptionalArgument(const String & function_name, DB::IParse
             scopes.pop();
         }
 
-        if (token_type == DB::TokenType::QuotedIdentifier)
-        {
-            expression.push_back('\'');
-            expression.append(pos->begin + 1, pos->end - 1);
-            expression.push_back('\'');
-        }
-        else
-            expression.append(pos->begin, pos->end);
-
         ++pos;
     }
 
-    return expression;
+    return std::string(begin, pos->begin);
 }
 
 String IParserKQLFunction::getKQLFunctionName(IParser::Pos & pos)
