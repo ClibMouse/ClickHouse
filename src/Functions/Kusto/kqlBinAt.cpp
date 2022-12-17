@@ -36,7 +36,7 @@ ColumnPtr FunctionKqlBinAt::executeImpl(
         {
             const ColumnsWithTypeAndName to_datetime64_args{
                 argument,
-                createConstColumnWithTypeAndName<DataTypeUInt8>(7, "scale"),
+                createConstColumnWithTypeAndName<DataTypeUInt8>(9, "scale"),
                 createConstColumnWithTypeAndName<DataTypeString>("UTC", "timezone")};
 
             return asArgument(executeFunctionCall(context, "toDateTime64", to_datetime64_args, input_rows_count), argument.name);
