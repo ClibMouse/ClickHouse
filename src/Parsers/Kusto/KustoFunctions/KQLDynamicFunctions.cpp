@@ -17,24 +17,7 @@ bool ArrayConcat::convertImpl(String & out, IParser::Pos & pos)
 
 bool ArrayIif::convertImpl(String & out, IParser::Pos & pos)
 {
-    const auto function_name = getKQLFunctionName(pos);
-    if (function_name.empty())
-        return false;
-
-    const auto conditions = getArgument(function_name, pos);
-    const auto if_true = getArgument(function_name, pos);
-    const auto if_false = getArgument(function_name, pos);
-
-    out = std::format(
-        "arrayMap(x -> multiIf(not arrayExists(y -> startsWith(toTypeName(x.1), y) or startsWith(toTypeName(x.1), 'Nullable') and "
-        "startsWith(extract(toTypeName(x.1), 'Nullable\\((.*)\\)'), y), ['Bool', 'Decimal', 'Float', 'Int', 'UInt']) or isNull(x.1), "
-        "null, toDecimal128OrDefault(x.1, 0) != 0, x.2, x.3), "
-        "arrayZip({0}, arrayResize({1}, length({0}), null), arrayResize({2}, length({0}), null)))",
-        conditions,
-        if_true,
-        if_false);
-
-    return true;
+   return directMapping(out, pos, "kql_ArrayIif");
 }
 
 bool ArrayIndexOf::convertImpl(String & out, IParser::Pos & pos)
