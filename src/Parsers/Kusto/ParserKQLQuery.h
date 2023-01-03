@@ -13,7 +13,7 @@ public:
     static String getExprFromToken(Pos & pos);
     static String getExprFromToken(const String & text, uint32_t max_depth, uint32_t max_backtracks);
     static String getExprFromPipe(Pos & pos);
-    static bool setSubQuerySource(ASTPtr & select_query, ASTPtr & source, bool dest_is_subquery, bool src_is_subquery, String alias = "");
+    static bool setSubQuerySource(ASTPtr & select_query, ASTPtr & source, bool dest_is_subquery, bool src_is_subquery, String alias = "", int32_t table_index = 0);
     static bool parseSQLQueryByString(ParserPtr && parser, String & query, ASTPtr & select_node, uint32_t max_depth, uint32_t max_backtracks);
     bool parseByString(String expr, ASTPtr & node, uint32_t max_depth, uint32_t max_backtracks);
     virtual bool updatePipeLine (OperationsPos & /*operations*/, String & /*query*/) {return false;}
