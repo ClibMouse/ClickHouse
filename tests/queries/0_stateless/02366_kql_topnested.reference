@@ -1,0 +1,108 @@
+-- top nested 1 layer--
+QC	125
+ON	140
+MA	145
+--top nested 2 layers--
+QC	125	Steven	41
+QC	125	Joseph	33
+ON	140	Steven	64
+ON	140	Joseph	34
+MA	145	Steven	38
+MA	145	Robert	42
+--top nested 3 layers--
+QC	125	Steven	41	03/30/1996	23
+QC	125	Steven	41	03/29/1996	13
+QC	125	Joseph	33	03/30/1996	20
+QC	125	Joseph	33	03/29/1996	10
+ON	140	Steven	64	03/31/1996	30
+ON	140	Steven	64	03/30/1996	22
+ON	140	Joseph	34	03/30/1996	18
+ON	140	Joseph	34	03/29/1996	14
+MA	145	Steven	38	03/30/1996	24
+MA	145	Steven	38	03/29/1996	14
+MA	145	Robert	42	03/31/1996	25
+MA	145	Robert	42	03/30/1996	17
+--top nested 1 layer with others--
+all other region	55
+QC	125
+ON	140
+MA	145
+--top nested 2 layers with 2 others--
+all other region	55	all other person	55
+QC	125	all other person	51
+QC	125	Steven	41
+QC	125	Joseph	33
+ON	140	all other person	42
+ON	140	Steven	64
+ON	140	Joseph	34
+MA	145	all other person	65
+MA	145	Steven	38
+MA	145	Robert	42
+--top nested 2 layers with 1st others--
+all other region	55	\N	\N
+QC	125	Steven	41
+QC	125	Joseph	33
+QC	125	\N	\N
+ON	140	Steven	64
+ON	140	Joseph	34
+ON	140	\N	\N
+MA	145	Steven	38
+MA	145	Robert	42
+MA	145	\N	\N
+--top nested 2 layer with 2nd others--
+QC	125	all other person	51
+QC	125	Steven	41
+QC	125	Joseph	33
+ON	140	all other person	42
+ON	140	Steven	64
+ON	140	Joseph	34
+MA	145	all other person	65
+MA	145	Steven	38
+MA	145	Robert	42
+\N	\N	all other person	55
+--top nested 3 layers with 3 others--
+all other region	55	all other person	55	all other date	55
+QC	125	all other person	51	all other date	51
+QC	125	Steven	41	all other date	5
+QC	125	Steven	41	03/30/1996	23
+QC	125	Steven	41	03/29/1996	13
+QC	125	Joseph	33	all other date	3
+QC	125	Joseph	33	03/30/1996	20
+QC	125	Joseph	33	03/29/1996	10
+ON	140	all other person	42	all other date	42
+ON	140	Steven	64	all other date	12
+ON	140	Steven	64	03/31/1996	30
+ON	140	Steven	64	03/30/1996	22
+ON	140	Joseph	34	all other date	2
+ON	140	Joseph	34	03/30/1996	18
+ON	140	Joseph	34	03/29/1996	14
+MA	145	all other person	65	all other date	65
+MA	145	Steven	38	all other date	0
+MA	145	Steven	38	03/30/1996	24
+MA	145	Steven	38	03/29/1996	14
+MA	145	Robert	42	all other date	0
+MA	145	Robert	42	03/31/1996	25
+MA	145	Robert	42	03/30/1996	17
+--top nested use expression as aggregation--
+QC	255
+ON	285
+MA	295
+--top nested use expression as top n--
+QC	125
+ON	140
+MA	145
+--top nested use expression as others--
+all other region	55
+QC	125
+ON	140
+MA	145
+--top nested use expression as column--
+Q	125
+O	140
+M	145
+B	55
+--top nested without top n--
+QC	125
+ON	140
+MA	145
+BC	55

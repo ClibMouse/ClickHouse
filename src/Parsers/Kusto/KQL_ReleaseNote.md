@@ -1,5 +1,72 @@
 ## KQL implemented features  
 
+# January 3, 2023
+## Operator
+- [top-nested](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/topnestedoperator)
+
+   ```
+   CREATE TABLE sales
+   (salesdate String,salesperson String,region String,amount UInt32) ENGINE = Memory;
+
+   INSERT INTO sales VALUES ( '12/31/1995','Robert','ON-Ontario',1);
+   INSERT INTO sales VALUES ( '12/31/1995','Joseph','ON-Ontario',2);
+   INSERT INTO sales VALUES ( '12/31/1995','Joseph','QC-Quebec',3);
+   INSERT INTO sales VALUES ( '12/31/1995','Joseph','MA-Manitoba',4);
+   INSERT INTO sales VALUES ( '12/31/1995','Steven','QC-Quebec',5);
+   INSERT INTO sales VALUES ( '03/29/1996','Joseph','ON-Ontario',6);
+   INSERT INTO sales VALUES ( '03/29/1996','Robert','QC-Quebec',7);
+   INSERT INTO sales VALUES ( '03/29/1996','Joseph','ON-Ontario',8);
+   INSERT INTO sales VALUES ( '03/29/1996','Joseph','BC-British Columbia',9);
+   INSERT INTO sales VALUES ( '03/29/1996','Joseph','QC-Quebec',10);
+   INSERT INTO sales VALUES ( '03/29/1996','Joseph','MA-Manitoba',11);
+   INSERT INTO sales VALUES ( '03/29/1996','Steven','ON-Ontario',12);
+   INSERT INTO sales VALUES ( '03/29/1996','Steven','QC-Quebec',13);
+   INSERT INTO sales VALUES ( '03/29/1996','Steven','MA-Manitoba',14);
+   INSERT INTO sales VALUES ( '03/30/1996','Robert','ON-Ontario',15);
+   INSERT INTO sales VALUES ( '03/30/1996','Robert','QC-Quebec',16);
+   INSERT INTO sales VALUES ( '03/30/1996','Robert','MA-Manitoba',17);
+   INSERT INTO sales VALUES ( '03/30/1996','Joseph','ON-Ontario',18);
+   INSERT INTO sales VALUES ( '03/30/1996','Joseph','BC-British Columbia',19);
+   INSERT INTO sales VALUES ( '03/30/1996','Joseph','QC-Quebec',20);
+   INSERT INTO sales VALUES ( '03/30/1996','Joseph','MA-Manitoba',21);
+   INSERT INTO sales VALUES ( '03/30/1996','Steven','ON-Ontario',22);
+   INSERT INTO sales VALUES ( '03/30/1996','Steven','QC-Quebec',23);
+   INSERT INTO sales VALUES ( '03/30/1996','Steven','MA-Manitoba',24);
+   INSERT INTO sales VALUES ( '03/31/1996','Robert','MA-Manitoba',25);
+   INSERT INTO sales VALUES ( '03/31/1996','Thomas','ON-Ontario',26);
+   INSERT INTO sales VALUES ( '03/31/1996','Thomas','BC-British Columbia',27);
+   INSERT INTO sales VALUES ( '03/31/1996','Thomas','QC-Quebec',28);
+   INSERT INTO sales VALUES ( '03/31/1996','Thomas','MA-Manitoba',29);
+   INSERT INTO sales VALUES ( '03/31/1996','Steven','ON-Ontario',30);
+
+   print '-- top 3 regions by sales--';
+   sales | top-nested 3 of region by sum(amount);
+
+   print '-- top 2 salespeople in each of these regions?--';
+   sales | top-nested 3 of region by sum(amount), top-nested 2 of salesperson by sum(amount);
+
+   print '--top 3 and other regions by sales--';
+   sales | top-nested 3 of region with others = 'all other region' by sum(amount);
+
+   print '--top 3 and other regions by sales and top 2 and  other salespeople in each of these regions--';
+   sales | top-nested 3 of region with others = 'all other region' by sum(amount),  top-nested 2 of salesperson with others = 'all other person' by sum(amount);
+
+   print '--top 3 and other regions by sales and top 2 salespeople in each of these regions--';
+   sales | top-nested 3 of region with others = 'all other region' by sum(amount),  top-nested 2 of salesperson by sum(amount)
+
+   print '--top 3 regions by sales and top 2 and  other salespeople in each of these regions--';
+   sales | top-nested 3 of region  by sum(amount), top-nested 2 of salesperson with others = 'all other person' by sum(amount);
+
+   print '--top 3 regions by difference between max sales and min sales--';
+   sales | top-nested 3 of region by sum(amount) - min(amount);
+
+   print '-- top 3 regions using abbreviations by sales--';
+   sales | top-nested 3 of substring(region, 0, 2)  by sum(amount);
+
+   print '-- all top regions by sales--';
+   sales | top-nested of region by sum(amount);
+   ```
+   
 # December 7, 2022
 
 ## Functions
@@ -7,10 +74,6 @@
    `Customers | summarize count_distinct(Education);`  
 - [count_distinctif](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/count-distinctif-aggfunction)  
    `Customers | summarize count_distinctif(Education, Age > 30);`  
-- [iff](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/ifffunction)  
-   `Customers | extend t = iff(Age <= 10, "smaller", "bigger");`  
-- [iif](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/iiffunction)  
-   `Customers | extend t = iif(Age <= 10, "smaller", "bigger");`  
 ## bug fixed
 - [indexOf function doesn't work for extended parameters](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1272)  
 - [Create generic function for time arithmetic](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1442)  
