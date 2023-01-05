@@ -75,6 +75,7 @@
 - [KQL Phase 3: datetime should be rounded in certain cases]  
 - [kql_bin does not accept DateTime type]  
 - [KQL Phase 2 - totimespan should return null when convertion fails.]  
+- [reverse() with datetime and timespan arguments needs to be improved.]  
 
 
 # December 7, 2022
