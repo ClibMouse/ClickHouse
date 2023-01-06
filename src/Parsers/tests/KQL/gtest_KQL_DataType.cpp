@@ -16,7 +16,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_DataType, ParserKQLTest,
         },
         {
             "print dynamic(datetime(1))",
-            "SELECT parseDateTime64BestEffortOrNull('1', 9, 'UTC')"
+            "SELECT kql_datetime(1)"
         },
         {
             "print dynamic(timespan(1d))",
@@ -52,7 +52,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_DataType, ParserKQLTest,
         },
         {
             "print dynamic([date(1), time(1d), 1, 2])",
-            "SELECT [parseDateTime64BestEffortOrNull('1', 9, 'UTC'), toIntervalNanosecond(86400000000000), 1, 2]"
+            "SELECT [kql_datetime(1), toIntervalNanosecond(86400000000000), 1, 2]"
         },
         {
             "print time('13:00:40.00000')",
