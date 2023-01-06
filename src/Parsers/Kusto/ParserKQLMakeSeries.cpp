@@ -184,9 +184,31 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
         while (!pos->isEnd())
         {
             String tmp = String(pos->begin, pos->end);
-            if (tmp == "parseDateTime64BestEffortOrNull")
-                tmp = "toDateTime64";
+            if (tmp == "kql_datetime" || tmp == "kql_todatetime")
+            {
+                ++pos;
+                auto datetime_start_pos = pos;
+                auto datetime_end_pos = pos;
+                auto paren_count = 0;
+                while(!pos->isEnd())
+                {
+                    if (pos->type == TokenType::OpeningRoundBracket)
+                        ++paren_count;
+                    if (pos->type == TokenType::ClosingRoundBracket)
+                        --paren_count;
 
+                    if (pos->type == TokenType::ClosingRoundBracket && paren_count == 0)
+                    {
+                        ++datetime_start_pos;
+                        datetime_end_pos = pos;
+                        --datetime_end_pos;
+                        tmp = std::format("toDateTime64({}, 9, 'UTC')",String(datetime_start_pos->begin, datetime_end_pos->end));
+                        break;
+                    }
+
+                    ++pos;
+                }
+            }
             res = res.empty() ? tmp : res + " " + tmp;
             ++pos;
         }
