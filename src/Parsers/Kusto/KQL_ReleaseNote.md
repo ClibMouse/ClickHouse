@@ -74,6 +74,7 @@
 - [KQL Phase 2: summarize using bin has different result than Azure Data Explorer using the same sample data]  
 - [KQL Phase 3: datetime should be rounded in certain cases]  
 - [kql_bin does not accept DateTime type]  
+- [KQL Phase 2 - totimespan should return null when convertion fails.]  
 
 
 # December 7, 2022
