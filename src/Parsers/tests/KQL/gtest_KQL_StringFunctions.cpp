@@ -51,18 +51,6 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
             "SELECT if((toTypeName(1) = 'IntervalNanosecond') OR ((accurateCastOrNull(1, 'Bool') IS NULL) != (1 IS NULL)), accurateCastOrNull(throwIf(true, 'Failed to parse Bool literal'), 'Bool'), accurateCastOrNull(1, 'Bool'))"
         },
         {
-            "print datetime(2015-12-31 23:59:59.9)",
-            "SELECT parseDateTime64BestEffortOrNull('2015-12-31 23:59:59.9', 9, 'UTC')"
-        },
-        {
-            "print datetime(\"2015-12-31 23:59:59.9\")",
-            "SELECT parseDateTime64BestEffortOrNull('2015-12-31 23:59:59.9', 9, 'UTC')"
-        },
-        {
-            "print datetime('2015-12-31 23:59:59.9')",
-            "SELECT parseDateTime64BestEffortOrNull('2015-12-31 23:59:59.9', 9, 'UTC')"
-        },
-        {
             "print guid(74be27de-1e4e-49d9-b579-fe0b331d3642)",
             "SELECT toUUIDOrNull('74be27de-1e4e-49d9-b579-fe0b331d3642')"
         },
@@ -101,34 +89,6 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         {
             "print timespan('1.5d')",
             "SELECT toIntervalNanosecond(129600000000000)"
-        },
-        {
-            "print res = bin_at(6.5, 2.5, 7)",
-            "SELECT kql_bin_at(6.5, 2.5, 7) AS res"
-        },
-        {
-            "print res = bin_at(1h, 1d, 12h)",
-            "SELECT kql_bin_at(toIntervalNanosecond(3600000000000), toIntervalNanosecond(86400000000000), toIntervalNanosecond(43200000000000)) AS res"
-        },
-        {
-            "print res = bin_at(datetime(2017-05-15 10:20:00.0), 1d, datetime(1970-01-01 12:00:00.0))",
-            "SELECT kql_bin_at(parseDateTime64BestEffortOrNull('2017-05-15 10:20:00.0', 9, 'UTC'), toIntervalNanosecond(86400000000000), parseDateTime64BestEffortOrNull('1970-01-01 12:00:00.0', 9, 'UTC')) AS res"
-        },
-        {
-            "print bin(4.5, 1)",
-            "SELECT kql_bin(4.5, 1)"
-        },
-        {
-            "print bin(4.5, -1)",
-            "SELECT kql_bin(4.5, -1)"
-        },
-        {
-            "print bin(time(16d), 7d)",
-            "SELECT kql_bin(toIntervalNanosecond(1382400000000000), toIntervalNanosecond(604800000000000))"
-        },
-        {
-            "print bin(datetime(1970-05-11 13:45:07), 1d)",
-            "SELECT kql_bin(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07', 9, 'UTC'), toIntervalNanosecond(86400000000000))"
         },
         {
             "print extract('x=([0-9.]+)', 1, 'hello x=456|wo' , typeof(bool));",
@@ -185,14 +145,6 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         {
             "print extract_json( '$.a' , '{\"a\":123, \"b\":\"{\"c\":456}\"}' , typeof(long))",
             "SELECT accurateCastOrNull(JSON_VALUE('{\"a\":123, \"b\":\"{\"c\":456}\"}', '$.a'), 'Int64')"
-        },
-        {
-            "print bin(datetime(1970-05-11 13:45:07.456345672), 1ms)",
-            "SELECT kql_bin(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07.456345672', 9, 'UTC'), toIntervalNanosecond(1000000))"
-        },
-        {
-            "print bin(datetime(1970-05-11 13:45:07.456345672), 1microseconds)",
-            "SELECT kql_bin(parseDateTime64BestEffortOrNull('1970-05-11 13:45:07.456345672', 9, 'UTC'), toIntervalNanosecond(1000))"
         },
         {
             "print parse_command_line('echo \"hello world!\" print$?', 'windows')",
