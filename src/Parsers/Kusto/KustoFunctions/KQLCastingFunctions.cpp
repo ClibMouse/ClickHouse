@@ -74,24 +74,7 @@ bool ToString::convertImpl(String & out, IParser::Pos & pos)
 
 bool ToTimeSpan::convertImpl(String & out, IParser::Pos & pos)
 {
-    const auto function_name = getKQLFunctionName(pos);
-    if (function_name.empty())
-        return false;
-
-    const auto argument = getArgument(function_name, pos, ArgumentState::Raw);
-    try
-    {
-        out = kqlCallToExpression("timespan", {argument}, pos.max_depth);
-    }
-    catch(...)
-    {
-        Tokens tokens(argument.c_str(), argument.c_str() + argument.length());
-        IParser::Pos tokens_pos(tokens, pos.max_depth);
-        out = std::format(
-            "if(toTypeName({0}) in ['IntervalNanosecond', 'Nullable(IntervalNanosecond)'], {0}, null)", getExpression(tokens_pos));
-    }
-
-    return true;
+    return directMapping(out, pos, "kql_totimespan");
 }
 
 bool ToDecimal::convertImpl(String & out, IParser::Pos & pos)
