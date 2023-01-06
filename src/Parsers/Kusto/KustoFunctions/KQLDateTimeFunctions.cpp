@@ -46,7 +46,7 @@ bool mapToStartOfPeriod(std::string & out, DB::IParser::Pos & pos, const std::st
 
     const auto datetime = DB::IParserKQLFunction::getArgument(function_name, pos);
     const auto offset = DB::IParserKQLFunction::getOptionalArgument(function_name, pos);
-    out = std::format("toDateTime64(add{0}s(toStartOf{0}({1}), {2}), 9, 'UTC')", period, datetime, offset.value_or("0"));
+    out = std::format("kql_todatetime(add{0}s(toStartOf{0}({1}), {2}))", period, datetime, offset.value_or("0"));
     return true;
 }
 }
@@ -468,7 +468,7 @@ bool UnixTimeMicrosecondsToDateTime::convertImpl(String & out, IParser::Pos & po
         return false;
 
     const auto value = getArgument(fn_name, pos);
-    out = std::format("toDateTime64(fromUnixTimestamp64Micro({}, 'UTC'), 9, 'UTC')", value);
+    out = std::format("kql_todatetime(fromUnixTimestamp64Micro({}, 'UTC'))", value);
 
     return true;
 }
@@ -480,7 +480,7 @@ bool UnixTimeMillisecondsToDateTime::convertImpl(String & out, IParser::Pos & po
         return false;
 
     const auto value = getArgument(fn_name, pos);    
-    out = std::format("toDateTime64(fromUnixTimestamp64Milli({}, 'UTC'), 9, 'UTC')", value);
+    out = std::format("kql_todatetime(fromUnixTimestamp64Milli({}, 'UTC'))", value);
 
     return true;
 }
@@ -492,7 +492,7 @@ bool UnixTimeNanosecondsToDateTime::convertImpl(String & out, IParser::Pos & pos
         return false;
 
     const auto value = getArgument(fn_name, pos);     
-    out = std::format("toDateTime64(fromUnixTimestamp64Nano({}, 'UTC'), 9, 'UTC')", value);
+    out = std::format("kql_todatetime(fromUnixTimestamp64Nano({}, 'UTC'))", value);
 
     return true;
 }
@@ -507,8 +507,12 @@ bool UnixTimeSecondsToDateTime::convertImpl(String & out, IParser::Pos & pos)
     if (pos->type == TokenType::QuotedIdentifier || pos->type == TokenType::StringLiteral)
         throw Exception(ErrorCodes::BAD_ARGUMENTS, "{} accepts only long, int and double type of arguments", fn_name);
 
-    String expression = getConvertedArgument(fn_name, pos);
-    out = std::format(" if(toTypeName({0}) in ['Int32', 'Int64', 'Float64', 'UInt32', 'UInt64'], toDateTime64({0}, 9, 'UTC') , toDateTime64(throwIf(true, '{1} only accepts Int , Long and double type of arguments'),9,'UTC'))", expression, fn_name);
+    const auto expression = getConvertedArgument(fn_name, pos);
+    out = std::format(
+        "if(toTypeName(assumeNotNull({0})) in ['Int32', 'Int64', 'Float64', 'UInt32', 'UInt64'], "
+        "kql_todatetime({0}), kql_todatetime(throwIf(true, '{1} only accepts int, long and double type of arguments')))",
+        expression,
+        fn_name);
 
     return true;
 }
