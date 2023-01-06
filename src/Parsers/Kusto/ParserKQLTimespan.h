@@ -12,7 +12,7 @@ std::string kqlTicksToInterval(std::optional<Int64> ticks);
 class ParserKQLTimespan
 {
 public:
-    static std::optional<Int64> parse(const std::string & expression);
-    static bool tryParse(const std::string & expression, std::optional<Int64> & ticks);
+    static std::optional<Int64> parse(std::string_view expression);
+    static bool tryParse(std::string_view expression, std::optional<Int64> & ticks);
 };
 }
