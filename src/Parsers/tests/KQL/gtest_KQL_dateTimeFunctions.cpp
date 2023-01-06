@@ -8,55 +8,55 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         ::testing::ValuesIn(std::initializer_list<ParserTestCase>{
         {
             "print week_of_year(datetime(2020-12-31))",
-            "SELECT toWeek(parseDateTime64BestEffortOrNull('2020-12-31', 9, 'UTC'), 3, 'UTC')"
+            "SELECT toWeek(kql_datetime('2020-12-31'), 3, 'UTC')"
         },
         {
             "print startofweek(datetime(2017-01-01 10:10:17), -1)",
-            "SELECT parseDateTime64BestEffortOrNull(toString(toStartOfWeek(parseDateTime64BestEffortOrNull('2017-01-01 10:10:17', 9, 'UTC'))), 9, 'UTC') + toIntervalWeek(-1)"
+            "SELECT kql_todatetime(addWeeks(toStartOfWeek(kql_datetime('2017-01-01 10:10:17')), -1))"
         },
         {
             "print startofmonth(datetime(2017-01-01 10:10:17), -1)",
-            "SELECT parseDateTime64BestEffortOrNull(toString(toStartOfMonth(parseDateTime64BestEffortOrNull('2017-01-01 10:10:17', 9, 'UTC'))), 9, 'UTC') + toIntervalMonth(-1)"
+            "SELECT kql_todatetime(addMonths(toStartOfMonth(kql_datetime('2017-01-01 10:10:17')), -1))"
         },
         {
             "print startofday(datetime(2017-01-01 10:10:17), -1)",
-            "SELECT parseDateTime64BestEffortOrNull(toString(toStartOfDay(parseDateTime64BestEffortOrNull('2017-01-01 10:10:17', 9, 'UTC'))), 9, 'UTC') + toIntervalDay(-1)"
+            "SELECT kql_todatetime(addDays(toStartOfDay(kql_datetime('2017-01-01 10:10:17')), -1))"
         },
         {
             "print startofyear(datetime(2017-01-01 10:10:17), -1)",
-            "SELECT parseDateTime64BestEffortOrNull(toString(toStartOfYear(parseDateTime64BestEffortOrNull('2017-01-01 10:10:17', 9, 'UTC'), 'UTC')), 9, 'UTC') + toIntervalYear(-1)"
+            "SELECT kql_todatetime(addYears(toStartOfYear(kql_datetime('2017-01-01 10:10:17')), -1))"
         },
         {
             "print monthofyear(datetime(2015-12-14))",
-            "SELECT toMonth(parseDateTime64BestEffortOrNull('2015-12-14', 9, 'UTC'))"
+            "SELECT toMonth(kql_datetime('2015-12-14'))"
         },
         {
             "print hourofday(datetime(2015-12-14 10:54:00))",
-            "SELECT toHour(parseDateTime64BestEffortOrNull('2015-12-14 10:54:00', 9, 'UTC'))"
+            "SELECT toHour(kql_datetime('2015-12-14 10:54:00'))"
         },
         {
             "print getyear(datetime(2015-10-12))",
-            "SELECT toYear(parseDateTime64BestEffortOrNull('2015-10-12', 9, 'UTC'))"
+            "SELECT toYear(kql_datetime('2015-10-12'))"
         },
         {
             "print getmonth(datetime(2015-10-12))",
-            "SELECT toMonth(parseDateTime64BestEffortOrNull('2015-10-12', 9, 'UTC'))"
+            "SELECT toMonth(kql_datetime('2015-10-12'))"
         },
         {
             "print dayofyear(datetime(2015-10-12))",
-            "SELECT toDayOfYear(parseDateTime64BestEffortOrNull('2015-10-12', 9, 'UTC'))"
+            "SELECT toDayOfYear(kql_datetime('2015-10-12'))"
         },
         {
             "print dayofmonth(datetime(2015-10-12))",
-            "SELECT toDayOfMonth(parseDateTime64BestEffortOrNull('2015-10-12', 9, 'UTC'))"
+            "SELECT toDayOfMonth(kql_datetime('2015-10-12'))"
         },
         {
             "print unixtime_seconds_todatetime(1546300899)",
-            "SELECT if((toTypeName(1546300899) = 'Int64') OR (toTypeName(1546300899) = 'Int32') OR (toTypeName(1546300899) = 'Float64') OR (toTypeName(1546300899) = 'UInt32') OR (toTypeName(1546300899) = 'UInt64'), toDateTime64(1546300899, 9, 'UTC'), toDateTime64(throwIf(true, 'unixtime_seconds_todatetime only accepts Int, Long and double type of arguments'), 9, 'UTC'))"
+            "SELECT if(toTypeName(assumeNotNull(1546300899)) IN ['Int32', 'Int64', 'Float64', 'UInt32', 'UInt64'], kql_todatetime(1546300899), kql_todatetime(throwIf(true, 'unixtime_seconds_todatetime only accepts int, long and double type of arguments')))"
         },
         {
             "print dayofweek(datetime(2015-12-20))",
-            "SELECT (toDayOfWeek(parseDateTime64BestEffortOrNull('2015-12-20', 9, 'UTC')) % 7) * toIntervalNanosecond(86400000000000)"
+            "SELECT (toDayOfWeek(kql_datetime('2015-12-20')) % 7) * toIntervalNanosecond(86400000000000)"
         },
         {
             "print now()",
@@ -68,83 +68,95 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print ago(2d)",
-            "SELECT now64(9, 'UTC') - toIntervalNanosecond(172800000000000)"
+            "SELECT now64(9, 'UTC') + (-1 * toIntervalNanosecond(172800000000000))"
         },  
         {
             "print endofday(datetime(2017-01-01 10:10:17), -1)",
-            "SELECT (toDateTime(toStartOfDay(parseDateTime64BestEffortOrNull('2017-01-01 10:10:17', 9, 'UTC')), 9, 'UTC') + toIntervalDay(-1 + 1)) - toIntervalMicrosecond(1)"
+            "SELECT kql_todatetime(addDays(toStartOfDay(kql_datetime('2017-01-01 10:10:17')), -1 + 1)) - toIntervalNanosecond(100)"
         },
         {
             "print endofday(datetime(2017-01-01 10:10:17), 1)",
-            "SELECT (toDateTime(toStartOfDay(parseDateTime64BestEffortOrNull('2017-01-01 10:10:17', 9, 'UTC')), 9, 'UTC') + toIntervalDay(1 + 1)) - toIntervalMicrosecond(1)"
+            "SELECT kql_todatetime(addDays(toStartOfDay(kql_datetime('2017-01-01 10:10:17')), 1 + 1)) - toIntervalNanosecond(100)"
         },
         {
             "print endofmonth(datetime(2017-01-01 10:10:17), -1)",
-            "SELECT (((toDateTime(toLastDayOfMonth(toDateTime(parseDateTime64BestEffortOrNull('2017-01-01 10:10:17', 9, 'UTC'), 9, 'UTC') + toIntervalMonth(-1)), 9, 'UTC') + toIntervalHour(23)) + toIntervalMinute(59)) + toIntervalSecond(60)) - toIntervalMicrosecond(1)"
+            "SELECT kql_todatetime(addMonths(toStartOfMonth(kql_datetime('2017-01-01 10:10:17')), -1 + 1)) - toIntervalNanosecond(100)"
         },
         {
             "print endofmonth(datetime(2017-01-01 10:10:17), 1)",
-            "SELECT (((toDateTime(toLastDayOfMonth(toDateTime(parseDateTime64BestEffortOrNull('2017-01-01 10:10:17', 9, 'UTC'), 9, 'UTC') + toIntervalMonth(1)), 9, 'UTC') + toIntervalHour(23)) + toIntervalMinute(59)) + toIntervalSecond(60)) - toIntervalMicrosecond(1)"
+            "SELECT kql_todatetime(addMonths(toStartOfMonth(kql_datetime('2017-01-01 10:10:17')), 1 + 1)) - toIntervalNanosecond(100)"
         },
         {
             "print endofweek(datetime(2017-01-01 10:10:17), -1)",
-            "SELECT (toDateTime(toStartOfDay(parseDateTime64BestEffortOrNull('2017-01-01 10:10:17', 9, 'UTC')), 9, 'UTC') + toIntervalWeek(-1 + 1)) - toIntervalMicrosecond(1)"
+            "SELECT kql_todatetime(addWeeks(toStartOfWeek(kql_datetime('2017-01-01 10:10:17')), -1 + 1)) - toIntervalNanosecond(100)"
         },
         {
             "print endofweek(datetime(2017-01-01 10:10:17), 1)",
-            "SELECT (toDateTime(toStartOfDay(parseDateTime64BestEffortOrNull('2017-01-01 10:10:17', 9, 'UTC')), 9, 'UTC') + toIntervalWeek(1 + 1)) - toIntervalMicrosecond(1)"
+            "SELECT kql_todatetime(addWeeks(toStartOfWeek(kql_datetime('2017-01-01 10:10:17')), 1 + 1)) - toIntervalNanosecond(100)"
         },
         {
             "print endofyear(datetime(2017-01-01 10:10:17), -1) ",
-            "SELECT (((toDateTime(toString(toLastDayOfMonth((toDateTime(parseDateTime64BestEffortOrNull('2017-01-01 10:10:17', 9, 'UTC'), 9, 'UTC') + toIntervalYear(-1)) + toIntervalMonth(12 - toInt8(substring(toString(toDateTime(parseDateTime64BestEffortOrNull('2017-01-01 10:10:17', 9, 'UTC'), 9, 'UTC')), 6, 2))))), 9, 'UTC') + toIntervalHour(23)) + toIntervalMinute(59)) + toIntervalSecond(60)) - toIntervalMicrosecond(1)"
+            "SELECT kql_todatetime(addYears(toStartOfYear(kql_datetime('2017-01-01 10:10:17')), -1 + 1)) - toIntervalNanosecond(100)"
         },
         {
-           "print endofyear(datetime(2017-01-01 10:10:17), 1)" ,
-           "SELECT (((toDateTime(toString(toLastDayOfMonth((toDateTime(parseDateTime64BestEffortOrNull('2017-01-01 10:10:17', 9, 'UTC'), 9, 'UTC') + toIntervalYear(1)) + toIntervalMonth(12 - toInt8(substring(toString(toDateTime(parseDateTime64BestEffortOrNull('2017-01-01 10:10:17', 9, 'UTC'), 9, 'UTC')), 6, 2))))), 9, 'UTC') + toIntervalHour(23)) + toIntervalMinute(59)) + toIntervalSecond(60)) - toIntervalMicrosecond(1)"
+            "print endofyear(datetime(2017-01-01 10:10:17), 1)" ,
+            "SELECT kql_todatetime(addYears(toStartOfYear(kql_datetime('2017-01-01 10:10:17')), 1 + 1)) - toIntervalNanosecond(100)"
         },
         {
             "print make_datetime(2017,10,01)",
-            "SELECT if((CAST('2017', 'UInt16') < 2300) AND (CAST('2017', 'UInt16') > 1899) AND (CAST('10', 'UInt16') < 13) AND (CAST('10', 'UInt16') > 0) AND (CAST('01', 'UInt16') < 32) AND (CAST('01', 'UInt16') > 0) AND (CAST('0', 'UInt16') < 25) AND (CAST('0', 'UInt16') >= 0) AND (CAST('0', 'UInt16') < 60) AND (CAST('0', 'UInt16') >= 0) AND (CAST('0', 'UInt16') < 60) AND (CAST('0', 'UInt16') >= 0), makeDateTime64(2017, 10, 1, 0, 0, 0, 0, 7, 'UTC'), parseDateTime64BestEffort(NULL, 9, 'UTC'))"
+            "SELECT if(((2017 >= 1900) AND (2017 <= 2261)) AND ((10 >= 1) AND (10 <= 12)) AND ((0 >= 0) AND (0 <= 59)) AND ((0 >= 0) AND (0 <= 59)) AND (0 >= 0) AND (0 < 60) AND (toModifiedJulianDayOrNull(concat(leftPad(toString(2017), 4, '0'), '-', leftPad(toString(10), 2, '0'), '-', leftPad(toString(1), 2, '0'))) IS NOT NULL), toDateTime64OrNull(toString(makeDateTime64(2017, 10, 1, 0, 0, truncate(0), (0 - truncate(0)) * 10000000., 7, 'UTC')), 9), NULL)"
         },
         {
             "print make_datetime(2017,10,01,12,10)",
-            "SELECT if((CAST('2017', 'UInt16') < 2300) AND (CAST('2017', 'UInt16') > 1899) AND (CAST('10', 'UInt16') < 13) AND (CAST('10', 'UInt16') > 0) AND (CAST('01', 'UInt16') < 32) AND (CAST('01', 'UInt16') > 0) AND (CAST('12', 'UInt16') < 25) AND (CAST('12', 'UInt16') >= 0) AND (CAST('10', 'UInt16') < 60) AND (CAST('10', 'UInt16') >= 0) AND (CAST('0', 'UInt16') < 60) AND (CAST('0', 'UInt16') >= 0), makeDateTime64(2017, 10, 1, 12, 10, 0, 0, 7, 'UTC'), parseDateTime64BestEffort(NULL, 9, 'UTC'))"
+            "SELECT if(((2017 >= 1900) AND (2017 <= 2261)) AND ((10 >= 1) AND (10 <= 12)) AND ((12 >= 0) AND (12 <= 59)) AND ((10 >= 0) AND (10 <= 59)) AND (0 >= 0) AND (0 < 60) AND (toModifiedJulianDayOrNull(concat(leftPad(toString(2017), 4, '0'), '-', leftPad(toString(10), 2, '0'), '-', leftPad(toString(1), 2, '0'))) IS NOT NULL), toDateTime64OrNull(toString(makeDateTime64(2017, 10, 1, 12, 10, truncate(0), (0 - truncate(0)) * 10000000., 7, 'UTC')), 9), NULL)"
         },
         {
             "print make_datetime(2017,10,01,12,11,0.1234567)",
-            "SELECT if((CAST('2017', 'UInt16') < 2300) AND (CAST('2017', 'UInt16') > 1899) AND (CAST('10', 'UInt16') < 13) AND (CAST('10', 'UInt16') > 0) AND (CAST('01', 'UInt16') < 32) AND (CAST('01', 'UInt16') > 0) AND (CAST('12', 'UInt16') < 25) AND (CAST('12', 'UInt16') >= 0) AND (CAST('11', 'UInt16') < 60) AND (CAST('11', 'UInt16') >= 0) AND (CAST(toUInt64(if(position(CAST('0.1234567', 'String'), '.') > 0, substr(CAST('0.1234567', 'String'), 1, position(CAST('0.1234567', 'String'), '.') - 1), CAST('0.1234567', 'String'))), 'UInt16') < 60) AND (CAST(toUInt64(if(position(CAST('0.1234567', 'String'), '.') > 0, substr(CAST('0.1234567', 'String'), 1, position(CAST('0.1234567', 'String'), '.') - 1), CAST('0.1234567', 'String'))), 'UInt16') >= 0), makeDateTime64(2017, 10, 1, 12, 11, toUInt64(if(position(CAST('0.1234567', 'String'), '.') > 0, substr(CAST('0.1234567', 'String'), 1, position(CAST('0.1234567', 'String'), '.') - 1), CAST('0.1234567', 'String'))), toUInt64(if(position(CAST('0.1234567', 'String'), '.') > 0, substr(CAST('0.1234567', 'String'), position(CAST('0.1234567', 'String'), '.') + 1), CAST('0', 'String'))), 7, 'UTC'), parseDateTime64BestEffort(NULL, 9, 'UTC'))"
+            "SELECT if(((2017 >= 1900) AND (2017 <= 2261)) AND ((10 >= 1) AND (10 <= 12)) AND ((12 >= 0) AND (12 <= 59)) AND ((11 >= 0) AND (11 <= 59)) AND (0.1234567 >= 0) AND (0.1234567 < 60) AND (toModifiedJulianDayOrNull(concat(leftPad(toString(2017), 4, '0'), '-', leftPad(toString(10), 2, '0'), '-', leftPad(toString(1), 2, '0'))) IS NOT NULL), toDateTime64OrNull(toString(makeDateTime64(2017, 10, 1, 12, 11, truncate(0.1234567), (0.1234567 - truncate(0.1234567)) * 10000000., 7, 'UTC')), 9), NULL)"
         },
         {
             "print unixtime_microseconds_todatetime(1546300800000000)",
-            "SELECT fromUnixTimestamp64Micro(1546300800000000, 'UTC')"
+            "SELECT kql_todatetime(fromUnixTimestamp64Micro(1546300800000000, 'UTC'))"
         },
         {
             "print unixtime_milliseconds_todatetime(1546300800000)",
-            "SELECT fromUnixTimestamp64Milli(1546300800000, 'UTC')"
+            "SELECT kql_todatetime(fromUnixTimestamp64Milli(1546300800000, 'UTC'))"
         },
         {
             "print unixtime_nanoseconds_todatetime(1546300800000000000)",
-            "SELECT fromUnixTimestamp64Nano(1546300800000000000, 'UTC')"
+            "SELECT kql_todatetime(fromUnixTimestamp64Nano(1546300800000000000, 'UTC'))"
         },
         {
             "print datetime_diff('year',datetime(2017-01-01),datetime(2000-12-31))",
-            "SELECT dateDiff('year', parseDateTime64BestEffortOrNull('2000-12-31', 9, 'UTC'), parseDateTime64BestEffortOrNull('2017-01-01', 9, 'UTC'))"
+            "SELECT dateDiff('year', kql_datetime('2000-12-31'), kql_datetime('2017-01-01'))"
         },
         {
             "print datetime_diff('minute',datetime(2017-10-30 23:05:01),datetime(2017-10-30 23:00:59))",
-            "SELECT dateDiff('minute', parseDateTime64BestEffortOrNull('2017-10-30 23:00:59', 9, 'UTC'), parseDateTime64BestEffortOrNull('2017-10-30 23:05:01', 9, 'UTC'))"
+            "SELECT dateDiff('minute', kql_datetime('2017-10-30 23:00:59'), kql_datetime('2017-10-30 23:05:01'))"
         },
         {
             "print datetime(null)",
-            "SELECT NULL"
+            "SELECT kql_datetime(NULL)"
         },
         {
             "print datetime('2014-05-25T08:20:03.123456Z')",
-            "SELECT parseDateTime64BestEffortOrNull('2014-05-25T08:20:03.123456Z', 9, 'UTC')"
+            "SELECT kql_datetime('2014-05-25T08:20:03.123456Z')"
         },
         {
             "print datetime(2015-12-14 18:54)",
-            "SELECT parseDateTime64BestEffortOrNull('2015-12-14 18:54', 9, 'UTC')"
+            "SELECT kql_datetime('2015-12-14 18:54')"
+        },
+        {
+            "print datetime(2015-12-31 23:59:59.9)",
+            "SELECT kql_datetime('2015-12-31 23:59:59.9')"
+        },
+        {
+            "print datetime(\"2015-12-31 23:59:59.9\")",
+            "SELECT kql_datetime('2015-12-31 23:59:59.9')"
+        },
+        {
+            "print datetime('2015-12-31 23:59:59.9')",
+            "SELECT kql_datetime('2015-12-31 23:59:59.9')"
         },
         {
             "print make_timespan(67,12,30,59.9799)",
@@ -152,15 +164,15 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print  todatetime('2014-05-25T08:20:03.123456Z')",
-            "SELECT parseDateTime64BestEffortOrNull(toString('2014-05-25T08:20:03.123456Z'), 9, 'UTC')"
+            "SELECT kql_todatetime('2014-05-25T08:20:03.123456Z')"
         },
         {
             "print format_datetime(todatetime('2009-06-15T13:45:30.6175425'), 'yy-M-dd [H:mm:ss.fff]')",
-            "SELECT concat(substring(toString(formatDateTime(parseDateTime64BestEffortOrNull(toString('2009-06-15T13:45:30.6175425'), 9, 'UTC'), '%y-%m-%d [%H:%i:%S.]')), 1, position(toString(formatDateTime(parseDateTime64BestEffortOrNull(toString('2009-06-15T13:45:30.6175425'), 9, 'UTC'), '%y-%m-%d [%H:%i:%S.]')), '.')), substring(substring(toString(parseDateTime64BestEffortOrNull(toString('2009-06-15T13:45:30.6175425'), 9, 'UTC')), position(toString(parseDateTime64BestEffortOrNull(toString('2009-06-15T13:45:30.6175425'), 9, 'UTC')), '.') + 1), 1, 3), substring(toString(formatDateTime(parseDateTime64BestEffortOrNull(toString('2009-06-15T13:45:30.6175425'), 9, 'UTC'), '%y-%m-%d [%H:%i:%S.]')), position(toString(formatDateTime(parseDateTime64BestEffortOrNull(toString('2009-06-15T13:45:30.6175425'), 9, 'UTC'), '%y-%m-%d [%H:%i:%S.]')), '.') + 1, length(toString(formatDateTime(parseDateTime64BestEffortOrNull(toString('2009-06-15T13:45:30.6175425'), 9, 'UTC'), '%y-%m-%d [%H:%i:%S.]')))))"
+            "SELECT concat(substring(toString(formatDateTime(kql_todatetime('2009-06-15T13:45:30.6175425'), '%y-%m-%d [%H:%M:%S.]')), 1, position(toString(formatDateTime(kql_todatetime('2009-06-15T13:45:30.6175425'), '%y-%m-%d [%H:%M:%S.]')), '.')), substring(substring(toString(kql_todatetime('2009-06-15T13:45:30.6175425')), position(toString(kql_todatetime('2009-06-15T13:45:30.6175425')), '.') + 1), 1, 3), substring(toString(formatDateTime(kql_todatetime('2009-06-15T13:45:30.6175425'), '%y-%m-%d [%H:%M:%S.]')), position(toString(formatDateTime(kql_todatetime('2009-06-15T13:45:30.6175425'), '%y-%m-%d [%H:%M:%S.]')), '.') + 1, length(toString(formatDateTime(kql_todatetime('2009-06-15T13:45:30.6175425'), '%y-%m-%d [%H:%M:%S.]')))))"
         },
         {
             "print format_datetime(datetime(2015-12-14 02:03:04.12345), 'y-M-d h:m:s tt')",
-            "SELECT formatDateTime(parseDateTime64BestEffortOrNull('2015-12-14 02:03:04.12345', 9, 'UTC'), '%y-%m-%e %h:%i:%S %p')"
+            "SELECT formatDateTime(kql_datetime('2015-12-14 02:03:04.12345'), '%y-%m-%e %I:%M:%S %p')"
         },
         {
             "print format_timespan(time(1d), 'd-[hh:mm:ss]')",
@@ -180,11 +192,11 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print datetime_part('day', datetime(2017-10-30 01:02:03.7654321))",
-            "SELECT formatDateTime(parseDateTime64BestEffortOrNull('2017-10-30 01:02:03.7654321', 9, 'UTC'), '%e')"
+            "SELECT formatDateTime(kql_datetime('2017-10-30 01:02:03.7654321'), '%e')"
         },
         {
             "print datetime_add('day',1,datetime(2017-10-30 01:02:03.7654321))",
-            "SELECT parseDateTime64BestEffortOrNull('2017-10-30 01:02:03.7654321', 9, 'UTC') + toIntervalDay(1)"
+            "SELECT kql_datetime('2017-10-30 01:02:03.7654321') + toIntervalDay(1)"
         },
         {
             "print totimespan(time(1d))",
@@ -211,8 +223,8 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
             "SELECT toIntervalNanosecond(172800000000000)"
         },
         {
-            "hits | project bin(datetime(EventTime), 1m)",
-            "SELECT kql_bin(if((toTypeName(EventTime) = 'Int64') OR (toTypeName(EventTime) = 'Int32') OR (toTypeName(EventTime) = 'Float64') OR (toTypeName(EventTime) = 'UInt32') OR (toTypeName(EventTime) = 'UInt64'), toDateTime64(EventTime, 9, 'UTC'), parseDateTime64BestEffortOrNull(CAST(EventTime, 'String'), 9, 'UTC')), toIntervalNanosecond(60000000000))\nFROM hits"
+            "hits | project bin(todatetime(EventTime), 1m)",
+            "SELECT kql_bin(kql_todatetime(EventTime), toIntervalNanosecond(60000000000))\nFROM hits"
         }
 
 })));
