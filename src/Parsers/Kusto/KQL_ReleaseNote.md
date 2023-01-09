@@ -68,12 +68,12 @@
    ```
 
 ## Bugs
-- [KQL Phase 2 - base64_encode_fromguid encodes strings as opposed to binary](https://github.ibm.com/ClickHouse/issue-repo/issues/1110)  
-- [KQL Phase 2: summarize with bin and format_datetime](https://github.ibm.com/ClickHouse/issue-repo/issues/1243)  
-- [make_datetime creates wrong date time](https://github.ibm.com/ClickHouse/issue-repo/issues/1262)  
-- [KQL Phase 2: summarize using bin has different result than Azure Data Explorer using the same sample data](https://github.ibm.com/ClickHouse/issue-repo/issues/1322)  
-- [KQL Phase 3: datetime should be rounded in certain cases](https://github.ibm.com/ClickHouse/issue-repo/issues/1828)  
-- [kql_bin does not accept DateTime type](https://github.ibm.com/ClickHouse/issue-repo/issues/1893)  
+- [KQL Phase 2 - base64_encode_fromguid encodes strings as opposed to binary]  
+- [KQL Phase 2: summarize with bin and format_datetime]  
+- [make_datetime creates wrong date time]  
+- [KQL Phase 2: summarize using bin has different result than Azure Data Explorer using the same sample data]  
+- [KQL Phase 3: datetime should be rounded in certain cases]  
+- [kql_bin does not accept DateTime type]  
 
 
 # December 7, 2022
