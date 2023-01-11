@@ -204,7 +204,7 @@ String ParserKQLTopNested ::calculateTopNestedWithOthers(const TopNestedClauses 
                     all_others_table = all_others_table
                         + std::format("{} {} AS {} , {}_value AS {}",
                                       seperator,
-                                      top_nested_clauses[j].others,
+                                      getExprFromToken(top_nested_clauses[j].others, max_depth),
                                       top_nested_clauses[j].expr_alias,
                                       other_values,
                                       top_nested_clauses[j].agg_alias);
