@@ -1,6 +1,7 @@
 #include <Parsers/ExpressionListParsers.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLTop.h>
+
 #include <format>
 
 namespace DB
