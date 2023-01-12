@@ -8,6 +8,7 @@
 #include <Parsers/Kusto/ParserKQLMakeSeries.h>
 #include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/ParserSelectQuery.h>
+
 #include <format>
 
 namespace DB

@@ -8,6 +8,7 @@
 #include <Parsers/Kusto/ParserKQLMVExpand.h>
 #include <Parsers/ParserSetQuery.h>
 #include <Parsers/ParserSelectQuery.h>
+
 #include <format>
 #include <unordered_map>
 

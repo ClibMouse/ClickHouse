@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
+#include "IParserKQLFunction.h"
+
 namespace DB
 {
 class Ago : public IParserKQLFunction

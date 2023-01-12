@@ -1,8 +1,6 @@
 #pragma once
 
-#include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
-#include <base/extended_types.h>
+#include "IParserKQLFunction.h"
 
 namespace DB
 {

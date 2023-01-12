@@ -1,18 +1,14 @@
-#include <Parsers/ASTExpressionList.h>
-#include <Parsers/ASTSelectWithUnionQuery.h>
-#include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
-#include <Parsers/Kusto/KustoFunctions/KQLDataTypeFunctions.h>
-#include <Parsers/Kusto/ParserKQLQuery.h>
-#include <Parsers/Kusto/ParserKQLStatement.h>
+#include "KQLDataTypeFunctions.h"
+
 #include <Parsers/Kusto/ParserKQLTimespan.h>
 #include <Parsers/Kusto/Utilities.h>
-#include <Parsers/ParserSetQuery.h>
 
 #include <boost/lexical_cast/try_lexical_convert.hpp>
+#include <Poco/String.h>
 
 #include <format>
 #include <regex>
+#include <unordered_set>
 
 namespace DB::ErrorCodes
 {
