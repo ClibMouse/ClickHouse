@@ -1,7 +1,5 @@
 #include "KQLGeneralFunctions.h"
 
-#include <format>
-
 namespace DB
 {
 bool Bin::convertImpl(String & out, IParser::Pos & pos)

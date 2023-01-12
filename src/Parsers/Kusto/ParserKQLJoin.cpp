@@ -1,4 +1,3 @@
-#include <format>
 #include <Parsers/ASTIdentifier.h>
 #include <Parsers/ASTLiteral.h>
 #include <Parsers/ASTSelectQuery.h>
@@ -13,6 +12,8 @@
 #include <Parsers/ParserSelectQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
 #include <Common/StringUtils/StringUtils.h>
+
+#include <format>
 
 namespace DB
 {
