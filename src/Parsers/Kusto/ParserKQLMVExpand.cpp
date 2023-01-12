@@ -1,15 +1,16 @@
-#include <format>
-#include <unordered_map>
 #include <Parsers/ASTLiteral.h>
-#include <Parsers/ExpressionListParsers.h>
 #include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/ParserKQLMVExpand.h>
+#include <Parsers/ExpressionListParsers.h>
+#include <Parsers/ParserTablesInSelectQuery.h>
+#include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLMakeSeries.h>
 #include <Parsers/Kusto/ParserKQLOperators.h>
-#include <Parsers/Kusto/ParserKQLQuery.h>
-#include <Parsers/ParserSelectQuery.h>
+#include <Parsers/Kusto/ParserKQLMVExpand.h>
 #include <Parsers/ParserSetQuery.h>
-#include <Parsers/ParserTablesInSelectQuery.h>
+#include <Parsers/ParserSelectQuery.h>
+
+#include <format>
+#include <unordered_map>
 
 namespace DB::ErrorCodes
 {

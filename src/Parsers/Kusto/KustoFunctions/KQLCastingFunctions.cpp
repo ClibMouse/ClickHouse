@@ -1,4 +1,4 @@
-#include <Parsers/Kusto/KustoFunctions/KQLCastingFunctions.h>
+#include "KQLCastingFunctions.h"
 
 #include <format>
 

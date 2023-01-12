@@ -1,7 +1,3 @@
-#include <format>
-#include <memory>
-#include <queue>
-#include <vector>
 #include <IO/ReadBufferFromString.h>
 #include <IO/ReadHelpers.h>
 #include <Parsers/ASTExpressionList.h>
@@ -21,6 +17,11 @@
 #include <Parsers/ParserSetQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
 #include <Parsers/ParserWithElement.h>
+
+#include <format>
+#include <memory>
+#include <queue>
+#include <vector>
 
 namespace DB
 {

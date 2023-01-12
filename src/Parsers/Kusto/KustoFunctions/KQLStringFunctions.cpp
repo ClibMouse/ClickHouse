@@ -1,15 +1,8 @@
-#include <Parsers/CommonParsers.h>
-#include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
-#include <Parsers/Kusto/KustoFunctions/KQLFunctionFactory.h>
-#include <Parsers/Kusto/KustoFunctions/KQLStringFunctions.h>
+#include "KQLStringFunctions.h"
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <Poco/String.h>
+#include <Parsers/CommonParsers.h>
 
 #include <format>
-
 
 namespace DB::ErrorCodes
 {

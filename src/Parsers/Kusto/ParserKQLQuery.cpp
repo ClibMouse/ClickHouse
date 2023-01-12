@@ -1,4 +1,3 @@
-#include <format>
 #include <Parsers/ASTIdentifier.h>
 #include <Parsers/ASTLiteral.h>
 #include <Parsers/ASTSelectQuery.h>
@@ -30,6 +29,8 @@
 #include <Parsers/ParserSelectWithUnionQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
 #include <Parsers/Kusto/ParserKQLTopNested.h>
+
+#include <format>
 
 namespace DB
 {

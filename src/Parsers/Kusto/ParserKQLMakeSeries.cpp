@@ -1,13 +1,14 @@
 #include "ParserKQLTimespan.h"
 
 #include <Parsers/ASTLiteral.h>
-#include <Parsers/ExpressionListParsers.h>
 #include <Parsers/IParserBase.h>
+#include <Parsers/ExpressionListParsers.h>
+#include <Parsers/ParserTablesInSelectQuery.h>
+#include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLMakeSeries.h>
 #include <Parsers/Kusto/ParserKQLOperators.h>
-#include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/ParserSelectQuery.h>
-#include <Parsers/ParserTablesInSelectQuery.h>
+
 #include <format>
 
 namespace DB

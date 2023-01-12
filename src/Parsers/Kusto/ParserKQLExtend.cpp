@@ -1,14 +1,19 @@
-#include <format>
+#include <Parsers/ASTIdentifier.h>
 #include <Parsers/ASTLiteral.h>
+#include <Parsers/ASTSelectQuery.h>
+#include <Parsers/ASTSelectWithUnionQuery.h>
+#include <Parsers/ASTSubquery.h>
+#include <Parsers/ASTTablesInSelectQuery.h>
+#include <Parsers/CommonParsers.h>
 #include <Parsers/ExpressionListParsers.h>
 #include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/ParserKQLExtend.h>
-#include <Parsers/Kusto/ParserKQLMakeSeries.h>
-#include <Parsers/Kusto/ParserKQLOperators.h>
-#include <Parsers/Kusto/ParserKQLProject.h>
+#include <Parsers/Kusto/ParserKQLJoin.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/ParserSelectQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
+#include <Common/StringUtils/StringUtils.h>
+
+#include <format>
 
 namespace DB
 {

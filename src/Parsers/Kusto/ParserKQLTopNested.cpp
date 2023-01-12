@@ -1,4 +1,3 @@
-#include <format>
 #include <Parsers/ASTSubquery.h>
 #include <Parsers/ASTTablesInSelectQuery.h>
 #include <Parsers/ASTWithElement.h>
@@ -6,6 +5,9 @@
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLTopNested.h>
 #include <Parsers/ParserSelectQuery.h>
+
+#include <format>
+
 namespace DB
 {
 
