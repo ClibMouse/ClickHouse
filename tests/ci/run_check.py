@@ -78,7 +78,7 @@ def pr_is_by_trusted_user(pr_user_login, pr_user_orgs):
     #     logging.info("Org '%s' is not trusted", org_id)
 
     # return False
-    return true
+    return True
 
 
 # Returns whether we should look into individual checks for this PR. If not, it
