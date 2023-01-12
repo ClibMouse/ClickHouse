@@ -17,7 +17,20 @@ on:  # yamllint disable-line rule:truthy
       - 'docs/**'
       - 'website/**'
 jobs:
+  CheckLabels:
+    runs-on: [self-hosted, style-checker]
+    steps:
+      - name: Clear repository
+        run: |
+          sudo rm -fr "$GITHUB_WORKSPACE" && mkdir "$GITHUB_WORKSPACE"
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Labels check
+        run: |
+          cd "$GITHUB_WORKSPACE/tests/ci"
+          python3 run_check.py
   PythonUnitTests:
+    needs: CheckLabels
     runs-on: [self-hosted, style-checker]
     steps:
       - name: Clear repository
@@ -94,7 +107,7 @@ jobs:
           name: changed_images
           path: ${{ runner.temp }}/changed_images.json
   StyleCheck:
-    needs: PythonUnitTests
+    needs: DockerHubPush
     runs-on: [self-hosted, style-checker]
     if: ${{ success() || failure() }}
     steps:
@@ -106,6 +119,13 @@ jobs:
           ${{secrets.ROBOT_CLICKHOUSE_SSH_KEY}}
           RCSK
           EOF
+      - name: Download changed images
+        # even if artifact does not exist, e.g. on `do not test` label or failed Docker job
+        continue-on-error: true
+        uses: actions/download-artifact@v2
+        with:
+          name: changed_images
+          path: ${{ env.TEMP_PATH }}
       - name: Clear repository
         run: |
           sudo rm -fr "$GITHUB_WORKSPACE" && mkdir "$GITHUB_WORKSPACE"
@@ -123,7 +143,6 @@ jobs:
           # shellcheck disable=SC2046
           docker rm -f $(docker ps -a -q) ||:
           sudo rm -fr "$TEMP_PATH"
-      - run: echo "🍏 This job's status is ${{ job.status }}."
   FastTest:
     needs: PythonUnitTests
     runs-on: [self-hosted, builder]
