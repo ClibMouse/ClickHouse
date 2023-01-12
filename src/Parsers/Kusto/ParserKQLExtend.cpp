@@ -8,6 +8,7 @@
 #include <Parsers/Kusto/ParserKQLExtend.h>
 #include <Parsers/Kusto/ParserKQLProject.h>
 #include <Parsers/ParserSelectQuery.h>
+
 #include <format>
 
 namespace DB
