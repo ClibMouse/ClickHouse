@@ -1,27 +1,13 @@
-#include <Parsers/ASTExpressionList.h>
-#include <Parsers/ASTSelectWithUnionQuery.h>
-#include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
-#include <Parsers/Kusto/KustoFunctions/KQLAggregationFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLBinaryFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLCastingFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLDateTimeFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLDynamicFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLFunctionFactory.h>
-#include <Parsers/Kusto/KustoFunctions/KQLGeneralFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLIPFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLStringFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLTimeSeriesFunctions.h>
-#include <Parsers/Kusto/ParserKQLTimespan.h>
+#include "KQLFunctionFactory.h"
+
 #include <Parsers/Kusto/ParserKQLOperators.h>
-#include <Parsers/Kusto/ParserKQLQuery.h>
-#include <Parsers/Kusto/ParserKQLStatement.h>
-#include <Parsers/ParserSetQuery.h>
+#include <Parsers/Kusto/ParserKQLTimespan.h>
 #include <Parsers/Kusto/Utilities.h>
+
 #include <boost/lexical_cast.hpp>
-#include <magic_enum.hpp>
 #include <pcg_random.hpp>
 #include <Poco/String.h>
+
 #include <format>
 #include <numeric>
 #include <stack>

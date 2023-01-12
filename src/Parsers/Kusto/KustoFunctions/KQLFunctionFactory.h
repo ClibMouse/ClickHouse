@@ -1,8 +1,9 @@
 #pragma once
 
+#include "IParserKQLFunction.h"
+
 #include <unordered_map>
-#include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
+
 namespace DB
 {
 enum class KQLFunctionValue : uint16_t

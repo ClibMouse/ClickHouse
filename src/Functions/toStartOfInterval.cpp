@@ -511,10 +511,6 @@ private:
         if (!interval_column_const_int64)
             throw Exception(ErrorCodes::ILLEGAL_COLUMN, "Illegal column for 2nd argument of function {}, must be a const time interval", getName());
 
-        const Int64 num_units = interval_column_const_int64->getValue<Int64>();
-        if (num_units <= 0)
-            throw Exception(ErrorCodes::ARGUMENT_OUT_OF_BOUND, "Value for 2nd argument of function {} must be positive", getName());
-
         const auto num_units = interval_column_const_int64->getValue<Int64>();
         switch (interval_type->getKind())
         {

@@ -1,9 +1,11 @@
-#include <unordered_set>
 #include <Parsers/ASTLiteral.h>
 #include <Parsers/IParserBase.h>
+#include <Parsers/ParserTablesInSelectQuery.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLTable.h>
-#include <Parsers/ParserTablesInSelectQuery.h>
+
+#include <unordered_set>
+
 namespace DB
 {
 
