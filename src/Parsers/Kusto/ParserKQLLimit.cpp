@@ -2,9 +2,6 @@
 #include <Parsers/ExpressionListParsers.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLLimit.h>
-#include <Parsers/ParserTablesInSelectQuery.h>
-#include <cstdlib>
-#include <format>
 
 namespace DB
 {
