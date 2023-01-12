@@ -176,7 +176,7 @@ jobs:
           sudo rm -fr "$TEMP_PATH" "$CACHES_PATH"
       - run: echo "🍏 This job's status is ${{ job.status }}."
   BuilderBinRelease:
-    needs: [DockerHubPush, FastTest, StyleCheck]
+    needs: [DockerHubPush, FastTest]
     runs-on: [self-hosted, builder]
     steps:
       - name: Set envs
