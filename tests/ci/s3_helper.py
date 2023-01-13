@@ -9,7 +9,14 @@ from multiprocessing.dummy import Pool
 
 import boto3  # type: ignore
 
-from env_helper import S3_TEST_REPORTS_BUCKET, S3_BUILDS_BUCKET, S3_REGION, S3_ENDPOINT, RUNNER_TEMP, CI
+from env_helper import (
+    S3_TEST_REPORTS_BUCKET,
+    S3_BUILDS_BUCKET,
+    S3_REGION,
+    S3_ENDPOINT,
+    RUNNER_TEMP,
+    CI,
+)
 from compress_files import compress_file_fast
 
 

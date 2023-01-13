@@ -61,7 +61,7 @@ def parse_args() -> argparse.Namespace:
         default=argparse.SUPPRESS,
         help="don't push images to docker hub",
     )
-    
+
     args = parser.parse_args()
     if len(args.suffixes) < 2:
         parser.error("more than two --suffix should be given")
@@ -174,7 +174,9 @@ def main():
     args = parse_args()
 
     subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
-        "docker login {} --username '{}' --password-stdin".format(DOCKER_REPO, DOCKER_USER),
+        "docker login {} --username '{}' --password-stdin".format(
+            DOCKER_REPO, DOCKER_USER
+        ),
         input=get_parameter_from_ssm("dockerhub_robot_password"),
         encoding="utf-8",
         shell=True,
