@@ -25,6 +25,14 @@ def get_best_robot_token(token_prefix_env_name="github_robot_token_", total_toke
         client = hvac.Client(url=VAULT_URL,token=VAULT_TOKEN)
     else:
         client = boto3.client("ssm", region_name="us-east-1")
+
+    parameters = client.describe_parameters(
+        ParameterFilters=[
+            {"Key": "Name", "Option": "BeginsWith", "Values": [token_prefix_env_name]}
+        ]
+    )["Parameters"]
+    assert parameters
+    
     tokens = {}
     for i in range(1, total_tokens + 1):
         token_name = token_prefix_env_name + str(i)
