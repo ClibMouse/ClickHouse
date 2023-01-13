@@ -4,9 +4,16 @@ from dataclasses import dataclass
 
 import boto3  # type: ignore
 import hvac # type: ignore
-import os
-from github import Github  # type: ignore
 from env_helper import VAULT_URL, VAULT_TOKEN, VAULT_PATH, VAULT_MOUNT_POINT
+from github import Github
+from github.AuthenticatedUser import AuthenticatedUser
+
+
+@dataclass
+class Token:
+    user: AuthenticatedUser
+    value: str
+    rest: int
 
 def get_parameter_from_ssm(name, decrypt=True, client=None):
     if VAULT_URL:
@@ -19,27 +26,23 @@ def get_parameter_from_ssm(name, decrypt=True, client=None):
         parameter = client.get_parameter(Name=name, WithDecryption=decrypt)["Parameter"]["Value"]
     return parameter
 
-def get_best_robot_token(token_prefix_env_name="github_robot_token_", total_tokens=4):
+def get_best_robot_token(token_prefix_env_name="github_robot_token_"):
     client = None
     if VAULT_URL:
         client = hvac.Client(url=VAULT_URL,token=VAULT_TOKEN)
+        response=client.secrets.kv.read_secret_version(
+            path=VAULT_PATH,
+            mount_point=VAULT_MOUNT_POINT)
+        parameters = [{"Name":p} for p in response['data']['data'] if p.startswith(token_prefix_env_name)]
     else:
         client = boto3.client("ssm", region_name="us-east-1")
-
-    parameters = client.describe_parameters(
-        ParameterFilters=[
-            {"Key": "Name", "Option": "BeginsWith", "Values": [token_prefix_env_name]}
-        ]
-    )["Parameters"]
+        parameters = client.describe_parameters(
+            ParameterFilters=[
+                {"Key": "Name", "Option": "BeginsWith", "Values": [token_prefix_env_name]}
+            ]
+        )["Parameters"]
     assert parameters
-    
-    tokens = {}
-    for i in range(1, total_tokens + 1):
-        token_name = token_prefix_env_name + str(i)
-        token = get_parameter_from_ssm(token_name, True, client)
-        gh = Github(token)
-        rest, _ = gh.rate_limiting
-        tokens[token] = rest
+    token = None
 
     for token_name in [p["Name"] for p in parameters]:
         value = get_parameter_from_ssm(token_name, True, client)
