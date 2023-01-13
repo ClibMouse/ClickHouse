@@ -15,8 +15,8 @@ from env_helper import (
 )
 
 FORCE_TESTS_LABEL = "force tests"
-SKIP_SIMPLE_CHECK_LABEL = "skip simple check"
 SKIP_MERGEABLE_CHECK_LABEL = "skip mergeable check"
+NeedsDataType = Dict[str, Dict[str, Union[str, Dict[str, str]]]]
 
 DIFF_IN_DOCUMENTATION_EXT = [
     ".html",
