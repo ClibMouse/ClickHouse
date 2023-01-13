@@ -144,7 +144,7 @@ jobs:
           docker rm -f $(docker ps -a -q) ||:
           sudo rm -fr "$TEMP_PATH"
   BuilderDebRelease:
-    needs: [DockerHubPush, StyleCheck]
+    needs: [DockerHubPush]
     runs-on: [self-hosted, builder]
     steps:
       - name: Set envs
