@@ -21,6 +21,7 @@ NAME = "Run Check"
 
 TRUSTED_ORG_IDS = {
     54801242,  # clickhouse
+    96197510,  # ClickMouse
 }
 
 OK_SKIP_LABELS = {"release", "pr-backport", "pr-cherrypick"}
@@ -61,24 +62,23 @@ CATEGORY_TO_LABEL = {c: lb for lb, categories in LABELS.items() for c in categor
 
 
 def pr_is_by_trusted_user(pr_user_login, pr_user_orgs):
-    # if pr_user_login.lower() in TRUSTED_CONTRIBUTORS:
-    #     logging.info("User '%s' is trusted", pr_user_login)
-    #     return True
+    if pr_user_login.lower() in TRUSTED_CONTRIBUTORS:
+        logging.info("User '%s' is trusted", pr_user_login)
+        return True
 
-    # logging.info("User '%s' is not trusted", pr_user_login)
+    logging.info("User '%s' is not trusted", pr_user_login)
 
-    # for org_id in pr_user_orgs:
-    #     if org_id in TRUSTED_ORG_IDS:
-    #         logging.info(
-    #             "Org '%s' is trusted; will mark user %s as trusted",
-    #             org_id,
-    #             pr_user_login,
-    #         )
-    #         return True
-    #     logging.info("Org '%s' is not trusted", org_id)
+    for org_id in pr_user_orgs:
+        if org_id in TRUSTED_ORG_IDS:
+            logging.info(
+                "Org '%s' is trusted; will mark user %s as trusted",
+                org_id,
+                pr_user_login,
+            )
+            return True
+        logging.info("Org '%s' is not trusted", org_id)
 
-    # return False
-    return True
+    return False
 
 
 # Returns whether we should look into individual checks for this PR. If not, it

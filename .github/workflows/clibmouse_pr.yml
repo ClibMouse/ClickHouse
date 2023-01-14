@@ -1,4 +1,4 @@
-name: PR Sanity Check
+name: PR Sanity
 run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 env:
   # Force the stdout and stderr streams to be unbuffered

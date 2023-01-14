@@ -23,7 +23,7 @@ from s3_helper import S3Helper
 from stopwatch import Stopwatch
 from upload_result_helper import upload_results
 
-NAME = "Push to Dockerhub (actions)"
+NAME = "Push to Dockerhub"
 
 TEMP_PATH = os.path.join(RUNNER_TEMP, "docker_images_check")
 
@@ -401,13 +401,13 @@ def main():
         changed_json = os.path.join(TEMP_PATH, f"changed_images_{args.suffix}.json")
     else:
         changed_json = os.path.join(TEMP_PATH, "changed_images.json")
-
-    subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
-        "docker login {} --username '{}' --password-stdin".format(DOCKER_REPO, DOCKER_USER),
-        input=get_parameter_from_ssm("dockerhub_robot_password"),
-        encoding="utf-8",
-        shell=True,
-    )
+    if args.push:
+        subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+            "docker login {} --username '{}' --password-stdin".format(DOCKER_REPO, DOCKER_USER),
+            input=get_parameter_from_ssm("dockerhub_robot_password"),
+            encoding="utf-8",
+            shell=True,
+        )
 
     if os.path.exists(TEMP_PATH):
         shutil.rmtree(TEMP_PATH)
@@ -473,7 +473,7 @@ def main():
     if not args.reports:
         return
 
-    gh = Github(get_best_robot_token())
+    gh = Github(get_best_robot_token(), per_page=100)
     post_commit_status(gh, pr_info.sha, NAME, description, status, url)
 
     prepared_events = prepare_tests_results_for_clickhouse(

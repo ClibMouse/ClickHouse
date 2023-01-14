@@ -9,7 +9,16 @@ from multiprocessing.dummy import Pool
 
 import boto3  # type: ignore
 
-from env_helper import S3_TEST_REPORTS_BUCKET, S3_BUILDS_BUCKET, S3_REGION, S3_ENDPOINT, RUNNER_TEMP, CI
+from env_helper import (
+    S3_TEST_REPORTS_BUCKET,
+    S3_BUILDS_BUCKET,
+    RUNNER_TEMP,
+    CI,
+    S3_URL,
+    S3_DOWNLOAD,
+    S3_REGION,
+    S3_ENDPOINT,
+)
 from compress_files import compress_file_fast
 
 
@@ -33,10 +42,12 @@ def _flatten_list(lst):
 
 
 class S3Helper:
-    def __init__(self, endpoint=S3_ENDPOINT):
+    def __init__(self, host=S3_URL, download_host=S3_DOWNLOAD, endpoint=S3_ENDPOINT):
         self.session = boto3.session.Session(region_name=S3_REGION)
         self.client = self.session.client("s3", endpoint_url=endpoint)
         self.endpoint = endpoint
+        self.host = host
+        self.download_host = download_host
 
     def _upload_file_to_s3(self, bucket_name: str, file_path: str, s3_path: str) -> str:
         logging.debug(
@@ -286,6 +297,13 @@ class S3Helper:
                 result.append(obj["Key"])
 
         return result
+
+    def exists(self, key, bucket=S3_BUILDS_BUCKET):
+        try:
+            self.client.head_object(Bucket=bucket, Key=key)
+            return True
+        except Exception:
+            return False
 
     @staticmethod
     def copy_file_to_local(bucket_name: str, file_path: str, s3_path: str) -> str:
