@@ -33,16 +33,6 @@ namespace
         Throw
     };
 
-    constexpr const char* getFunctionName(const ExecutionErrorPolicy execution_error_policy)
-    {
-        if (execution_error_policy == ExecutionErrorPolicy::Null)
-            return "toStartOfIntervalOrNull";
-        else if (execution_error_policy == ExecutionErrorPolicy::Throw)
-            return "toStartOfInterval";
-
-        throw DB::Exception(ErrorCodes::LOGICAL_ERROR, "Unhandled execution policy");
-    }
-
     template <IntervalKind::Kind unit>
     struct Transform;
 
@@ -329,7 +319,17 @@ class FunctionToStartOfInterval : public IFunction
 public:
     static FunctionPtr create(ContextPtr) { return std::make_shared<FunctionToStartOfInterval>(); }
 
-    static constexpr auto name = getFunctionName(execution_error_policy);
+    static constexpr auto name = std::invoke(
+        []
+        {
+            if (execution_error_policy == ExecutionErrorPolicy::Null)
+                return "toStartOfIntervalOrNull";
+            else if (execution_error_policy == ExecutionErrorPolicy::Throw)
+                return "toStartOfInterval";
+
+            throw DB::Exception(ErrorCodes::LOGICAL_ERROR, "Unhandled execution policy");
+        });
+
     String getName() const override { return name; }
     bool isVariadic() const override { return true; }
     size_t getNumberOfArguments() const override { return 0; }
@@ -454,17 +454,12 @@ public:
     bool useDefaultImplementationForConstants() const override { return true; }
     ColumnNumbers getArgumentsThatAreAlwaysConstant() const override { return {1, 2}; }
 
-    ColumnPtr executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const size_t input_rows_count) const override
+    ColumnPtr executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const size_t) const override
     {
         const auto & time_column = arguments[0];
         const auto & interval_column = arguments[1];
         const auto & time_zone = extractTimeZoneFromFunctionArguments(arguments, 2, 0);
-        auto result_column = dispatchForColumns(time_column, interval_column, result_type, time_zone);
-
-        if constexpr (execution_error_policy == ExecutionErrorPolicy::Null)
-            return wrapInNullable(result_column, arguments, result_type, input_rows_count);
-
-        return result_column;
+        return dispatchForColumns(time_column, interval_column, result_type, time_zone);
     }
 
 private:
