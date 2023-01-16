@@ -1,23 +1,30 @@
-#include <Parsers/ASTLiteral.h>
-#include <Parsers/CommonParsers.h>
-#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
-#include <Parsers/Kusto/KustoFunctions/KQLFunctionFactory.h>
-#include <Parsers/Kusto/ParserKQLOperators.h>
-#include <Parsers/Kusto/ParserKQLQuery.h>
-#include <Parsers/Kusto/ParserKQLStatement.h>
-#include <Parsers/ASTFunction.h>
-#include <Parsers/ASTIdentifier.h>
-#include <Parsers/formatAST.h>
 #include "KustoFunctions/IParserKQLFunction.h"
+#include "ParserKQLOperators.h"
+#include "ParserKQLStatement.h"
+
+#include <Parsers/CommonParsers.h>
+
+#include <format>
+#include <unordered_map>
+
+namespace DB::ErrorCodes
+{
+extern const int SYNTAX_ERROR;
+}
 
 namespace
 {
+enum class WildcardsPos : uint8_t
+{
+    none,
+    left,
+    right,
+    both
+};
 
 enum class KQLOperatorValue : uint16_t
 {
     none,
-    between,
-    not_between,
     contains,
     not_contains,
     contains_cs,
@@ -26,10 +33,10 @@ enum class KQLOperatorValue : uint16_t
     not_endswith,
     endswith_cs,
     not_endswith_cs,
-    equal, //=~
-    not_equal, //!~
-    equal_cs, //=
-    not_equal_cs, //!=
+    equal, /// =~
+    not_equal, /// !~
+    equal_cs, /// =
+    not_equal_cs, /// !=
     has,
     not_has,
     has_all,
@@ -44,10 +51,10 @@ enum class KQLOperatorValue : uint16_t
     not_hassuffix,
     hassuffix_cs,
     not_hassuffix_cs,
-    in_cs, //in
-    not_in_cs, //!in
-    in, //in~
-    not_in, //!in~
+    in_cs, /// in
+    not_in_cs, /// !in
+    in, /// in~
+    not_in, /// !in~
     matches_regex,
     startswith,
     not_startswith,
@@ -56,8 +63,6 @@ enum class KQLOperatorValue : uint16_t
 };
 
 const std::unordered_map<String, KQLOperatorValue> KQLOperator = {
-    {"between", KQLOperatorValue::between},
-    {"!between", KQLOperatorValue::not_between},
     {"contains", KQLOperatorValue::contains},
     {"!contains", KQLOperatorValue::not_contains},
     {"contains_cs", KQLOperatorValue::contains_cs},
@@ -94,70 +99,31 @@ const std::unordered_map<String, KQLOperatorValue> KQLOperator = {
     {"startswith_cs", KQLOperatorValue::startswith_cs},
     {"!startswith_cs", KQLOperatorValue::not_startswith_cs},
 };
-
-void rebuildSubqueryForInOperator(DB::ASTPtr & node, bool useLowerCase)
-{
-    //A sub-query for in operator in kql can have multiple columns, but only takes the first column.
-    //A sub-query for in operator in ClickHouse can not have multiple columns
-    //So only take the first column if there are multiple columns.
-    //select * not working for subquery. (a tabular statement without project)
-
-    const auto selectColumns = node->children[0]->children[0]->as<DB::ASTSelectQuery>()->select();
-    while (selectColumns->children.size() > 1)
-        selectColumns->children.pop_back();
-
-    if (useLowerCase)
-    {
-        auto args = std::make_shared<DB::ASTExpressionList>();
-        args->children.push_back(selectColumns->children[0]);
-        auto func_lower = std::make_shared<DB::ASTFunction>();
-        func_lower->name = "lower";
-        func_lower->children.push_back(selectColumns->children[0]);
-        func_lower->arguments = args;
-        if (selectColumns->children[0]->as<DB::ASTIdentifier>())
-            func_lower->alias = std::move(selectColumns->children[0]->as<DB::ASTIdentifier>()->alias);
-        else if (selectColumns->children[0]->as<DB::ASTFunction>())
-            func_lower->alias = std::move(selectColumns->children[0]->as<DB::ASTFunction>()->alias);
-
-        auto funcs = std::make_shared<DB::ASTExpressionList>();
-        funcs->children.push_back(func_lower);
-        selectColumns->children[0] = std::move(funcs);
-    }
 }
 
-}
-namespace DB
+String genHasAnyAllOpExpr(
+    std::vector<std::string> & tokens, DB::IParser::Pos & token_pos, const std::string & kql_op, const std::string_view ch_op)
 {
-
-namespace ErrorCodes
-{
-    extern const int SYNTAX_ERROR;
-}
-
-String KQLOperators::genHasAnyAllOpExpr(std::vector<String> & tokens, IParser::Pos & token_pos, String kql_op, String ch_op)
-{
-    String new_expr;
-    Expected expected;
-    ParserToken s_lparen(TokenType::OpeningRoundBracket);
+    std::string new_expr;
+    DB::Expected expected;
+    DB::ParserToken s_lparen(DB::TokenType::OpeningRoundBracket);
 
     ++token_pos;
     if (!s_lparen.ignore(token_pos, expected))
-        throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", kql_op);
+        throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", kql_op);
 
     auto haystack = tokens.back();
-
-    String logic_op = (kql_op == "has_all") ? " and " : " or ";
-
-    while (!token_pos->isEnd() && token_pos->type != TokenType::PipeMark && token_pos->type != TokenType::Semicolon)
+    const auto logic_op = (kql_op == "has_all") ? " and " : " or ";
+    while (!token_pos->isEnd() && token_pos->type != DB::TokenType::PipeMark && token_pos->type != DB::TokenType::Semicolon)
     {
-        auto tmp_arg = IParserKQLFunction::getExpression(token_pos);
-        if (token_pos->type == TokenType::Comma)
-            new_expr = new_expr + logic_op;
+        auto tmp_arg = DB::IParserKQLFunction::getExpression(token_pos);
+        if (token_pos->type == DB::TokenType::Comma)
+            new_expr += logic_op;
         else
-            new_expr = new_expr + ch_op + "(" + haystack + "," + tmp_arg + ")";
+            new_expr += std::vformat(ch_op, std::make_format_args(haystack, tmp_arg));
 
         ++token_pos;
-        if (token_pos->type == TokenType::ClosingRoundBracket)
+        if (token_pos->type == DB::TokenType::ClosingRoundBracket)
             break;
     }
 
@@ -251,83 +217,9 @@ String KQLOperators::genInOpExprCis(std::vector<String> &tokens, IParser::Pos &t
     return new_expr;
 }
 
-String KQLOperators::genInOpExpr(IParser::Pos &token_pos, String kql_op, String ch_op)
-{
-    DB::String tmp_arg(token_pos->begin, token_pos->end);
-
-    if (tokens.empty() || tmp_arg != "~")
-        return tmp_arg;
-
-    DB::String new_expr;
-    new_expr += "lower(" + tokens.back() + ")" + " ";
-    new_expr += ch_op + " ";
-    ++token_pos;
-
-    if (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier)
-        new_expr += "lower('" + DB::IParserKQLFunction::escapeSingleQuotes(String(token_pos->begin + 1, token_pos->end - 1)) + "')";
-    else
-        new_expr += "lower(" + DB::IParserKQLFunction::getExpression(token_pos) + ")";
-
-    tokens.pop_back();
-    return new_expr;
-}
-
-String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos, const DB::String & kql_op, const DB::String & ch_op)
-{
-    DB::ParserKQLTableFunction kqlfun_p;
-    DB::ParserToken s_lparen(DB::TokenType::OpeningRoundBracket);
-
-    DB::ASTPtr select;
-    DB::Expected expected;
-    DB::String new_expr;
-
-    ++token_pos;
-    if (!s_lparen.ignore(token_pos, expected))
-        throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", kql_op);
-
-    if (tokens.empty())
-        throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", kql_op);
-
-    new_expr = "lower(" + tokens.back() + ") ";
-    tokens.pop_back();
-    auto pos = token_pos;
-    if (kqlfun_p.parse(pos, select, expected))
-    {
-        rebuildSubqueryForInOperator(select, true);
-        new_expr += ch_op + " (" + serializeAST(*select) + ")";
-        token_pos = pos;
-        return new_expr;
-    }
-
-    --token_pos;
-    --token_pos;
-
-    new_expr += ch_op;
-    while (!token_pos->isEnd() && token_pos->type != DB::TokenType::PipeMark && token_pos->type != DB::TokenType::Semicolon)
-    {
-        auto tmp_arg = DB::String(token_pos->begin, token_pos->end);
-        if (token_pos->type != DB::TokenType::Comma && token_pos->type != DB::TokenType::ClosingRoundBracket
-            && token_pos->type != DB::TokenType::OpeningRoundBracket && token_pos->type != DB::TokenType::OpeningSquareBracket
-            && token_pos->type != DB::TokenType::ClosingSquareBracket && tmp_arg != "~" && tmp_arg != "dynamic")
-        {
-            if (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier)
-                new_expr += "lower('" + DB::IParserKQLFunction::escapeSingleQuotes(String(token_pos->begin + 1, token_pos->end - 1)) + "')";
-            else
-                new_expr += "lower(" + tmp_arg + ")";
-        }
-        else if (tmp_arg != "~" && tmp_arg != "dynamic" && tmp_arg != "[" && tmp_arg != "]")
-            new_expr += tmp_arg;
-
-        if (token_pos->type == DB::TokenType::ClosingRoundBracket)
-            break;
-        ++token_pos;
-    }
-    return new_expr;
-}
-
 std::string genInOpExpr(DB::IParser::Pos & token_pos, const std::string & kql_op, const std::string & ch_op)
 {
-    DB::ParserKQLTableFunction kqlfun_p;
+    DB::ParserKQLTaleFunction kqlfun_p;
     DB::ParserToken s_lparen(DB::TokenType::OpeningRoundBracket);
 
     DB::ASTPtr select;
@@ -340,8 +232,17 @@ std::string genInOpExpr(DB::IParser::Pos & token_pos, const std::string & kql_op
     auto pos = token_pos;
     if (kqlfun_p.parse(pos, select, expected))
     {
-        rebuildSubqueryForInOperator(select, false);
-        auto new_expr = ch_op + " (" + serializeAST(*select) + ")";
+        auto new_expr = ch_op + " kql";
+        auto tmp_pos = token_pos;
+        while (tmp_pos != pos)
+        {
+            new_expr = new_expr + " " + std::string(tmp_pos->begin, tmp_pos->end);
+            ++tmp_pos;
+        }
+
+        if (pos->type != TokenType::ClosingRoundBracket)
+            throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", kql_op);
+
         token_pos = pos;
         return new_expr;
     }
@@ -351,10 +252,15 @@ std::string genInOpExpr(DB::IParser::Pos & token_pos, const std::string & kql_op
     return ch_op;
 }
 
-String KQLOperators::genHaystackOpExpr(
-    std::vector<String> & tokens, IParser::Pos & token_pos, String kql_op, String ch_op, WildcardsPos wildcards_pos, WildcardsPos space_pos)
+std::string genHaystackOpExpr(
+    std::vector<std::string> & tokens,
+    DB::IParser::Pos & token_pos,
+    const std::string & kql_op,
+    const std::string_view ch_op,
+    WildcardsPos wildcards_pos,
+    WildcardsPos space_pos = WildcardsPos::none)
 {
-    String new_expr, left_wildcards, right_wildcards, left_space, right_space;
+    std::string new_expr, left_wildcards, right_wildcards, left_space, right_space;
 
     switch (wildcards_pos)
     {
@@ -396,260 +302,266 @@ String KQLOperators::genHaystackOpExpr(
 
     ++token_pos;
 
-    if (!tokens.empty() && ((token_pos)->type == TokenType::StringLiteral || token_pos->type == TokenType::QuotedIdentifier))
-        new_expr = ch_op + "(" + tokens.back() + ", '" + left_wildcards + left_space + String(token_pos->begin + 1, token_pos->end - 1)
-            + right_space + right_wildcards + "')";
-    else if (!tokens.empty() && ((token_pos)->type == TokenType::BareWord))
+    if (!tokens.empty() && (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier))
+        new_expr = std::vformat(
+            ch_op,
+            std::make_format_args(
+                tokens.back(),
+                "'" + left_wildcards + left_space + std::string(token_pos->begin + 1, token_pos->end - 1) + right_space + right_wildcards
+                    + "'"));
+    else if (!tokens.empty() && token_pos->type == DB::TokenType::BareWord)
     {
-        auto tmp_arg = IParserKQLFunction::getExpression(token_pos);
-        new_expr = ch_op + "(" + tokens.back() + ", concat('" + left_wildcards + left_space + "', " + tmp_arg + ", '" + right_space
-            + right_wildcards + "'))";
+        auto tmp_arg = DB::IParserKQLFunction::getExpression(token_pos);
+        new_expr = std::vformat(
+            ch_op,
+            std::make_format_args(
+                tokens.back(), "concat('" + left_wildcards + left_space + "', " + tmp_arg + ", '" + right_space + right_wildcards + "')"));
     }
     else
-        throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", kql_op);
+        throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", kql_op);
+
     tokens.pop_back();
     return new_expr;
 }
 
+namespace DB
+{
 bool KQLOperators::convert(std::vector<String> & tokens, IParser::Pos & pos)
 {
+    if (pos->isEnd() || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
+        return false;
+
     auto begin = pos;
+    auto token = String(pos->begin, pos->end);
 
-    if (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    String op = token;
+    if (token == "!")
     {
-        KQLOperatorValue op_value = KQLOperatorValue::none;
-
-        auto token = String(pos->begin, pos->end);
-
-        String op = token;
-        if (token == "!")
-        {
-            ++pos;
-            if (pos->isEnd() || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
-                throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid negative operator");
-            op = "!" + String(pos->begin, pos->end);
-        }
-        else if (token == "matches")
-        {
-            ++pos;
-            if (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
-            {
-                if (String(pos->begin, pos->end) == "regex")
-                    op += " regex";
-                else
-                    --pos;
-            }
-        }
-        else
-        {
-            op = token;
-        }
-
+        ++pos;
+        if (pos->isEnd() || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
+            throw Exception("Invalid negative operator", ErrorCodes::SYNTAX_ERROR);
+        op = "!" + String(pos->begin, pos->end);
+    }
+    else if (token == "matches")
+    {
         ++pos;
         if (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
         {
-            if (String(pos->begin, pos->end) == "~")
-                op += "~";
+            if (String(pos->begin, pos->end) == "regex")
+                op += " regex";
             else
                 --pos;
         }
+    }
+    else
+    {
+        op = token;
+    }
+
+    ++pos;
+    if (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    {
+        if (String(pos->begin, pos->end) == "~")
+            op += "~";
         else
             --pos;
+    }
+    else
+        --pos;
 
-        if (KQLOperator.find(op) == KQLOperator.end())
-        {
-            pos = begin;
-            return false;
-        }
+    const auto op_it = KQLOperator.find(op);
+    if (op_it == KQLOperator.end())
+    {
+        pos = begin;
+        return false;
+    }
 
-        op_value = KQLOperator.at(op);
+    String new_expr;
 
-        String new_expr;
-
-        if (op_value == KQLOperatorValue::none)
-            tokens.push_back(op);
-        else
-        {
-            if (tokens.empty())
-                throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", op);
-
-            auto last_op = tokens.back();
-            auto last_pos = pos;
-
-            switch (op_value)
-            {
-                case KQLOperatorValue::contains:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "ilike", WildcardsPos::both);
-                    break;
-
-                case KQLOperatorValue::not_contains:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "not ilike", WildcardsPos::both);
-                    break;
-
-                case KQLOperatorValue::contains_cs:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "like", WildcardsPos::both);
-                    break;
-
-                case KQLOperatorValue::not_contains_cs:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "not like", WildcardsPos::both);
-                    break;
-
-                case KQLOperatorValue::endswith:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "ilike", WildcardsPos::left);
-                    break;
-
-                case KQLOperatorValue::not_endswith:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "not ilike", WildcardsPos::left);
-                    break;
-
-                case KQLOperatorValue::endswith_cs:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "endsWith", WildcardsPos::none);
-                    break;
-
-                case KQLOperatorValue::not_endswith_cs:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "not endsWith", WildcardsPos::none);
-                    break;
-
-                case KQLOperatorValue::equal:
-                    new_expr = genEqOpExprCis(tokens, pos, "==");
-                    break;
-
-                case KQLOperatorValue::not_equal:
-                    new_expr = genEqOpExprCis(tokens, pos, "!=");
-                    break;
-
-                case KQLOperatorValue::equal_cs:
-                    new_expr = "==";
-                    break;
-
-                case KQLOperatorValue::not_equal_cs:
-                    new_expr = "!=";
-                    break;
-                case KQLOperatorValue::has:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "hasTokenCaseInsensitive", WildcardsPos::none);
-                    break;
-
-                case KQLOperatorValue::not_has:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "not hasTokenCaseInsensitive", WildcardsPos::none);
-                    break;
-
-                case KQLOperatorValue::has_all:
-                    new_expr = genHasAnyAllOpExpr(tokens, pos, "has_all", "hasTokenCaseInsensitive");
-                    break;
-
-                case KQLOperatorValue::has_any:
-                    new_expr = genHasAnyAllOpExpr(tokens, pos, "has_any", "hasTokenCaseInsensitive");
-                    break;
-
-                case KQLOperatorValue::has_cs:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "hasToken", WildcardsPos::none);
-                    break;
-
-                case KQLOperatorValue::not_has_cs:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "not hasToken", WildcardsPos::none);
-                    break;
-
-                case KQLOperatorValue::hasprefix:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "ilike", WildcardsPos::right);
-                    new_expr += " or ";
-                    tokens.push_back(last_op);
-                    new_expr += genHaystackOpExpr(tokens, last_pos, op, "ilike", WildcardsPos::both, WildcardsPos::left);
-                    break;
-
-                case KQLOperatorValue::not_hasprefix:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "not ilike", WildcardsPos::right);
-                    new_expr += " and ";
-                    tokens.push_back(last_op);
-                    new_expr += genHaystackOpExpr(tokens, last_pos, op, "not ilike", WildcardsPos::both, WildcardsPos::left);
-                    break;
-
-                case KQLOperatorValue::hasprefix_cs:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "startsWith", WildcardsPos::none);
-                    new_expr += " or ";
-                    tokens.push_back(last_op);
-                    new_expr += genHaystackOpExpr(tokens, last_pos, op, "like", WildcardsPos::both, WildcardsPos::left);
-                    break;
-
-                case KQLOperatorValue::not_hasprefix_cs:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "not startsWith", WildcardsPos::none);
-                    new_expr += " and  ";
-                    tokens.push_back(last_op);
-                    new_expr += genHaystackOpExpr(tokens, last_pos, op, "not like", WildcardsPos::both, WildcardsPos::left);
-                    break;
-
-                case KQLOperatorValue::hassuffix:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "ilike", WildcardsPos::left);
-                    new_expr += " or ";
-                    tokens.push_back(last_op);
-                    new_expr += genHaystackOpExpr(tokens, last_pos, op, "ilike", WildcardsPos::both, WildcardsPos::right);
-                    break;
-
-                case KQLOperatorValue::not_hassuffix:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "not ilike", WildcardsPos::left);
-                    new_expr += " and ";
-                    tokens.push_back(last_op);
-                    new_expr += genHaystackOpExpr(tokens, last_pos, op, "not ilike", WildcardsPos::both, WildcardsPos::right);
-                    break;
-
-                case KQLOperatorValue::hassuffix_cs:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "endsWith", WildcardsPos::none);
-                    new_expr += " or ";
-                    tokens.push_back(last_op);
-                    new_expr += genHaystackOpExpr(tokens, last_pos, op, "like", WildcardsPos::both, WildcardsPos::right);
-                    break;
-
-                case KQLOperatorValue::not_hassuffix_cs:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "not endsWith", WildcardsPos::none);
-                    new_expr += " and  ";
-                    tokens.push_back(last_op);
-                    new_expr += genHaystackOpExpr(tokens, last_pos, op, "not like", WildcardsPos::both, WildcardsPos::right);
-                    break;
-
-                case KQLOperatorValue::in_cs:
-                    new_expr = genInOpExpr(pos, op, "in");
-                    break;
-
-                case KQLOperatorValue::not_in_cs:
-                    new_expr = genInOpExpr(pos, op, "not in");
-                    break;
-
-                case KQLOperatorValue::in:
-                    new_expr = genInOpExprCis(tokens, pos, op, "in");
-                    break;
-
-                case KQLOperatorValue::not_in:
-                    new_expr = genInOpExprCis(tokens, pos, op, "not in");
-                    break;
-
-                case KQLOperatorValue::matches_regex:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "match", WildcardsPos::none);
-                    break;
-
-                case KQLOperatorValue::startswith:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "ilike", WildcardsPos::right);
-                    break;
-
-                case KQLOperatorValue::not_startswith:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "not ilike", WildcardsPos::right);
-                    break;
-
-                case KQLOperatorValue::startswith_cs:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "startsWith", WildcardsPos::none);
-                    break;
-
-                case KQLOperatorValue::not_startswith_cs:
-                    new_expr = genHaystackOpExpr(tokens, pos, op, "not startsWith", WildcardsPos::none);
-                    break;
-
-                default:
-                    break;
-            }
-            tokens.push_back(new_expr);
-        }
+    const auto & op_value = op_it->second;
+    if (op_value == KQLOperatorValue::none)
+    {
+        tokens.push_back(op);
         return true;
     }
-    pos = begin;
-    return false;
-}
 
+    if (tokens.empty())
+        throw Exception("Syntax error near " + op, ErrorCodes::SYNTAX_ERROR);
+
+    auto last_op = tokens.back();
+    auto last_pos = pos;
+
+    switch (op_value)
+    {
+        case KQLOperatorValue::contains:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "ilike({0}, {1})", WildcardsPos::both);
+            break;
+
+        case KQLOperatorValue::not_contains:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "not ilike({0}, {1})", WildcardsPos::both);
+            break;
+
+        case KQLOperatorValue::contains_cs:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "like({0}, {1})", WildcardsPos::both);
+            break;
+
+        case KQLOperatorValue::not_contains_cs:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "not like({0}, {1})", WildcardsPos::both);
+            break;
+
+        case KQLOperatorValue::endswith:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "ilike({0}, {1})", WildcardsPos::left);
+            break;
+
+        case KQLOperatorValue::not_endswith:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "not ilike({0}, {1})", WildcardsPos::left);
+            break;
+
+        case KQLOperatorValue::endswith_cs:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "endsWith({0}, {1})", WildcardsPos::none);
+            break;
+
+        case KQLOperatorValue::not_endswith_cs:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "not endsWith({0}, {1})", WildcardsPos::none);
+            break;
+
+        case KQLOperatorValue::equal:
+            new_expr = genEqOpExprCis(tokens, pos, "==");
+            break;
+
+        case KQLOperatorValue::not_equal:
+            new_expr = genEqOpExprCis(tokens, pos, "!=");
+            break;
+
+        case KQLOperatorValue::equal_cs:
+            new_expr = "==";
+            break;
+
+        case KQLOperatorValue::not_equal_cs:
+            new_expr = "!=";
+            break;
+        case KQLOperatorValue::has:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "ifNull(hasTokenCaseInsensitiveOrNull({0}, {1}), {0} = {1})", WildcardsPos::none);
+            break;
+
+        case KQLOperatorValue::not_has:
+            new_expr
+                = genHaystackOpExpr(tokens, pos, op, "not ifNull(hasTokenCaseInsensitiveOrNull({0}, {1}), {0} = {1})", WildcardsPos::none);
+            break;
+
+        case KQLOperatorValue::has_all:
+            new_expr = genHasAnyAllOpExpr(tokens, pos, op, "ifNull(hasTokenCaseInsensitiveOrNull({0}, {1}), {0} = {1})");
+            break;
+
+        case KQLOperatorValue::has_any:
+            new_expr = genHasAnyAllOpExpr(tokens, pos, op, "ifNull(hasTokenCaseInsensitiveOrNull({0}, {1}), {0} = {1})");
+            break;
+
+        case KQLOperatorValue::has_cs:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "ifNull(hasTokenOrNull({0}, {1}), {0} = {1})", WildcardsPos::none);
+            break;
+
+        case KQLOperatorValue::not_has_cs:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "not ifNull(hasTokenOrNull({0}, {1}), {0} = {1})", WildcardsPos::none);
+            break;
+
+        case KQLOperatorValue::hasprefix:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "ilike({0}, {1})", WildcardsPos::right);
+            new_expr += " or ";
+            tokens.push_back(last_op);
+            new_expr += genHaystackOpExpr(tokens, last_pos, op, "ilike({0}, {1})", WildcardsPos::both, WildcardsPos::left);
+            break;
+
+        case KQLOperatorValue::not_hasprefix:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "not ilike({0}, {1})", WildcardsPos::right);
+            new_expr += " and ";
+            tokens.push_back(last_op);
+            new_expr += genHaystackOpExpr(tokens, last_pos, op, "not ilike({0}, {1})", WildcardsPos::both, WildcardsPos::left);
+            break;
+
+        case KQLOperatorValue::hasprefix_cs:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "startsWith({0}, {1})", WildcardsPos::none);
+            new_expr += " or ";
+            tokens.push_back(last_op);
+            new_expr += genHaystackOpExpr(tokens, last_pos, op, "like({0}, {1})", WildcardsPos::both, WildcardsPos::left);
+            break;
+
+        case KQLOperatorValue::not_hasprefix_cs:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "not startsWith({0}, {1})", WildcardsPos::none);
+            new_expr += " and  ";
+            tokens.push_back(last_op);
+            new_expr += genHaystackOpExpr(tokens, last_pos, op, "not like({0}, {1})", WildcardsPos::both, WildcardsPos::left);
+            break;
+
+        case KQLOperatorValue::hassuffix:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "ilike({0}, {1})", WildcardsPos::left);
+            new_expr += " or ";
+            tokens.push_back(last_op);
+            new_expr += genHaystackOpExpr(tokens, last_pos, op, "ilike({0}, {1})", WildcardsPos::both, WildcardsPos::right);
+            break;
+
+        case KQLOperatorValue::not_hassuffix:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "not ilike({0}, {1})", WildcardsPos::left);
+            new_expr += " and ";
+            tokens.push_back(last_op);
+            new_expr += genHaystackOpExpr(tokens, last_pos, op, "not ilike({0}, {1})", WildcardsPos::both, WildcardsPos::right);
+            break;
+
+        case KQLOperatorValue::hassuffix_cs:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "endsWith({0}, {1})", WildcardsPos::none);
+            new_expr += " or ";
+            tokens.push_back(last_op);
+            new_expr += genHaystackOpExpr(tokens, last_pos, op, "like({0}, {1})", WildcardsPos::both, WildcardsPos::right);
+            break;
+
+        case KQLOperatorValue::not_hassuffix_cs:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "not endsWith({0}, {1})", WildcardsPos::none);
+            new_expr += " and  ";
+            tokens.push_back(last_op);
+            new_expr += genHaystackOpExpr(tokens, last_pos, op, "not like({0}, {1})", WildcardsPos::both, WildcardsPos::right);
+            break;
+
+        case KQLOperatorValue::in_cs:
+            new_expr = genInOpExpr(pos, op, "in");
+            break;
+
+        case KQLOperatorValue::not_in_cs:
+            new_expr = genInOpExpr(pos, op, "not in");
+            break;
+
+        case KQLOperatorValue::in:
+            new_expr = genInOpExprCis(tokens, pos, op, "in");
+            break;
+
+        case KQLOperatorValue::not_in:
+            new_expr = genInOpExprCis(tokens, pos, op, "not in");
+            break;
+
+        case KQLOperatorValue::matches_regex:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "match({0}, {1})", WildcardsPos::none);
+            break;
+
+        case KQLOperatorValue::startswith:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "ilike({0}, {1})", WildcardsPos::right);
+            break;
+
+        case KQLOperatorValue::not_startswith:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "not ilike({0}, {1})", WildcardsPos::right);
+            break;
+
+        case KQLOperatorValue::startswith_cs:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "startsWith({0}, {1})", WildcardsPos::none);
+            break;
+
+        case KQLOperatorValue::not_startswith_cs:
+            new_expr = genHaystackOpExpr(tokens, pos, op, "not startsWith({0}, {1})", WildcardsPos::none);
+            break;
+
+        default:
+            break;
+    }
+
+    tokens.push_back(new_expr);
+    return true;
+}
 }
