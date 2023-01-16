@@ -373,3 +373,29 @@ Latoya	Shen	Professional	Graduate Degree	25
 -1
 9
 2
+-- has --
+asdf
+asdf.ghkj
+asdf.qwer
+
+asdf.qwer
+
+asdf.qwer
+qwer
+-- !has --
+asdfghkj
+qwer
+qwerqwer
+
+asdf
+asdf.ghkj
+asdfghkj
+qwer
+qwerqwer
+-- has_all --
+asdf.qwer
+-- has_any --
+asdf
+asdf.ghkj
+asdf.qwer
+qwer
