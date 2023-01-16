@@ -33,6 +33,23 @@ CREATE TABLE Versions
 ) ENGINE = Memory;
 INSERT INTO Versions VALUES ('1.2.3.4'),('1.2'),('1.2.3'),('1');
 
+-- datatable (Text:string) [
+--     'asdf',
+--     'asdf.ghkj',
+--     'asdf.qwer',
+--     'asdfghkj',
+--     'qwer',
+--     'qwerqwer'
+-- ]
+
+drop table if exists StringTest;
+create table StringTest
+(
+    Text String
+) engine = Memory;
+
+insert into StringTest values ('asdf'), ('asdf.ghkj'), ('asdf.qwer'), ('asdfghkj'), ('qwer'), ('qwerqwer');
+
 
 set dialect='kusto';
 print '-- test String Functions --';
@@ -166,7 +183,7 @@ print '-- has_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/qu
 Customers | where Occupation has_all ('manual', 'skilled') | order by LastName;
 print '';
 print '-- has_any (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/has-anyoperator); TODO: subquery not supported yet';
-Customers|where Occupation has_any ('Skilled','abcd');
+Customers | where Occupation has_any ('Skilled', 'abcd');
 print '';
 print '-- countof (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/countoffunction)';
 Customers | project countof('The cat sat on the mat', 'at') | take 1;
@@ -336,3 +353,21 @@ print indexof('abcdefgabcdefg','cde', -1);
 print indexof('abcdefgabcdefg','cde', -4);
 print indexof('abcdefgabcdefg','cde', -5);
 print indexof('abcdefgabcdefg','cde', -105);
+
+print '-- has --';
+StringTest | where Text has 'asdf';
+print '';
+StringTest | where Text has 'asdf.qwer';
+print '';
+StringTest | where Text has 'qwer';
+
+print '-- !has --';
+StringTest | where Text !has 'asdf';
+print '';
+StringTest | where Text !has 'asdf.qwer';
+
+print '-- has_all --';
+StringTest | where Text has_all ('asdf', 'qwer');
+
+print '-- has_any --';
+StringTest | where Text has_any ('asdf', 'qwer');
