@@ -711,6 +711,8 @@ https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/make-seriesoper
    `print array_iif(dynamic([true, false, true]), dynamic([1, 2, 3, 4]), dynamic([4, 5, 6])) == dynamic([1, 5, 3])`  
    `print array_iif(dynamic([true, false, true, false]), dynamic([1, 2, 3, 4]), dynamic([4, 5, 6])) == dynamic([1, 5, 3, null])`  
    `print array_iif(dynamic([1, 0, -1, 44, 0]), dynamic([1, 2, 3, 4]), dynamic([4, 5, 6])) == dynamic([1, 5, 3, 4, null])`  
+   `print t = array_iif(dynamic([true, false, true, false, true]), dynamic([1.1, 2.2, 3.3, 4.4, 5.5]), 999.99);`
+   `print t = array_iif(dynamic([true, false, true, false, true]), 90, dynamic([1, 3]));`
 
 - [array_slice](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/arrayslicefunction)  
    `print array_slice(dynamic([1,2,3]), 1, 2) == dynamic([2, 3])`  
