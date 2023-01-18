@@ -420,6 +420,7 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"bitset_count_ones", KQLFunction::bitset_count_ones},
 
     {"bin", KQLFunction::bin},
+    {"floor", KQLFunction::bin},
     {"bin_at", KQLFunction::bin_at},
     {"case", KQLFunction::kase},
     {"iff", KQLFunction::iff},
