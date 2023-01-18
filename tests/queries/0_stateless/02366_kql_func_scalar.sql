@@ -26,6 +26,7 @@ INSERT INTO Customers VALUES ('Theodore','Diaz','Skilled Manual','Bachelors',28)
 set dialect = 'kusto';
 print '-- bin()';
 print bin(4.5, 1);
+print floor(4.5, 3);
 print bin(datetime(1970-05-11 13:45:07), 1d);
 print bin(16d, 7d);
 print bin(datetime(1970-05-11 13:45:07.345623), 1ms);
