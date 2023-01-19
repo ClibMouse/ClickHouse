@@ -77,5 +77,25 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Aggregate, ParserKQLTest,
         {
             "Customers | summarize count_distinctif(Education,Age >30)",
             "SELECT countIfDistinct(Education, Age > 30) AS Columns1\nFROM Customers"
+        },
+        {
+            "Customers | summarize take_any(FirstName)"
+            "SELECT any(FirstName) AS take_any_FirstName\nFROM Customers"
+        },
+        {
+            "Customers | summarize take_any(FirstName), take_any(LastName)"
+            "SELECT\n    any(FirstName) AS take_any_FirstName,\n    any(LastName) AS take_any_LastName\nFROM Customers"
+        },
+        {
+            "Customers | summarize take_any(FirstName, LastName) by FirstName, LastName"
+            "SELECT\n    FirstName,\n    LastName,\n    any(FirstName),\n    any(LastName) AS take_any_FirstName\nFROM Customers\nGROUP BY\n    FirstName,\n    LastName"
+        },
+        {
+            "Customers | summarize take_anyif(FirstName, LastName has 'Diaz')"
+            "SELECT anyIf(FirstName, hasTokenCaseInsensitive(LastName, 'Diaz')) AS take_anyif_FirstName\nFROM Customers"
+        },
+        {
+            "Customers | summarize take_anyif(FirstName, LastName has 'Diaz'), dcount(FirstName)"
+            "SELECT\n    anyIf(FirstName, hasTokenCaseInsensitive(LastName, 'Diaz')) AS take_anyif_FirstName,\n    countDistinct(FirstName) AS dcount_FirstName\nFROM Customers"
         }
 })));
