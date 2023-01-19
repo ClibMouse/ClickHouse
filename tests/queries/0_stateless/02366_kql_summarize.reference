@@ -97,3 +97,11 @@ Management abcd defg	['Stephanie']	[33]
 -- format_datetime --
 70-01-01	1
 70-01-03	2
+-- take_any --
+Theodore
+Theodore	Diaz
+Cameron	Rodriguez	Cameron	Rodriguez
+Christine	Nara	Christine	Nara
+-- take_anyif --
+Theodore
+Theodore	11
