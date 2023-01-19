@@ -1304,4 +1304,6 @@ Please note that the functions listed below only take constant parameters for no
  - dcount()
  - dcountif()
  - bin
- 
+ - take_any()
+   Note: * is not currently a supported argument.
+ - take_anyif() 
