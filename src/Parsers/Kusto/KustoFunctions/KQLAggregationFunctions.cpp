@@ -448,16 +448,41 @@ bool SumIf::convertImpl(String & out, IParser::Pos & pos)
 
 bool TakeAny::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    String fn_name = getKQLFunctionName(pos);
+
+    if (fn_name.empty())
+        return false;
+    String expr;
+    ++pos;
+    while(pos->type != TokenType::ClosingRoundBracket)
+    {
+        if(pos->type != TokenType::Comma)
+        {
+            expr = expr + "any(" + String(pos->begin, pos->end) + ")";
+        }
+        else
+            expr = expr + ",";
+        ++pos;
+    }
+    out = expr;
+    return true;
 }
 
 bool TakeAnyIf::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    String fn_name = getKQLFunctionName(pos);
+
+    if (fn_name.empty())
+        return false;
+    ++pos;
+    const auto expr = getConvertedArgument(fn_name,pos);
+    if (pos->type != TokenType::Comma)
+        return false;
+
+    ++pos;
+    const auto predicate = getConvertedArgument(fn_name,pos);
+    out = "anyIf(" + expr + ", " + predicate + ")";
+    return true;
 }
 
 bool Variance::convertImpl(String & out, IParser::Pos & pos)

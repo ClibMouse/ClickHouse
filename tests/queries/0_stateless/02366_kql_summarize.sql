@@ -110,7 +110,16 @@ print '-- count_distinctif --';
 Customers | summarize count_distinctif(Education, Age > 30);
 
 print '-- format_datetime --';
-EventLog | summarize count() by dt = format_datetime(bin(unixtime_seconds_todatetime(Created), 1d), 'yy-MM-dd') | order by dt asc
+EventLog | summarize count() by dt = format_datetime(bin(unixtime_seconds_todatetime(Created), 1d), 'yy-MM-dd') | order by dt asc;
+
+print '-- take_any --';
+Customers | summarize take_any(FirstName);
+Customers | summarize take_any(FirstName), take_any(LastName);
+Customers | where FirstName startswith 'C' | summarize take_any(FirstName, LastName) by FirstName, LastName;
+print '-- take_anyif --';
+Customers | summarize take_anyif(FirstName, LastName has 'Diaz');
+Customers | summarize take_anyif(FirstName, LastName has 'Diaz'), dcount(FirstName);
+
 -- TODO:
 -- arg_max()
 -- arg_min()
