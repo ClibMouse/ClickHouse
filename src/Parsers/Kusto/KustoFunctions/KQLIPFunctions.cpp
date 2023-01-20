@@ -6,6 +6,11 @@
 
 namespace DB
 {
+namespace ErrorCodes
+{
+    extern const int NOT_IMPLEMENTED;
+}
+
 bool Ipv4Compare::convertImpl(String & out, IParser::Pos & pos)
 {
     const auto function_name = getKQLFunctionName(pos);
@@ -25,7 +30,7 @@ bool Ipv4Compare::convertImpl(String & out, IParser::Pos & pos)
         kqlCallToExpression("ipv4_netmask_suffix", {lhs}, pos.max_depth),
         kqlCallToExpression("parse_ipv4", {rhs}, pos.max_depth),
         kqlCallToExpression("ipv4_netmask_suffix", {rhs}, pos.max_depth),
-        mask ? *mask : "32",
+        mask.value_or("32"),
         generateUniqueIdentifier());
     return true;
 }
@@ -58,7 +63,7 @@ bool Ipv4IsMatch::convertImpl(String & out, IParser::Pos & pos)
     const auto lhs = getArgument(function_name, pos, ArgumentState::Raw);
     const auto rhs = getArgument(function_name, pos, ArgumentState::Raw);
     const auto mask = getOptionalArgument(function_name, pos, ArgumentState::Raw);
-    out = std::format("equals({}, 0)", kqlCallToExpression("ipv4_compare", {lhs, rhs, mask ? *mask : "32"}, pos.max_depth));
+    out = std::format("equals({}, 0)", kqlCallToExpression("ipv4_compare", {lhs, rhs, mask.value_or("32")}, pos.max_depth));
     return true;
 }
 
@@ -146,6 +151,26 @@ bool ParseIpv4Mask::convertImpl(String & out, IParser::Pos & pos)
     return true;
 }
 
+bool HasIpv6::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
+{
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "");
+}
+
+bool HasAnyIpv6::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
+{
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "");
+}
+
+bool HasIpv6Prefix::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
+{
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "");
+}
+
+bool HasAnyIpv6Prefix::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
+{
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "");
+}
+
 bool Ipv6Compare::convertImpl(String & out, IParser::Pos & pos)
 {
     const auto function_name = getKQLFunctionName(pos);
@@ -155,7 +180,7 @@ bool Ipv6Compare::convertImpl(String & out, IParser::Pos & pos)
     const auto lhs = getArgument(function_name, pos);
     const auto rhs = getArgument(function_name, pos);
     const auto mask = getOptionalArgument(function_name, pos);
-    const auto calculated_mask = mask ? *mask : "128";
+    const auto calculated_mask = mask.value_or("128");
     out = std::format(
         "if(length(splitByChar('/', {1}) as lhs_tokens_{0}) > 2 or length(splitByChar('/', {2}) as rhs_tokens_{0}) > 2 "
         "or isNull(IPv6StringToNumOrNull(lhs_tokens_{0}[1]) as lhs_ipv6_{0}) or length(lhs_tokens_{0}) = 2 "
@@ -183,7 +208,7 @@ bool Ipv6IsMatch::convertImpl(String & out, IParser::Pos & pos)
     const auto lhs = getArgument(function_name, pos, ArgumentState::Raw);
     const auto rhs = getArgument(function_name, pos, ArgumentState::Raw);
     const auto mask = getOptionalArgument(function_name, pos, ArgumentState::Raw);
-    out = std::format("equals({}, 0)", kqlCallToExpression("ipv6_compare", {lhs, rhs, mask ? *mask : "128"}, pos.max_depth));
+    out = std::format("equals({}, 0)", kqlCallToExpression("ipv6_compare", {lhs, rhs, mask.value_or("128")}, pos.max_depth));
     return true;
 }
 
@@ -235,7 +260,7 @@ bool FormatIpv4::convertImpl(String & out, IParser::Pos & pos)
         "or isNull(ifNull(param_as_uint32_{3}, {2}) as ip_as_number_{3}), null, "
         "IPv4NumToString(bitAnd(ip_as_number_{3}, bitNot(toUInt32(intExp2(toInt32(32 - ({1}))) - 1))))), '')",
         ParserKQLBase::getExprFromToken(ip_address, pos.max_depth),
-        mask ? *mask : "32",
+        mask.value_or("32"),
         kqlCallToExpression("parse_ipv4", {"tostring(" + ip_address + ")"}, pos.max_depth),
         generateUniqueIdentifier());
     return true;
@@ -249,7 +274,7 @@ bool FormatIpv4Mask::convertImpl(String & out, IParser::Pos & pos)
 
     const auto ip_address = getArgument(function_name, pos, ArgumentState::Raw);
     const auto mask = getOptionalArgument(function_name, pos, ArgumentState::Raw);
-    const auto calculated_mask = mask ? *mask : "32";
+    const auto calculated_mask = mask.value_or("32");
     out = std::format(
         "if(empty({1} as formatted_ip_{2}) or position(toTypeName({0}), 'Int') = 0 or not {0} between 0 and 32, '', "
         "concat(formatted_ip_{2}, '/', toString(toInt64(min2({0}, ifNull({3} as suffix_{2}, 32))))))",
