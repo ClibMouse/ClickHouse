@@ -60,6 +60,34 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class HasIpv6 : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "has_ipv6()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class HasAnyIpv6 : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "has_any_ipv6()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class HasIpv6Prefix : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "has_ipv6_prefix()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class HasAnyIpv6Prefix : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "has_any_ipv6_prefix()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
 class Ipv6IsMatch : public IParserKQLFunction
 {
 protected:
