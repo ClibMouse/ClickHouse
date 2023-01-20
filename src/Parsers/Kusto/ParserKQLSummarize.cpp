@@ -89,6 +89,8 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
 
     auto apply_aliais = [&](Pos & begin_pos, Pos & end_pos, bool is_groupby)
     {
+        if (String(begin_pos->begin, begin_pos->end) == "by")
+            return;
         if (end_pos->end <= begin_pos->begin)
             throw Exception("Syntax error near keyword \"" + String(begin_pos->begin, begin_pos->end) + "\"", ErrorCodes::SYNTAX_ERROR);
         auto expr = String(begin_pos->begin, end_pos->end);
