@@ -1,6 +1,12 @@
 ## KQL implemented features  
 
 # January XX, 2023
+## Aggregate Functions
+- [take_any()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/take-any-aggfunction)
+   ```
+   Note: * is not currently a supported argument.
+   ```
+- [take_anyif()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/take-anyif-aggfunction)
 ## Operator
 - [top-nested](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/topnestedoperator)
 
@@ -1302,6 +1308,3 @@ Please note that the functions listed below only take constant parameters for no
  - dcount()
  - dcountif()
  - bin
- - take_any()
-   Note: * is not currently a supported argument.
- - take_anyif() 

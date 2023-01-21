@@ -452,17 +452,17 @@ bool TakeAny::convertImpl(String & out, IParser::Pos & pos)
 
     if (fn_name.empty())
         return false;
+    
     String expr;
-    ++pos;
+    String arg;
+    const auto begin = pos;
     while(pos->type != TokenType::ClosingRoundBracket)
     {
-        if(pos->type != TokenType::Comma)
-        {
-            expr = expr + "any(" + String(pos->begin, pos->end) + ")";
-        }
-        else
-            expr = expr + ",";
+        if (pos != begin)
+            expr.append(", ");
         ++pos;
+        arg = getConvertedArgument(fn_name,pos);
+        expr = expr + "any(" + arg + ")";
     }
     out = expr;
     return true;
