@@ -116,6 +116,7 @@ print '-- take_any --';
 Customers | summarize take_any(FirstName);
 Customers | summarize take_any(FirstName), take_any(LastName);
 Customers | where FirstName startswith 'C' | summarize take_any(FirstName, LastName) by FirstName, LastName;
+Customers | summarize take_any(strcat(FirstName,LastName));
 print '-- take_anyif --';
 Customers | summarize take_anyif(FirstName, LastName has 'Diaz');
 Customers | summarize take_anyif(FirstName, LastName has 'Diaz'), dcount(FirstName);
