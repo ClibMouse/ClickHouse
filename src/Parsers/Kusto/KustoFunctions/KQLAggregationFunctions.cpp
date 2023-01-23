@@ -7,227 +7,232 @@
 namespace DB
 {
 
-bool ArgMax::convertImpl(String & out,IParser::Pos & pos)
+bool ArgMax::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out,pos,"argMax");
+    return directMapping(out, pos, "argMax");
 }
 
-bool ArgMin::convertImpl(String & out,IParser::Pos & pos)
+bool ArgMin::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out,pos,"argMin");
+    return directMapping(out, pos, "argMin");
 }
 
-bool Avg::convertImpl(String & out,IParser::Pos & pos)
+bool Avg::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out,pos,"avg");
+    return directMapping(out, pos, "avg");
 }
 
-bool AvgIf::convertImpl(String & out,IParser::Pos & pos)
+bool AvgIf::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out,pos,"avgIf");
+    return directMapping(out, pos, "avgIf");
 }
 
-bool BinaryAllAnd::convertImpl(String & out,IParser::Pos & pos)
+bool BinaryAllAnd::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out,pos,"groupBitAnd");
+    return directMapping(out, pos, "groupBitAnd");
 }
 
-bool BinaryAllOr::convertImpl(String & out,IParser::Pos & pos)
+bool BinaryAllOr::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out,pos,"groupBitOr");
+    return directMapping(out, pos, "groupBitOr");
 }
 
-bool BinaryAllXor::convertImpl(String & out,IParser::Pos & pos)
+bool BinaryAllXor::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out,pos,"groupBitXor");
+    return directMapping(out, pos, "groupBitXor");
 }
 
-bool BuildSchema::convertImpl(String & out,IParser::Pos & pos)
+bool BuildSchema::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin,pos->end);
+    String res = String(pos->begin, pos->end);
     out = res;
     return false;
 }
 
-bool Count::convertImpl(String & out,IParser::Pos & pos)
+bool Count::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out,pos,"count");
+    return directMapping(out, pos, "count");
 }
 
-bool CountIf::convertImpl(String & out,IParser::Pos & pos)
+bool CountIf::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out,pos,"countIf");
+    return directMapping(out, pos, "countIf");
 }
 
-bool DCount::convertImpl(String & out,IParser::Pos & pos)
+bool DCount::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
     if (fn_name.empty())
         return false;
     ++pos;
-    String value = getConvertedArgument(fn_name,pos);
-    
+    String value = getConvertedArgument(fn_name, pos);
+
     out = "count ( DISTINCT " + value + " ) ";
     return true;
 }
 
-bool DCountIf::convertImpl(String & out,IParser::Pos & pos)
+bool DCountIf::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
     if (fn_name.empty())
         return false;
     ++pos;
-    String value = getConvertedArgument(fn_name,pos);
+    String value = getConvertedArgument(fn_name, pos);
     ++pos;
-    String condition = getConvertedArgument(fn_name,pos);
+    String condition = getConvertedArgument(fn_name, pos);
     out = "countIf ( DISTINCT " + value + " , " + condition + " ) ";
     return true;
 }
 
-bool MakeBag::convertImpl(String & out,IParser::Pos & pos)
+bool MakeBag::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin,pos->end);
+    String res = String(pos->begin, pos->end);
     out = res;
     return false;
 }
 
-bool MakeBagIf::convertImpl(String & out,IParser::Pos & pos)
+bool MakeBagIf::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin,pos->end);
+    String res = String(pos->begin, pos->end);
     out = res;
     return false;
 }
 
-bool MakeList::convertImpl(String & out,IParser::Pos & pos)
+bool MakeList::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
     if (fn_name.empty())
         return false;
     ++pos;
-    const auto expr = getConvertedArgument(fn_name,pos);
+    const auto expr = getConvertedArgument(fn_name, pos);
     if (pos->type == TokenType::Comma)
     {
         ++pos;
-        const auto max_size = getConvertedArgument(fn_name,pos);
+        const auto max_size = getConvertedArgument(fn_name, pos);
         out = "groupArrayIf(" + max_size + ")(" + expr + " , " + expr + " IS NOT NULL)";
-    } else
+    }
+    else
         out = "groupArrayIf(" + expr + " , " + expr + " IS NOT NULL)";
     return true;
 }
 
-bool MakeListIf::convertImpl(String & out,IParser::Pos & pos)
+bool MakeListIf::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
     if (fn_name.empty())
         return false;
     ++pos;
-    const auto expr = getConvertedArgument(fn_name,pos);
+    const auto expr = getConvertedArgument(fn_name, pos);
     ++pos;
-    const auto predicate = getConvertedArgument(fn_name,pos);
+    const auto predicate = getConvertedArgument(fn_name, pos);
     if (pos->type == TokenType::Comma)
     {
         ++pos;
-        const auto max_size = getConvertedArgument(fn_name,pos);
-        out = "groupArrayIf(" + max_size + ")(" + expr + " , " + predicate+ " )";
-    } else
-        out = "groupArrayIf(" + expr + " , " + predicate+ " )";
+        const auto max_size = getConvertedArgument(fn_name, pos);
+        out = "groupArrayIf(" + max_size + ")(" + expr + " , " + predicate + " )";
+    }
+    else
+        out = "groupArrayIf(" + expr + " , " + predicate + " )";
     return true;
 }
 
-bool MakeListWithNulls::convertImpl(String & out,IParser::Pos & pos)
+bool MakeListWithNulls::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
     if (fn_name.empty())
         return false;
     ++pos;
-    const auto column_name = getConvertedArgument(fn_name,pos);
-    out = "arrayConcat(groupArray(" + column_name + "), arrayMap(x -> null, range(0, toUInt32(count(*)-length(  groupArray(" + column_name + ") )),1)))";
+    const auto column_name = getConvertedArgument(fn_name, pos);
+    out = "arrayConcat(groupArray(" + column_name + "), arrayMap(x -> null, range(0, toUInt32(count(*)-length(  groupArray(" + column_name
+        + ") )),1)))";
     return true;
 }
 
-bool MakeSet::convertImpl(String & out,IParser::Pos & pos)
+bool MakeSet::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
     if (fn_name.empty())
         return false;
     ++pos;
-    const auto expr = getConvertedArgument(fn_name,pos);
+    const auto expr = getConvertedArgument(fn_name, pos);
     if (pos->type == TokenType::Comma)
     {
         ++pos;
-        const auto max_size = getConvertedArgument(fn_name,pos);
+        const auto max_size = getConvertedArgument(fn_name, pos);
         out = "groupUniqArray(" + max_size + ")(" + expr + ")";
-    } else
+    }
+    else
         out = "groupUniqArray(" + expr + ")";
     return true;
 }
 
-bool MakeSetIf::convertImpl(String & out,IParser::Pos & pos)
+bool MakeSetIf::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
     if (fn_name.empty())
         return false;
     ++pos;
-    const auto expr = getConvertedArgument(fn_name,pos);
+    const auto expr = getConvertedArgument(fn_name, pos);
     ++pos;
-    const auto predicate = getConvertedArgument(fn_name,pos);
+    const auto predicate = getConvertedArgument(fn_name, pos);
     if (pos->type == TokenType::Comma)
     {
         ++pos;
-        const auto max_size = getConvertedArgument(fn_name,pos);
-        out = "groupUniqArrayIf(" + max_size + ")(" + expr + " , " + predicate+ " )";
-    } else
-        out = "groupUniqArrayIf(" + expr + " , " + predicate+ " )";
+        const auto max_size = getConvertedArgument(fn_name, pos);
+        out = "groupUniqArrayIf(" + max_size + ")(" + expr + " , " + predicate + " )";
+    }
+    else
+        out = "groupUniqArrayIf(" + expr + " , " + predicate + " )";
     return true;
 }
 
-bool Max::convertImpl(String & out,IParser::Pos & pos)
+bool Max::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out,pos,"max");
+    return directMapping(out, pos, "max");
 }
 
-bool MaxIf::convertImpl(String & out,IParser::Pos & pos)
+bool MaxIf::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out,pos,"maxIf");
+    return directMapping(out, pos, "maxIf");
 }
 
-bool Min::convertImpl(String & out,IParser::Pos & pos)
+bool Min::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out,pos,"min");
+    return directMapping(out, pos, "min");
 }
 
-bool MinIf::convertImpl(String & out,IParser::Pos & pos)
+bool MinIf::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out,pos,"minIf");
+    return directMapping(out, pos, "minIf");
 }
 
-bool Percentile::convertImpl(String & out,IParser::Pos & pos)
+bool Percentile::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
     if (fn_name.empty())
         return false;
-    
+
     ++pos;
-    String column_name = getConvertedArgument(fn_name,pos);
+    String column_name = getConvertedArgument(fn_name, pos);
     trim(column_name);
-    
+
     ++pos;
-    String value = getConvertedArgument(fn_name,pos);
+    String value = getConvertedArgument(fn_name, pos);
     trim(value);
 
     out = "quantile(" + value + "/100)(" + column_name + ")";
     return true;
 }
 
-bool Percentilew::convertImpl(String & out,IParser::Pos & pos)
+bool Percentilew::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
@@ -235,22 +240,22 @@ bool Percentilew::convertImpl(String & out,IParser::Pos & pos)
         return false;
 
     ++pos;
-    String bucket_column = getConvertedArgument(fn_name,pos);
+    String bucket_column = getConvertedArgument(fn_name, pos);
     trim(bucket_column);
 
     ++pos;
-    String frequency_column = getConvertedArgument(fn_name,pos);
+    String frequency_column = getConvertedArgument(fn_name, pos);
     trim(frequency_column);
 
     ++pos;
-    String value = getConvertedArgument(fn_name,pos);
+    String value = getConvertedArgument(fn_name, pos);
     trim(value);
 
     out = "quantileExactWeighted( " + value + "/100)(" + bucket_column + "," + frequency_column + ")";
     return true;
 }
 
-bool Percentiles::convertImpl(String & out,IParser::Pos & pos)
+bool Percentiles::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
@@ -258,18 +263,18 @@ bool Percentiles::convertImpl(String & out,IParser::Pos & pos)
         return false;
 
     ++pos;
-    String column_name = getConvertedArgument(fn_name,pos);
+    String column_name = getConvertedArgument(fn_name, pos);
     trim(column_name);
     String expr = "quantiles(";
     String value;
-    while(pos->type != TokenType::ClosingRoundBracket)
+    while (pos->type != TokenType::ClosingRoundBracket)
     {
-        if(pos->type != TokenType::Comma)
+        if (pos->type != TokenType::Comma)
         {
             value = String(pos->begin, pos->end);
             expr = expr + value + "/100";
             ++pos;
-            if(pos->type != TokenType::ClosingRoundBracket)
+            if (pos->type != TokenType::ClosingRoundBracket)
                 expr += ", ";
         }
         else
@@ -279,7 +284,7 @@ bool Percentiles::convertImpl(String & out,IParser::Pos & pos)
     return true;
 }
 
-bool PercentilesArray::convertImpl(String & out,IParser::Pos & pos)
+bool PercentilesArray::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
@@ -287,21 +292,20 @@ bool PercentilesArray::convertImpl(String & out,IParser::Pos & pos)
         return false;
 
     ++pos;
-    String column_name = getConvertedArgument(fn_name,pos);
+    String column_name = getConvertedArgument(fn_name, pos);
     trim(column_name);
     String expr = "quantiles(";
     String value;
-    while(pos->type != TokenType::ClosingRoundBracket)
+    while (pos->type != TokenType::ClosingRoundBracket)
     {
-        if(pos->type != TokenType::Comma && String(pos->begin, pos->end) != "dynamic"
-            && pos->type != TokenType::OpeningRoundBracket && pos->type != TokenType::OpeningSquareBracket
-            && pos->type != TokenType::ClosingSquareBracket){
-
+        if (pos->type != TokenType::Comma && String(pos->begin, pos->end) != "dynamic" && pos->type != TokenType::OpeningRoundBracket
+            && pos->type != TokenType::OpeningSquareBracket && pos->type != TokenType::ClosingSquareBracket)
+        {
             value = String(pos->begin, pos->end);
             expr = expr + value + "/100";
 
-            if(pos->type != TokenType::Comma && pos->type != TokenType::OpeningRoundBracket && pos->type != TokenType::OpeningSquareBracket
-            && pos->type != TokenType::ClosingSquareBracket)
+            if (pos->type != TokenType::Comma && pos->type != TokenType::OpeningRoundBracket && pos->type != TokenType::OpeningSquareBracket
+                && pos->type != TokenType::ClosingSquareBracket)
                 expr += ", ";
             ++pos;
         }
@@ -309,10 +313,9 @@ bool PercentilesArray::convertImpl(String & out,IParser::Pos & pos)
         {
             ++pos;
         }
-
     }
     ++pos;
-    if(pos->type != TokenType::ClosingRoundBracket)
+    if (pos->type != TokenType::ClosingRoundBracket)
         --pos;
 
     expr.pop_back();
@@ -322,7 +325,7 @@ bool PercentilesArray::convertImpl(String & out,IParser::Pos & pos)
     return true;
 }
 
-bool Percentilesw::convertImpl(String & out,IParser::Pos & pos)
+bool Percentilesw::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
@@ -330,24 +333,24 @@ bool Percentilesw::convertImpl(String & out,IParser::Pos & pos)
         return false;
 
     ++pos;
-    String bucket_column = getConvertedArgument(fn_name,pos);
+    String bucket_column = getConvertedArgument(fn_name, pos);
     trim(bucket_column);
 
     ++pos;
-    String frequency_column = getConvertedArgument(fn_name,pos);
+    String frequency_column = getConvertedArgument(fn_name, pos);
     trim(frequency_column);
 
     String expr = "quantilesExactWeighted( ";
     String value;
 
-    while(pos->type != TokenType::ClosingRoundBracket)
+    while (pos->type != TokenType::ClosingRoundBracket)
     {
-        if(pos->type != TokenType::Comma)
+        if (pos->type != TokenType::Comma)
         {
             value = String(pos->begin, pos->end);
             expr = expr + value + "/100";
             ++pos;
-            if(pos->type != TokenType::ClosingRoundBracket)
+            if (pos->type != TokenType::ClosingRoundBracket)
                 expr += ", ";
         }
         else
@@ -358,7 +361,7 @@ bool Percentilesw::convertImpl(String & out,IParser::Pos & pos)
     return true;
 }
 
-bool PercentileswArray::convertImpl(String & out,IParser::Pos & pos)
+bool PercentileswArray::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
@@ -366,27 +369,25 @@ bool PercentileswArray::convertImpl(String & out,IParser::Pos & pos)
         return false;
 
     ++pos;
-    String bucket_column = getConvertedArgument(fn_name,pos);
+    String bucket_column = getConvertedArgument(fn_name, pos);
     trim(bucket_column);
 
     ++pos;
-    String frequency_column = getConvertedArgument(fn_name,pos);
+    String frequency_column = getConvertedArgument(fn_name, pos);
     trim(frequency_column);
 
     String expr = "quantilesExactWeighted(";
     String value;
-    while(pos->type != TokenType::ClosingRoundBracket)
+    while (pos->type != TokenType::ClosingRoundBracket)
     {
-        if(pos->type != TokenType::Comma && String(pos->begin, pos->end) != "dynamic"
-            && pos->type != TokenType::OpeningRoundBracket && pos->type != TokenType::OpeningSquareBracket
-            && pos->type != TokenType::ClosingSquareBracket)
+        if (pos->type != TokenType::Comma && String(pos->begin, pos->end) != "dynamic" && pos->type != TokenType::OpeningRoundBracket
+            && pos->type != TokenType::OpeningSquareBracket && pos->type != TokenType::ClosingSquareBracket)
         {
-
             value = String(pos->begin, pos->end);
             expr = expr + value + "/100";
 
-            if(pos->type != TokenType::Comma && pos->type != TokenType::OpeningRoundBracket && pos->type != TokenType::OpeningSquareBracket
-            && pos->type != TokenType::ClosingSquareBracket)
+            if (pos->type != TokenType::Comma && pos->type != TokenType::OpeningRoundBracket && pos->type != TokenType::OpeningSquareBracket
+                && pos->type != TokenType::ClosingSquareBracket)
                 expr += ", ";
             ++pos;
         }
@@ -394,112 +395,111 @@ bool PercentileswArray::convertImpl(String & out,IParser::Pos & pos)
         {
             ++pos;
         }
-
     }
     ++pos;
-    if(pos->type != TokenType::ClosingRoundBracket)
+    if (pos->type != TokenType::ClosingRoundBracket)
         --pos;
 
     expr.pop_back();
     expr.pop_back();
-    expr = expr + ")("  + bucket_column + ","+frequency_column +  ")";
+    expr = expr + ")(" + bucket_column + "," + frequency_column + ")";
     out = expr;
     return true;
 }
 
-bool Stdev::convertImpl(String & out,IParser::Pos & pos)
+bool Stdev::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
     if (fn_name.empty())
         return false;
     ++pos;
-    const auto expr = getConvertedArgument(fn_name,pos);
+    const auto expr = getConvertedArgument(fn_name, pos);
     out = "sqrt(varSamp(" + expr + "))";
     return true;
 }
 
-bool StdevIf::convertImpl(String & out,IParser::Pos & pos)
+bool StdevIf::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
     if (fn_name.empty())
         return false;
     ++pos;
-    const auto expr = getConvertedArgument(fn_name,pos);
+    const auto expr = getConvertedArgument(fn_name, pos);
     if (pos->type != TokenType::Comma)
         return false;
 
     ++pos;
-    const auto predicate = getConvertedArgument(fn_name,pos);
+    const auto predicate = getConvertedArgument(fn_name, pos);
     out = "sqrt(varSampIf(" + expr + ", " + predicate + "))";
     return true;
 }
 
-bool Sum::convertImpl(String & out,IParser::Pos & pos)
+bool Sum::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out,pos,"sum");
+    return directMapping(out, pos, "sum");
 }
 
-bool SumIf::convertImpl(String & out,IParser::Pos & pos)
+bool SumIf::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out,pos,"sumIf");
+    return directMapping(out, pos, "sumIf");
 }
 
-bool TakeAny::convertImpl(String & out,IParser::Pos & pos)
+bool TakeAny::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
     if (fn_name.empty())
         return false;
-    
+
     String expr;
     String arg;
     const auto begin = pos;
-    while(pos->type != TokenType::ClosingRoundBracket)
+    while (pos->type != TokenType::ClosingRoundBracket)
     {
         if (pos != begin)
             expr.append(", ");
         ++pos;
-        arg = getConvertedArgument(fn_name,pos);
+        arg = getConvertedArgument(fn_name, pos);
         expr = expr + "any(" + arg + ")";
     }
     out = expr;
     return true;
 }
 
-bool TakeAnyIf::convertImpl(String & out,IParser::Pos & pos)
+bool TakeAnyIf::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
 
     if (fn_name.empty())
         return false;
     ++pos;
-    const auto expr = getConvertedArgument(fn_name,pos);
+    const auto expr = getConvertedArgument(fn_name, pos);
     if (pos->type != TokenType::Comma)
         return false;
 
     ++pos;
-    const auto predicate = getConvertedArgument(fn_name,pos);
+    const auto predicate = getConvertedArgument(fn_name, pos);
     out = "anyIf(" + expr + ", " + predicate + ")";
     return true;
 }
 
-bool Variance::convertImpl(String & out,IParser::Pos & pos)
+bool Variance::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin,pos->end);
+    String res = String(pos->begin, pos->end);
     out = res;
     return false;
 }
 
-bool VarianceIf::convertImpl(String & out,IParser::Pos & pos)
+bool VarianceIf::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin,pos->end);
+    String res = String(pos->begin, pos->end);
     out = res;
     return false;
 }
 
-bool CountDistinct::convertImpl(String & out,IParser::Pos & pos)
+bool CountDistinct::convertImpl(String & out, IParser::Pos & pos)
 {
     const String fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
@@ -512,7 +512,7 @@ bool CountDistinct::convertImpl(String & out,IParser::Pos & pos)
 }
 
 
-bool CountDistinctIf::convertImpl(String & out,IParser::Pos & pos)
+bool CountDistinctIf::convertImpl(String & out, IParser::Pos & pos)
 {
     const String fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
