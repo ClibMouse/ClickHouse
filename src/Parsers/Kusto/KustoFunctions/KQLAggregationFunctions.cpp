@@ -68,7 +68,7 @@ bool DCount::convertImpl(String & out, IParser::Pos & pos)
     ++pos;
     String value = getConvertedArgument(fn_name, pos);
 
-    out = "count(DISTINCT " + value + ")";
+    out = "count ( DISTINCT " + value + " ) ";
     return true;
 }
 
@@ -82,7 +82,7 @@ bool DCountIf::convertImpl(String & out, IParser::Pos & pos)
     String value = getConvertedArgument(fn_name, pos);
     ++pos;
     String condition = getConvertedArgument(fn_name, pos);
-    out = "countIf (DISTINCT " + value + ", " + condition + ")";
+    out = "countIf ( DISTINCT " + value + " , " + condition + " ) ";
     return true;
 }
 
@@ -149,7 +149,7 @@ bool MakeListWithNulls::convertImpl(String & out, IParser::Pos & pos)
     ++pos;
     const auto column_name = getConvertedArgument(fn_name, pos);
     out = "arrayConcat(groupArray(" + column_name + "), arrayMap(x -> null, range(0, toUInt32(count(*)-length(  groupArray(" + column_name
-        + "))),1)))";
+        + ") )),1)))";
     return true;
 }
 
@@ -452,16 +452,16 @@ bool TakeAny::convertImpl(String & out, IParser::Pos & pos)
 
     if (fn_name.empty())
         return false;
-    
+
     String expr;
     String arg;
     const auto begin = pos;
-    while(pos->type != TokenType::ClosingRoundBracket)
+    while (pos->type != TokenType::ClosingRoundBracket)
     {
         if (pos != begin)
             expr.append(", ");
         ++pos;
-        arg = getConvertedArgument(fn_name,pos);
+        arg = getConvertedArgument(fn_name, pos);
         expr = expr + "any(" + arg + ")";
     }
     out = expr;
@@ -475,12 +475,12 @@ bool TakeAnyIf::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
     ++pos;
-    const auto expr = getConvertedArgument(fn_name,pos);
+    const auto expr = getConvertedArgument(fn_name, pos);
     if (pos->type != TokenType::Comma)
         return false;
 
     ++pos;
-    const auto predicate = getConvertedArgument(fn_name,pos);
+    const auto predicate = getConvertedArgument(fn_name, pos);
     out = "anyIf(" + expr + ", " + predicate + ")";
     return true;
 }
@@ -499,7 +499,7 @@ bool VarianceIf::convertImpl(String & out, IParser::Pos & pos)
     return false;
 }
 
-bool CountDistinct::convertImpl(String & out,IParser::Pos & pos)
+bool CountDistinct::convertImpl(String & out, IParser::Pos & pos)
 {
     const String fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
@@ -512,7 +512,7 @@ bool CountDistinct::convertImpl(String & out,IParser::Pos & pos)
 }
 
 
-bool CountDistinctIf::convertImpl(String & out,IParser::Pos & pos)
+bool CountDistinctIf::convertImpl(String & out, IParser::Pos & pos)
 {
     const String fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
