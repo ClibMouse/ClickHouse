@@ -1,7 +1,7 @@
 ## KQL implemented features  
 
 # January XX, 2023
-## Functions
+## Case Insensitive Operators
 -[in~](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/inoperator)
    `print t = 'a' in~ ('A', 'b', 'c')`
    `Customers | where FirstName in~ ((Customers | project FirstName | where FirstName == 'Peter'))`
