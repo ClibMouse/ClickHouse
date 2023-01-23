@@ -100,9 +100,9 @@ protected:
     };
     static String genHaystackOpExpr(std::vector<String> &tokens,IParser::Pos &token_pos,String kql_op, String ch_op, WildcardsPos wildcards_pos, WildcardsPos space_pos = WildcardsPos::none);
     static String genInOpExpr(IParser::Pos &token_pos,String kql_op, String ch_op);
-    static String genInOpExprCis(std::vector<String> &tokens,IParser::Pos &token_pos,String kql_op, String ch_op);
+    static String genInOpExprCis(std::vector<String> &tokens, IParser::Pos &token_pos, const String& kql_op, const String& ch_op);
     static String genHasAnyAllOpExpr(std::vector<String> &tokens,IParser::Pos &token_pos,String kql_op, String ch_op);
-    static String genEqOpExprCis(std::vector<String> &tokens, IParser::Pos &token_pos, String ch_op);
+    static String genEqOpExprCis(std::vector<String> &tokens, IParser::Pos &token_pos, const String& ch_op);
 };
 
 }
