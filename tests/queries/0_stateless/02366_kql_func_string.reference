@@ -289,8 +289,9 @@ qqqqq fffffff \'asd bcd\' "moo moo "
 -- base64_encode_fromguid()
 8jMxriJurkmwahbmqbIS6w==
 -- base64_decode_toarray()
-[]
+[NULL]
 [75,117,115,116,111]
+[NULL]
 -- base64_decode_toguid()
 10e99626-bc2b-4c75-bb3e-fe606de25700
 1
