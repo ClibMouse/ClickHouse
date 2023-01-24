@@ -262,6 +262,7 @@ print base64_encode_fromguid("abcd1231"); -- { serverError FUNCTION_THROW_IF_VAL
 print '-- base64_decode_toarray()';
 print base64_decode_toarray('');
 print base64_decode_toarray('S3VzdG8=');
+print base64_decode_toarray('S3VzdG8===');
 print '-- base64_decode_toguid()';
 print base64_decode_toguid("JpbpECu8dUy7Pv5gbeJXAA==");
 print base64_decode_toguid(base64_encode_fromguid(guid('ae3133f2-6e22-49ae-b06a-16e6a9b212eb'))) == guid('ae3133f2-6e22-49ae-b06a-16e6a9b212eb');
