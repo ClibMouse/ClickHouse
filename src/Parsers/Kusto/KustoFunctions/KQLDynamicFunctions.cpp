@@ -353,4 +353,20 @@ bool Zip::convertImpl(String & out, IParser::Pos & pos)
 
     return true;
 }
+
+bool Range::convertImpl(String & out, IParser::Pos & pos)
+{
+   // const auto fn_name = getKQLFunctionName(pos);
+ //   if (fn_name.empty())
+   //     return false;
+
+    return directMapping(out, pos, "kql_range");
+    //return directMapping(out, pos, "range");
+   /* auto start = getArgument(fn_name, pos);
+    auto end = getArgument(fn_name, pos);
+    const auto step = getOptionalArgument(fn_name, pos);
+
+    out = step ? std::format("kql_range({},{},{}))", start, end, step.value()) : std::format("kql_range({},{}))", start, end);*/
+   // return true;
+}
 }
