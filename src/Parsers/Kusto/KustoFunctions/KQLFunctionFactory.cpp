@@ -222,7 +222,8 @@ enum class KQLFunction : uint16_t
     datatype_long,
     datatype_real,
     datatype_timespan,
-    datatype_decimal
+    datatype_decimal,
+    range
 };
 
 const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
@@ -438,7 +439,9 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"double", KQLFunction::datatype_real},
     {"timespan", KQLFunction::datatype_timespan},
     {"time", KQLFunction::datatype_timespan},
-    {"decimal", KQLFunction::datatype_decimal}};
+    {"decimal", KQLFunction::datatype_decimal},
+    {"range", KQLFunction::range}
+    };
 }
 
 namespace DB
@@ -1043,6 +1046,9 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::datatype_decimal:
             return std::make_unique<DatatypeDecimal>();
+
+        case KQLFunction::range:
+            return std::make_unique<Range>();
     }
 }
 }
