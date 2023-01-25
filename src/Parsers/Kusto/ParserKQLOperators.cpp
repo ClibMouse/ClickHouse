@@ -1,5 +1,5 @@
-#include "KustoFunctions/IParserKQLFunction.h"
 #include "ParserKQLOperators.h"
+#include "KustoFunctions/IParserKQLFunction.h"
 #include "ParserKQLStatement.h"
 
 #include <Parsers/CommonParsers.h>
@@ -131,65 +131,65 @@ String genHasAnyAllOpExpr(
     return new_expr;
 }
 
-String KQLOperators::genEqOpExprCis(std::vector<String> &tokens, IParser::Pos &token_pos, const String& ch_op)
+String genEqOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos, const DB::String & ch_op)
 {
-    const String tmp_arg(token_pos->begin, token_pos->end);
+    const DB::String tmp_arg(token_pos->begin, token_pos->end);
 
-    if(tokens.empty() || tmp_arg != "~")
+    if (tokens.empty() || tmp_arg != "~")
         return tmp_arg;
 
-    String new_expr;
+    DB::String new_expr;
     new_expr += "lower(" + tokens.back() + ")";
     new_expr += ch_op;
     ++token_pos;
-    new_expr += " lower(" + String(token_pos->begin, token_pos->end) + ")" + " ";
+    new_expr += " lower(" + DB::String(token_pos->begin, token_pos->end) + ")" + " ";
     tokens.pop_back();
 
     return new_expr;
 }
 
-String KQLOperators::genInOpExprCis(std::vector<String> &tokens, IParser::Pos &token_pos, const String& kql_op, const String& ch_op)
+String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos, const DB::String & kql_op, const DB::String & ch_op)
 {
-    ParserKQLTaleFunction kqlfun_p;
+    DB::ParserKQLTaleFunction kqlfun_p;
 
-    ParserToken s_lparen(TokenType::OpeningRoundBracket);
+    DB::ParserToken s_lparen(DB::TokenType::OpeningRoundBracket);
 
-    ASTPtr select;
-    Expected expected;
-    String new_expr;
+    DB::ASTPtr select;
+    DB::Expected expected;
+    DB::String new_expr;
 
     ++token_pos;
     if (!s_lparen.ignore(token_pos, expected))
-        throw Exception("Syntax error near " + kql_op, ErrorCodes::SYNTAX_ERROR);
+        throw DB::Exception("Syntax error near " + kql_op, DB::ErrorCodes::SYNTAX_ERROR);
 
-    for(const auto& s : tokens)
+    for (const auto & s : tokens)
         new_expr += "lower(" + s + ")" + " ";
 
     auto pos = token_pos;
-    if (kqlfun_p.parse(pos,select,expected))
+    if (kqlfun_p.parse(pos, select, expected))
     {
         new_expr += ch_op + " kql";
         auto tmp_pos = token_pos;
         auto keep_pos = token_pos;
         int pipe = 0;
         bool desired_column_lowerd = false;
-        while (tmp_pos != pos) 
+        while (tmp_pos != pos)
         {
             ++tmp_pos;
-            if(tmp_pos->type == TokenType::PipeMark)
+            if (tmp_pos->type == DB::TokenType::PipeMark)
                 pipe += 1;
-            if(pipe == 2 && !desired_column_lowerd)
+            if (pipe == 2 && !desired_column_lowerd)
             {
-                new_expr = new_expr + " tolower(" + String(keep_pos->begin,keep_pos->end) + ")";
+                new_expr = new_expr + " tolower(" + DB::String(keep_pos->begin, keep_pos->end) + ")";
                 desired_column_lowerd = true;
-            }    
+            }
             else
-                new_expr = new_expr + " " + String(keep_pos->begin,keep_pos->end);
+                new_expr = new_expr + " " + DB::String(keep_pos->begin, keep_pos->end);
             ++keep_pos;
         }
 
-        if (pos->type != TokenType::ClosingRoundBracket)
-            throw Exception("Syntax error near " + kql_op, ErrorCodes::SYNTAX_ERROR);
+        if (pos->type != DB::TokenType::ClosingRoundBracket)
+            throw DB::Exception("Syntax error near " + kql_op, DB::ErrorCodes::SYNTAX_ERROR);
 
         token_pos = pos;
         tokens.pop_back();
@@ -199,15 +199,17 @@ String KQLOperators::genInOpExprCis(std::vector<String> &tokens, IParser::Pos &t
     --token_pos;
 
     new_expr += ch_op + "( ";
-    while (!token_pos->isEnd() && token_pos->type != TokenType::PipeMark && token_pos->type != TokenType::Semicolon)
+    while (!token_pos->isEnd() && token_pos->type != DB::TokenType::PipeMark && token_pos->type != DB::TokenType::Semicolon)
     {
-        auto tmp_arg = String(token_pos->begin, token_pos->end);
-        if (token_pos->type != TokenType::Comma && token_pos->type != TokenType::ClosingRoundBracket && token_pos->type != TokenType::OpeningRoundBracket && token_pos->type != TokenType::OpeningSquareBracket && token_pos->type != TokenType::ClosingSquareBracket && tmp_arg != "~" && tmp_arg != "dynamic")
+        auto tmp_arg = DB::String(token_pos->begin, token_pos->end);
+        if (token_pos->type != DB::TokenType::Comma && token_pos->type != DB::TokenType::ClosingRoundBracket
+            && token_pos->type != DB::TokenType::OpeningRoundBracket && token_pos->type != DB::TokenType::OpeningSquareBracket
+            && token_pos->type != DB::TokenType::ClosingSquareBracket && tmp_arg != "~" && tmp_arg != "dynamic")
             new_expr = new_expr + "lower(" + tmp_arg + ")";
         ++token_pos;
-        if (token_pos->type == TokenType::ClosingRoundBracket)
+        if (token_pos->type == DB::TokenType::ClosingRoundBracket)
             break;
-        else if (token_pos->type == TokenType::Comma)
+        else if (token_pos->type == DB::TokenType::Comma)
             new_expr += ", ";
     }
     ++token_pos;
