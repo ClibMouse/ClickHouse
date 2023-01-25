@@ -588,9 +588,13 @@ bool StrRep::convertImpl(String & out, IParser::Pos & pos)
         return false;
 
     const auto arguments = getArguments(fn_name, pos, ArgumentState::Raw);
+
+    if(arguments.size() < 2 || arguments.size() > 3)
+        throw Exception("number of arguments do not match in function: " + fn_name, ErrorCodes::SYNTAX_ERROR);
+
     const String value = arguments[0];
     const String multiplier = arguments[1];
-    
+
     if(arguments.size() == 2)
         out = "repeat(" + value + " , " + multiplier + ")";
     else if(arguments.size() == 3)
