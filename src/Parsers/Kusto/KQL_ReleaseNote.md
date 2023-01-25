@@ -3,6 +3,9 @@
 # January XX, 2023
 ## Functions
 - [range()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/rangefunction)  
+Difference from ADX:  
+   Return  empty array [] if range is empty, while ADX return NULL
+   The maxamum number of elements of array is 1000000 (limitation of clickhouse), 1,048,576  in ADX
 ```
 print '-- range function int, int, int --';
 print range(1, 10, 2);
