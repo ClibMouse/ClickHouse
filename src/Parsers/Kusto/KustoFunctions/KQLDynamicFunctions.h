@@ -200,4 +200,10 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class Range : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "range()"; }
+    bool convertImpl(String &out,IParser::Pos &pos) override;
+};
 }
