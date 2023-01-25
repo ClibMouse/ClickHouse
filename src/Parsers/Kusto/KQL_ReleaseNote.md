@@ -93,6 +93,7 @@
 - [kql_bin does not accept DateTime type]  
 - [KQL Phase 2 - totimespan should return null when convertion fails.]  
 - [reverse() with datetime and timespan arguments needs to be improved.]  
+- [String operator has throws exception when needle has white space or separator characters]  
 
 
 # December 7, 2022
