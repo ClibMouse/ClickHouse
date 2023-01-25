@@ -205,5 +205,9 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         {
             "print idx9 = indexof('abcdefgabcdefg', 'cde', 1, 13, 3) ",
             "SELECT kql_indexof('abcdefgabcdefg', 'cde', 1, 13, 3) AS idx9"
+        },
+        {
+            "print from_time = strrep(3s,2,' ')",
+            "SELECT substr(repeat(concat(ifNull(kql_tostring(toIntervalNanosecond(3000000000)), ''), ' '), 2), 1, length(repeat(concat(ifNull(kql_tostring(toIntervalNanosecond(3000000000)), ''), ' '), 2)) - length(' ')) AS from_time"
         }
 })));

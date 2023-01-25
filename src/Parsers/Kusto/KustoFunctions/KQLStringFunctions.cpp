@@ -587,22 +587,18 @@ bool StrRep::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
 
-    ++pos;
-    const String value = getConvertedArgument(fn_name, pos);
-
-    ++pos;
-    const String multiplier = getConvertedArgument(fn_name, pos);
-
-    if (pos->type == TokenType::Comma)
+    const auto arguments = getArguments(fn_name, pos, ArgumentState::Raw);
+    const String value = arguments[0];
+    const String multiplier = arguments[1];
+    
+    if(arguments.size() == 2)
+        out = "repeat(" + value + " , " + multiplier + ")";
+    else if(arguments.size() == 3)
     {
-        ++pos;
-        const String delimiter = getConvertedArgument(fn_name, pos);
-        const String repeated_str = "repeat(concat(" + value + "," + delimiter + ")," + multiplier + ")";
-        out = "substr(" + repeated_str + ", 1, length(" + repeated_str + ") - length(" + delimiter + "))";
+        const String delimiter = arguments[2];
+        const String repeated_str = "repeat(concat(" + kqlCallToExpression("tostring", {value}, pos.max_depth) + " , " + delimiter + ")," + multiplier + ")";
+        out = "substr("+ repeated_str + ", 1, length(" + repeated_str + ") - length(" + delimiter + "))";
     }
-    else
-        out = "repeat(" + value + ", " + multiplier + ")";
-
     return true;
 }
 
