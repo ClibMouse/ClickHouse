@@ -355,6 +355,18 @@ print indexof('abcdefgabcdefg','cde', -5);
 print indexof('abcdefgabcdefg','cde', -105);
 
 print '-- has --';
+print 'svchost.exe1' has '';
+print 'svchost.exe1' has 'svchost.exe';
+print 'svchost.exe' has 'svchost.exe';
+print 'svchost.exe' has 'svchost.exe1';
+print '' has 'svchost.exe1';
+print '' has '';
+print '.' has '';
+print '.' has ',';
+print '.' has '.';
+print '.ex.e' has 'ex';
+print '.ex.e' has 'exe';
+print '';
 StringTest | where Text has 'asdf';
 print '';
 StringTest | where Text has 'asdf.qwer';
