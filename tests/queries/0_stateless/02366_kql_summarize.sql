@@ -58,7 +58,9 @@ Customers | summarize MyMin = minif(Age, Age<40) by Occupation | order by Occupa
 Customers | summarize MyAvg = avgif(Age, Age<40) by Occupation | order by Occupation;
 Customers | summarize MySum = sumif(Age, Age<40) by Occupation | order by Occupation;
 Customers | summarize dcount(Education);
+Customers | summarize dcount(Education, 2);
 Customers | summarize dcountif(Education, Occupation=='Professional');
+Customers | summarize dcountif(Education, Occupation=='Professional', 2);
 Customers | summarize count_ = count() by bin(Age, 10) | order by count_ asc;
 Customers | summarize job_count = count() by Occupation | where job_count > 0 | order by Occupation;
 Customers | summarize 'Edu Count'=count() by Education | sort by 'Edu Count' desc; -- { clientError 62 }
