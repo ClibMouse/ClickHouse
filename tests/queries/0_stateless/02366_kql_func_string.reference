@@ -185,12 +185,19 @@ Stephanie	9
 Apple	5
 
 -- Customers | project strrep(FirstName,2,\'_\')
-\N
+_
 Latoya_Latoya
 Peter_Peter
 Theodore_Theodore
 Stephanie_Stephanie
 Apple_Apple
+
+--print from_str = strrep("ABC", 2)
+ABCABC
+--print from_int = strrep(123,3,".")
+123.123.123
+--print from_time = strrep(3s,2," ")
+00:00:03 00:00:03
 
 -- Customers | project toupper(FirstName)
 \N
