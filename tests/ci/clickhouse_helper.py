@@ -7,6 +7,7 @@ import requests  # type: ignore
 from get_robot_token import get_parameter_from_ssm
 from env_helper import GITHUB_REPOSITORY
 
+
 class InsertException(Exception):
     pass
 
