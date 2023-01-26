@@ -53,3 +53,12 @@ print range(1.5h, 5h, 2h);
 
 print '-- range function endofday, endofday, timespan --';
 print range(endofday(datetime(2017-01-01 10:10:17)), endofday(datetime(2017-01-03 10:10:17)), 1d);
+
+print '-- range orerator int, int, int --';
+range Age from 20 to 25 step 1;
+
+print '-- range orerator float, float, float --';
+range temp from 20.5 to 25.5 step 1.5;
+
+print '-- range orerator datetime, datetime, timespan --';
+range FirstWeek from datetime('2023-01-01') to datetime('2023-01-07') step 1d;
