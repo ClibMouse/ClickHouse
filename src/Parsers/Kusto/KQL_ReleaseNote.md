@@ -63,6 +63,9 @@ print range(endofday(datetime(2017-01-01 10:10:17)), endofday(datetime(2017-01-0
    ```
 - [take_anyif()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/take-anyif-aggfunction)
 ## Operator
+- [range](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/rangeoperator)  
+   `range LastWeek from ago(7d) to now() step 1d`  
+   `range Steps from 1 to 8 step 3`  
 - [top-nested](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/topnestedoperator)
 
    ```
