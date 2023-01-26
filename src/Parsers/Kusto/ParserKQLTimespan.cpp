@@ -206,6 +206,27 @@ std::string kqlTicksToInterval(const std::optional<Int64> ticks)
     return std::format("toIntervalNanosecond({})", ticks ? std::to_string(*ticks * 100) : "null");
 }
 
+std::string ParserKQLTimespan::compose(const Int64 ticks)
+{
+    static constexpr Int64 TICKS_PER_SECOND = 10000000;
+    static constexpr auto TICKS_PER_MINUTE = TICKS_PER_SECOND * 60;
+    static constexpr auto TICKS_PER_HOUR = TICKS_PER_MINUTE * 60;
+    static constexpr auto TICKS_PER_DAY = TICKS_PER_HOUR * 24;
+
+    const auto abs_ticks = std::abs(ticks);
+    std::string result = ticks < 0 ? "-" : "";
+    if (abs_ticks >= TICKS_PER_DAY)
+        result.append(std::format("{}.", abs_ticks / TICKS_PER_DAY));
+
+    result.append(std::format(
+        "{:02}:{:02}:{:02}", (abs_ticks / TICKS_PER_HOUR) % 24, (abs_ticks / TICKS_PER_MINUTE) % 60, (abs_ticks / TICKS_PER_SECOND) % 60));
+
+    if (const auto fractional_second = abs_ticks % TICKS_PER_SECOND)
+        result.append(std::format(".{:07}", fractional_second));
+
+    return result;
+}
+
 std::optional<Int64> ParserKQLTimespan::parse(const std::string_view expression)
 {
     const auto throw_exception
