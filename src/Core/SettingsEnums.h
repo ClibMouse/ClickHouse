@@ -72,6 +72,8 @@ DECLARE_SETTING_ENUM_WITH_RENAME(DateTimeInputFormat, FormatSettings::DateTimeIn
 
 DECLARE_SETTING_ENUM_WITH_RENAME(DateTimeOutputFormat, FormatSettings::DateTimeOutputFormat)
 
+DECLARE_SETTING_ENUM_WITH_RENAME(IntervalFormat, FormatSettings::IntervalFormat)
+
 enum class LogsLevel
 {
     none = 0,    /// Disable
