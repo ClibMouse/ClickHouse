@@ -8,7 +8,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Range, ParserTest,
         ::testing::ValuesIn(std::initializer_list<ParserTestCase>{
         {
             "print range(1, 10, 2)",
-            "SELECT kql_range(1, 10, 2)"
+            "SELECT kql_range(1, 10, 2) - error"
         },
         {
             "print range(1, 10)",
