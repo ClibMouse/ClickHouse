@@ -5,6 +5,7 @@
 #include <Parsers/Kusto/Utilities.h>
 
 #include <boost/lexical_cast.hpp>
+#include <magic_enum.hpp>
 #include <pcg_random.hpp>
 #include <Poco/String.h>
 
