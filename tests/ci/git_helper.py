@@ -145,8 +145,8 @@ class Git:
     def check_tag(value: str) -> None:
         if value == "":
             return
-        # if not Git._tag_pattern.match(value):
-        #     raise ValueError(f"last tag {value} doesn't match the pattern")
+        if not Git._tag_pattern.match(value):
+            raise ValueError(f"last tag {value} doesn't match the pattern")
 
     @property
     def latest_tag(self) -> str:
