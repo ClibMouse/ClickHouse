@@ -65,5 +65,17 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Range, ParserTest,
         {
             "print range(endofday(datetime(2017-01-01 10:10:17)), endofday(datetime(2017-01-03 10:10:17)), 1d)",
             "SELECT kql_range(kql_todatetime(addDays(toStartOfDay(kql_datetime('2017-01-01 10:10:17')), 0 + 1)) - toIntervalNanosecond(100), kql_todatetime(addDays(toStartOfDay(kql_datetime('2017-01-03 10:10:17')), 0 + 1)) - toIntervalNanosecond(100), toIntervalNanosecond(86400000000000))"
+        },
+        {
+            "range Age from 20 to 25 step 1",
+            "SELECT *\nFROM\n(\n    SELECT kql_range(20, 25, 1) AS Age\n)\nARRAY JOIN Age"
+        },
+        {
+            "range LastWeek from ago(7d) to now() step 1d",
+            "SELECT *\nFROM\n(\n    SELECT kql_range(now64(9, 'UTC') + (-1 * toIntervalNanosecond(604800000000000)), now64(9, 'UTC'), toIntervalNanosecond(86400000000000)) AS LastWeek\n)\nARRAY JOIN LastWeek"
+        },
+        {
+            "range FirstWeek from datetime('2023-01-01') to datetime('2023-01-07') step 1d",
+            "SELECT *\nFROM\n(\n    SELECT kql_range(kql_datetime('2023-01-01'), kql_datetime('2023-01-07'), toIntervalNanosecond(86400000000000)) AS FirstWeek\n)\nARRAY JOIN FirstWeek"
         }
 })));

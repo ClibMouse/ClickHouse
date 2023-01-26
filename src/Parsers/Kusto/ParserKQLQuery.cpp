@@ -29,6 +29,7 @@
 #include <Parsers/ParserSelectWithUnionQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
 #include <Parsers/Kusto/ParserKQLTopNested.h>
+#include <Parsers/Kusto/ParserKQLRange.h>
 
 #include <format>
 
@@ -61,6 +62,7 @@ std::unordered_map<std::string, ParserKQLQuery::KQLOperatorDataFlowState> kql_pa
     {"lookup", {"lookup", true, true, false, 3}},
     {"join", {"join", true, true, false, 3}},
     {"top-nested", {"top-nested", true, true, true, 5}},
+    {"range", {"range", false, true, false, 3}},
 };
 
 bool ParserKQLBase::parseByString(const String expr, ASTPtr & node, const uint32_t max_depth)
@@ -400,6 +402,8 @@ std::unique_ptr<ParserKQLBase> ParserKQLQuery::getOperator(String & op_name)
         return std::make_unique<ParserKQLJoin>();
     else if (op_name == "top-nested")
         return std::make_unique<ParserKQLTopNested>();
+    else if (op_name == "range")
+        return std::make_unique<ParserKQLRange>();
     else
         return nullptr;
 }
@@ -408,7 +412,7 @@ bool ParserKQLQuery::getOperations(Pos & pos, Expected & expected, OperationsPos
 {
     String table_name(pos->begin, pos->end);
 
-    if (table_name == "print")
+    if (table_name == "print" || table_name == "range")
         operation_pos.emplace_back(table_name, pos);
     else
         operation_pos.emplace_back("table", pos);
@@ -567,6 +571,12 @@ bool ParserKQLQuery::executeImpl(Pos & pos, ASTPtr & node, Expected & expected)
         {
             ++npos;
             if (!ParserKQLPrint().parse(npos, node, expected))
+                return false;
+        }
+        else if (kql_operator_str == "range")
+        {
+            ++npos;
+            if (!ParserKQLRange().parse(npos, node, expected))
                 return false;
         }
         else if (kql_operator_str == "table")
