@@ -305,13 +305,7 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
 
     String sub_sub_query;
     if (group_expression.empty())
-        sub_sub_query = std::format(
-            " (Select {0}, {1} FROM {2} {4} GROUP BY  {3}_ali ORDER BY {3}_ali) ",
-            subquery_columns,
-            bin_str,
-            "table_name",
-            axis_column,
-            condition);
+        sub_sub_query = std::format(" (Select {0}, {1} FROM {2} {4} GROUP BY {3}_ali ORDER BY {3}_ali) ", subquery_columns, bin_str, "table_name", axis_column, condition);
     else
         sub_sub_query = std::format(
             " (Select {0}, {1}, {2} FROM {3} {5} GROUP BY {0}, {4}_ali ORDER BY {4}_ali) ",
@@ -364,15 +358,8 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
     main_query += ", " + axis_str;
     auto sub_group_by = group_expression.empty() ? "" : std::format("GROUP BY {}", group_expression_alias);
 
-    sub_query = std::format(
-        "( SELECT toUInt64(min({}_ali)) AS low, toUInt64(max({}_ali))+ {} AS high, arraySort(arrayZip({})) as zipped, {} FROM {} {} )",
-        axis_column,
-        axis_column,
-        step,
-        axis_and_agg_alias_list,
-        main_query,
-        sub_sub_query,
-        sub_group_by);
+    sub_query = std::format("( SELECT toUInt64(min({}_ali)) AS low, toUInt64(max({}_ali))+ {} AS high, arraySort(arrayZip({})) as zipped, {} FROM {} {} )",
+                            axis_column, axis_column,step, axis_and_agg_alias_list, main_query, sub_sub_query, sub_group_by);
 
     if (group_expression.empty())
         main_query = std::format("{}", final_axis_agg_alias_list);

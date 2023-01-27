@@ -203,8 +203,7 @@ bool ParserKQLMVExpand::genQuery(KQLMVExpand & kql_mv_expand, ASTPtr & select_no
             expand_str = expand_str.empty() ? String("ARRAY JOIN ") + column.alias : expand_str + "," + column.alias;
         else
         {
-            expand_str = expand_str.empty() ? std::format("ARRAY JOIN {} AS {} ", column.column_array_expr, column.alias)
-                                            : expand_str + std::format(", {} AS {}", column.column_array_expr, column.alias);
+            expand_str = expand_str.empty() ? std::format("ARRAY JOIN {} AS {} ", column.column_array_expr, column.alias): expand_str + std::format(", {} AS {}", column.column_array_expr, column.alias);
             extra_columns = extra_columns + ", " + column.alias;
         }
 
