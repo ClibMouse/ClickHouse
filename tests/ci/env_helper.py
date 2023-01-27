@@ -36,6 +36,15 @@ S3_ARTIFACT_DOWNLOAD_TEMPLATE = (
     "{pr_or_release}/{commit}/{build_name}/{artifact}"
 )
 
+DOCKER_REPO = os.getenv("DOCKER_REPO", "docker.io")
+DOCKER_USER = os.getenv("DOCKER_USER", "robotclickhouse")
+S3_REGION = os.getenv("S3_REGION", "us-east-1")
+S3_ENDPOINT = os.getenv("S3_ENDPOINT", "https://s3.amazonaws.com")
+VAULT_PATH = os.getenv("VAULT_PATH")
+VAULT_TOKEN = os.getenv("VAULT_TOKEN")
+VAULT_URL = os.getenv("VAULT_URL")
+VAULT_MOUNT_POINT = os.getenv("VAULT_MOUNT_POINT", "secret")
+
 # These parameters are set only on demand, and only once
 _GITHUB_JOB_ID = ""
 _GITHUB_JOB_URL = ""
