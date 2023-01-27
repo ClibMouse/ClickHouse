@@ -243,7 +243,7 @@ Customers | project split('aaa_bbb_ccc', '_', 10) | take 1;
 print '';
 print '-- strcat_delim (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/strcat-delimfunction); TODO: only support string now.';
 Customers | project strcat_delim('-', '1', '2', strcat('A','b')) | take 1;
--- Customers | project strcat_delim('-', '1', '2', 'A' , 1s);
+Customers | project strcat_delim('-', '1', '2', 'A' , 1s) | take 1;
 print '';
 print '-- base64_encode_fromguid()';
 -- print base64_encode_fromguid(guid(null));
