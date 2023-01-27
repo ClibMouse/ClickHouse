@@ -14,7 +14,13 @@ from github import Github
 
 from clickhouse_helper import ClickHouseHelper, prepare_tests_results_for_clickhouse
 from commit_status_helper import post_commit_status
-from env_helper import GITHUB_WORKSPACE, RUNNER_TEMP, GITHUB_RUN_URL, DOCKER_USER, DOCKER_REPO
+from env_helper import (
+    GITHUB_WORKSPACE,
+    RUNNER_TEMP,
+    GITHUB_RUN_URL,
+    DOCKER_USER,
+    DOCKER_REPO,
+)
 from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from pr_info import PRInfo
 from s3_helper import S3Helper
@@ -406,7 +412,9 @@ def main():
         changed_json = os.path.join(TEMP_PATH, "changed_images.json")
     if args.push:
         subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
-            "docker login {} --username '{}' --password-stdin".format(DOCKER_REPO, DOCKER_USER),
+            "docker login {} --username '{}' --password-stdin".format(
+                DOCKER_REPO, DOCKER_USER
+            ),
             input=get_parameter_from_ssm("dockerhub_robot_password"),
             encoding="utf-8",
             shell=True,

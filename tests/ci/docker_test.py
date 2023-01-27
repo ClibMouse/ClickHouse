@@ -30,7 +30,9 @@ class TestDockerImageCheck(unittest.TestCase):
         images = sorted(
             list(
                 di.get_changed_docker_images(
-                    pr_info, di.get_images_dict("/", self.docker_images_path), DOCKER_REPO
+                    pr_info,
+                    di.get_images_dict("/", self.docker_images_path),
+                    DOCKER_REPO,
                 )
             )
         )
