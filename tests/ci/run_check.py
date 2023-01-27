@@ -21,6 +21,7 @@ NAME = "Run Check"
 
 TRUSTED_ORG_IDS = {
     54801242,  # clickhouse
+    96197510,  # ClicbMouse
 }
 
 OK_SKIP_LABELS = {"release", "pr-backport", "pr-cherrypick"}
