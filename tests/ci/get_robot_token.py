@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Union
 
 import boto3  # type: ignore
+import hvac  # type: ignore
+from env_helper import VAULT_URL, VAULT_TOKEN, VAULT_PATH, VAULT_MOUNT_POINT
 from github import Github
 from github.AuthenticatedUser import AuthenticatedUser
 from github.NamedUser import NamedUser

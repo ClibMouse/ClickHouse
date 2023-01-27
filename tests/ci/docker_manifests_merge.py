@@ -16,7 +16,10 @@ from clickhouse_helper import (
     prepare_tests_results_for_clickhouse,
 )
 from commit_status_helper import format_description, get_commit, post_commit_status
-from get_robot_token import get_best_robot_token
+from docker_images_helper import IMAGES_FILE_PATH, get_image_names
+from env_helper import RUNNER_TEMP, REPO_COPY, DOCKER_USER, DOCKER_REPO
+from get_robot_token import get_best_robot_token, get_parameter_from_ssm
+from git_helper import Runner
 from pr_info import PRInfo
 from report import TestResult
 from s3_helper import S3Helper
@@ -76,7 +79,6 @@ def parse_args() -> argparse.Namespace:
         default=argparse.SUPPRESS,
         help="don't push images to docker hub",
     )
-
     args = parser.parse_args()
     if len(args.suffixes) < 2:
         parser.error("more than two --suffix should be given")
@@ -134,7 +136,14 @@ def main():
     args = parse_args()
 
     if args.push:
-        docker_login()
+        subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+            "docker login {} --username '{}' --password-stdin".format(
+                DOCKER_REPO, DOCKER_USER
+            ),
+            input=get_parameter_from_ssm("dockerhub_robot_password"),
+            encoding="utf-8",
+            shell=True,
+        )
 
     archs = args.suffixes
     assert len(archs) > 1, "arch suffix input param is invalid"

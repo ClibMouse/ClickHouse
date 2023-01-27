@@ -17,6 +17,8 @@ from env_helper import (
     CI,
     S3_URL,
     S3_DOWNLOAD,
+    S3_REGION,
+    S3_ENDPOINT,
 )
 from compress_files import compress_file_fast
 
@@ -36,8 +38,9 @@ class S3Helper:
 
     def __init__(self):
         config = botocore.config.Config(max_pool_connections=self.max_pool_size)
-        self.session = boto3.session.Session(region_name="us-east-1")
-        self.client = self.session.client("s3", endpoint_url=S3_URL, config=config)
+        self.session = boto3.session.Session(region_name=S3_REGION)
+        self.client = self.session.client("s3", endpoint_url=S3_ENDPOINT, config=config)
+        self.endpoint = S3_ENDPOINT
         self.host = S3_URL
 
     def _upload_file_to_s3(
