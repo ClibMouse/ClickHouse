@@ -30,6 +30,7 @@ from cherry_pick import Labels
 
 TRUSTED_ORG_IDS = {
     54801242,  # clickhouse
+    96197510,  # ClicbMouse
 }
 
 OK_SKIP_LABELS = {"release", "pr-backport", "pr-cherrypick"}

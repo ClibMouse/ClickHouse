@@ -9,6 +9,17 @@ from typing import Any, List, Union
 
 import boto3  # type: ignore
 import botocore  # type: ignore
+
+from env_helper import (
+    S3_TEST_REPORTS_BUCKET,
+    S3_BUILDS_BUCKET,
+    RUNNER_TEMP,
+    CI,
+    S3_URL,
+    S3_DOWNLOAD,
+    S3_REGION,
+    S3_ENDPOINT,
+)
 from compress_files import compress_file_fast
 from env_helper import (
     CI,
@@ -39,8 +50,15 @@ class S3Helper:
             self.client = client
             return
         config = botocore.config.Config(max_pool_connections=self.max_pool_size)
+<<<<<<< HEAD
         session = boto3.session.Session(region_name="us-east-1")
         self.client = session.client("s3", endpoint_url=endpoint, config=config)
+=======
+        self.session = boto3.session.Session(region_name=S3_REGION)
+        self.client = self.session.client("s3", endpoint_url=S3_ENDPOINT, config=config)
+        self.endpoint = S3_ENDPOINT
+        self.host = S3_URL
+>>>>>>> d75d665fde5 (Enable PR Sanity Checks (#197))
 
     def _upload_file_to_s3(
         self, bucket_name: str, file_path: Path, s3_path: str
