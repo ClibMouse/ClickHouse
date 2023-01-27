@@ -535,27 +535,21 @@ bool StrCatDelim::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
 
-    ++pos;
-    const String delimiter = getConvertedArgument(fn_name, pos);
+    const auto arguments = getArguments(fn_name, pos, ArgumentState::Raw);
+    if (arguments.size() < 2 || arguments.size() > 64)
+        throw Exception("argument count out of bound in function: " + fn_name, ErrorCodes::SYNTAX_ERROR);
 
-    int arg_count = 0;
+    const String delimiter = arguments[0];
+
     String args;
-
-    while (!pos->isEnd() && pos->type != TokenType::Semicolon && pos->type != TokenType::ClosingRoundBracket)
+    args = "concat(";
+    for(size_t i = 1; i < arguments.size(); i++)
     {
-        ++pos;
-        String arg = getConvertedArgument(fn_name, pos);
-        if (args.empty())
-            args = "concat(" + arg;
-        else
-            args = args + ", " + delimiter + ", " + arg;
-        ++arg_count;
+        args += kqlCallToExpression("tostring", {arguments[i]}, pos.max_depth);
+        if(i < arguments.size() - 1)
+            args += ", " + delimiter + ", ";
     }
     args += ")";
-
-    if (arg_count < 2 || arg_count > 64)
-        throw Exception(ErrorCodes::SYNTAX_ERROR, "argument count out of bound in function: {}", fn_name);
-
     out = std::move(args);
     return true;
 }
