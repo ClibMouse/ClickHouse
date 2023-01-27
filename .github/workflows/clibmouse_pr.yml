@@ -11,7 +11,7 @@ on:  # yamllint disable-line rule:truthy
       - reopened
       - opened
     branches:
-      - larry-actions
+      - Kusto-phase3
     paths-ignore:
       - 'docker/docs/**'
       - 'docs/**'
