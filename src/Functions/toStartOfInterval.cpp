@@ -573,7 +573,7 @@ private:
             if constexpr (execution_error_policy == ExecutionErrorPolicy::Null)
                 return result_col;
             else if constexpr (execution_error_policy == ExecutionErrorPolicy::Throw)
-                throw Exception(ErrorCodes::ARGUMENT_OUT_OF_BOUND, "Value for second argument of function {} must be positive.",  getName());
+                throw Exception(ErrorCodes::ARGUMENT_OUT_OF_BOUND, "Value for second argument of function {} must be positive.", getName());
         }
 
         const auto scale_multiplier = DecimalUtils::scaleMultiplier<DateTime64>(scale);
