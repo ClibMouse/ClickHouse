@@ -43,6 +43,19 @@ TRUSTED_CONTRIBUTORS = {
         "tsolodov",  # ClickHouse, Inc
         "kitaisreal",
         "k-morozov",  # Konstantin Morozov, Yandex Cloud
+        "ch-devops",
+        "larryluogit",
+        "bkuschel",
+        "SadiHassan",
+        "kashwy",
+        "HeenaBansal2009",
+        "umang8223",
+        "HarryLeeIBM",
+        "ltrk2",
+        "MeenaRenganathan22",
+        "mcmajam",
+        "bemitc",
+        "vibhaKulka",
     ]
 }
 

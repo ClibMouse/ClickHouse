@@ -13,7 +13,13 @@ from github import Github
 
 from clickhouse_helper import ClickHouseHelper, prepare_tests_results_for_clickhouse
 from commit_status_helper import format_description, get_commit, post_commit_status
-from env_helper import REPO_COPY, RUNNER_TEMP, GITHUB_RUN_URL
+from env_helper import (
+    GITHUB_WORKSPACE,
+    RUNNER_TEMP,
+    GITHUB_RUN_URL,
+    DOCKER_USER,
+    DOCKER_REPO,
+)
 from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from pr_info import PRInfo
 from report import TestResults, TestResult
@@ -77,7 +83,7 @@ class DockerImage:
 
 
 def get_changed_docker_images(
-    pr_info: PRInfo, images_dict: ImagesDict
+    pr_info: PRInfo, images_dict: ImagesDict, docker_repo: str
 ) -> Set[DockerImage]:
     if not images_dict:
         return set()
@@ -120,7 +126,7 @@ def get_changed_docker_images(
                 dependent,
                 image,
             )
-            name = images_dict[dependent]["name"]
+            name = docker_repo + "/" + images_dict[dependent]["name"]
             only_amd64 = images_dict[dependent].get("only_amd64", False)
             changed_images.append(DockerImage(dependent, name, only_amd64, image))
         index += 1
@@ -231,6 +237,7 @@ def build_and_push_one_image(
         "docker buildx build --builder default "
         f"--label build-url={GITHUB_RUN_URL} "
         f"{from_tag_arg}"
+        f"--build-arg DOCKER_REPO={DOCKER_REPO} "
         # A hack to invalidate cache, grep for it in docker/ dir
         f"--build-arg CACHE_INVALIDATOR={GITHUB_RUN_URL} "
         f"--tag {image.repo}:{version_string} "
@@ -365,7 +372,6 @@ def parse_args() -> argparse.Namespace:
         default=argparse.SUPPRESS,
         help="don't push images to docker hub",
     )
-
     return parser.parse_args()
 
 
@@ -383,7 +389,9 @@ def main():
 
     if args.push:
         subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
-            "docker login --username 'robotclickhouse' --password-stdin",
+            "docker login {} --username '{}' --password-stdin".format(
+                DOCKER_REPO, DOCKER_USER
+            ),
             input=get_parameter_from_ssm("dockerhub_robot_password"),
             encoding="utf-8",
             shell=True,
@@ -403,7 +411,7 @@ def main():
             # If the event does not contain diff, nothing will be built
             pass
 
-    changed_images = get_changed_docker_images(pr_info, images_dict)
+    changed_images = get_changed_docker_images(pr_info, images_dict, DOCKER_REPO)
     if changed_images:
         logging.info(
             "Has changed images: %s", ", ".join([im.path for im in changed_images])
