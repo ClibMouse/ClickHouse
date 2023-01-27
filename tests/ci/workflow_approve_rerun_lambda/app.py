@@ -124,6 +124,19 @@ TRUSTED_CONTRIBUTORS = {
         "tylerhannan",  # ClickHouse Employee
         "myrrc",  # Mike Kot, DoubleCloud
         "thevar1able",  # ClickHouse Employee
+        "ch-devops",
+        "larryluogit",
+        "bkuschel",
+        "SadiHassan",
+        "kashwy",
+        "HeenaBansal2009",
+        "umang8223",
+        "HarryLeeIBM",
+        "ltrk2",
+        "MeenaRenganathan22",
+        "mcmajam",
+        "bemitc",
+        "vibhaKulka",
     ]
 }
 

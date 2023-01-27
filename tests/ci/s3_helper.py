@@ -16,6 +16,8 @@ from env_helper import (
     CI,
     S3_URL,
     S3_DOWNLOAD,
+    S3_REGION,
+    S3_ENDPOINT,
 )
 from compress_files import compress_file_fast
 
@@ -40,9 +42,10 @@ def _flatten_list(lst):
 
 
 class S3Helper:
-    def __init__(self, host=S3_URL, download_host=S3_DOWNLOAD):
-        self.session = boto3.session.Session(region_name="us-east-1")
-        self.client = self.session.client("s3", endpoint_url=host)
+    def __init__(self, host=S3_URL, download_host=S3_DOWNLOAD, endpoint=S3_ENDPOINT):
+        self.session = boto3.session.Session(region_name=S3_REGION)
+        self.client = self.session.client("s3", endpoint_url=endpoint)
+        self.endpoint = endpoint
         self.host = host
         self.download_host = download_host
 
@@ -107,8 +110,13 @@ class S3Helper:
         logging.info("Upload %s to %s. Meta: %s", file_path, s3_path, metadata)
         # last two replacements are specifics of AWS urls:
         # https://jamesd3142.wordpress.com/2018/02/28/amazon-s3-and-the-plus-symbol/
-        url = f"{self.download_host}/{bucket_name}/{s3_path}"
-        return url.replace("+", "%2B").replace(" ", "%20")
+        return (
+            "{host}/{bucket}/{path}".format(
+                host=self.endpoint, bucket=bucket_name, path=s3_path
+            )
+            .replace("+", "%2B")
+            .replace(" ", "%20")
+        )
 
     def upload_test_report_to_s3(self, file_path: str, s3_path: str) -> str:
         if CI:
@@ -179,7 +187,9 @@ class S3Helper:
                     t = time.time()
             except Exception as ex:
                 logging.critical("Failed to upload file, expcetion %s", ex)
-            return f"{self.download_host}/{bucket_name}/{s3_path}"
+            return "{host}/{bucket}/{path}".format(
+                host=self.endpoint, bucket=bucket_name, path=s3_path
+            )
 
         p = Pool(256)
 
