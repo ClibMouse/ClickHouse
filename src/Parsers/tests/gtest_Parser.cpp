@@ -521,7 +521,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery, ParserTest,
         },
         {
             "Customers | project strcat_delim('-', '1', '2', 'A')",
-            "SELECT concat('1', '-', '2', '-', 'A')\nFROM Customers"
+            "SELECT concat(ifNull(kql_tostring('1'), ''), '-', ifNull(kql_tostring('2'), ''), '-', ifNull(kql_tostring('A'), ''))\nFROM Customers"
         },
         {
             "print x=1, s=strcat('Hello', ', ', 'World!')",
