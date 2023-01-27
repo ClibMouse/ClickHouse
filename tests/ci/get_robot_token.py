@@ -3,6 +3,8 @@ import logging
 from dataclasses import dataclass
 
 import boto3  # type: ignore
+import hvac  # type: ignore
+from env_helper import VAULT_URL, VAULT_TOKEN, VAULT_PATH, VAULT_MOUNT_POINT
 from github import Github
 from github.AuthenticatedUser import AuthenticatedUser
 
@@ -15,18 +17,44 @@ class Token:
 
 
 def get_parameter_from_ssm(name, decrypt=True, client=None):
-    if not client:
-        client = boto3.client("ssm", region_name="us-east-1")
-    return client.get_parameter(Name=name, WithDecryption=decrypt)["Parameter"]["Value"]
+    if VAULT_URL:
+        if not client:
+            client = hvac.Client(url=VAULT_URL, token=VAULT_TOKEN)
+        parameter = client.secrets.kv.v2.read_secret_version(
+            mount_point=VAULT_MOUNT_POINT, path=VAULT_PATH
+        )["data"]["data"][name]
+    else:
+        if not client:
+            client = boto3.client("ssm", region_name="us-east-1")
+        parameter = client.get_parameter(Name=name, WithDecryption=decrypt)[
+            "Parameter"
+        ]["Value"]
+    return parameter
 
 
 def get_best_robot_token(token_prefix_env_name="github_robot_token_"):
-    client = boto3.client("ssm", region_name="us-east-1")
-    parameters = client.describe_parameters(
-        ParameterFilters=[
-            {"Key": "Name", "Option": "BeginsWith", "Values": [token_prefix_env_name]}
+    client = None
+    if VAULT_URL:
+        client = hvac.Client(url=VAULT_URL, token=VAULT_TOKEN)
+        response = client.secrets.kv.read_secret_version(
+            path=VAULT_PATH, mount_point=VAULT_MOUNT_POINT
+        )
+        parameters = [
+            {"Name": p}
+            for p in response["data"]["data"]
+            if p.startswith(token_prefix_env_name)
         ]
-    )["Parameters"]
+    else:
+        client = boto3.client("ssm", region_name="us-east-1")
+        parameters = client.describe_parameters(
+            ParameterFilters=[
+                {
+                    "Key": "Name",
+                    "Option": "BeginsWith",
+                    "Values": [token_prefix_env_name],
+                }
+            ]
+        )["Parameters"]
     assert parameters
     token = None
 

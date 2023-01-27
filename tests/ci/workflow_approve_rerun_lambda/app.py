@@ -123,6 +123,19 @@ TRUSTED_CONTRIBUTORS = {
         "tonickkozlov",  # Cloudflare
         "tylerhannan",  # ClickHouse Employee
         "myrrc",  # Mike Kot, DoubleCloud
+        "ch-devops",
+        "larryluogit",
+        "bkuschel",
+        "SadiHassan",
+        "kashwy",
+        "HeenaBansal2009",
+        "umang8223",
+        "HarryLeeIBM",
+        "ltrk2",
+        "MeenaRenganathan22",
+        "mcmajam",
+        "bemitc",
+        "vibhaKulka",
     ]
 }
 
