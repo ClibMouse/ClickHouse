@@ -445,7 +445,7 @@ bool ParseURLQuery::convertImpl(String & out, IParser::Pos & pos)
 }
 
 bool ParseVersion::convertImpl(String & out, IParser::Pos & pos)
-{   
+{
     const String fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;

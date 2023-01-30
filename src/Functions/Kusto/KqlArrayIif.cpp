@@ -30,7 +30,7 @@ public:
     bool isSuitableForShortCircuitArgumentsExecution(const DataTypesWithConstInfo & /*arguments*/) const override { return true; }
     bool isVariadic() const override { return true; }
     bool useDefaultImplementationForConstants() const override { return true; }
-    
+
     bool useDefaultImplementationForNulls() const override { return false; }
     bool useDefaultImplementationForNothing() const override { return false; }
 
@@ -45,8 +45,10 @@ private:
 
 bool FunctionKqlArrayIif::isDataTypeBoolORBoolConvertible(std::string_view datatype_name) const
 {
-    if(datatype_name.find("Int") != datatype_name.npos || datatype_name.find("Float") != datatype_name.npos
-    || datatype_name.find("Decimal") != datatype_name.npos || datatype_name.find("Bool") != datatype_name.npos)
+    if(datatype_name.find("Int") != datatype_name.npos ||
+       datatype_name.find("Float") != datatype_name.npos ||
+       datatype_name.find("Decimal") != datatype_name.npos ||
+       datatype_name.find("Bool") != datatype_name.npos)
     return true;
     return false;
 }
@@ -58,7 +60,7 @@ DataTypePtr FunctionKqlArrayIif::getReturnTypeImpl(const DataTypes & arguments) 
         throw Exception("First argument for function " + getName() + " must be an array but it has type "
                         + arguments[0]->getName() + ".", ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT);
 
-    DataTypePtr nested_type1, nested_type2; 
+    DataTypePtr nested_type1, nested_type2;
 
     const auto * array_type1 = typeid_cast<const DataTypeArray *>(arguments[1].get());
     if (!array_type1)
@@ -82,7 +84,7 @@ DataTypePtr FunctionKqlArrayIif::getReturnTypeImpl(const DataTypes & arguments) 
 }
 
 ColumnPtr FunctionKqlArrayIif::executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const size_t input_rows_count) const
-{   
+{
     const DataTypePtr & elem_type = static_cast<const DataTypeArray &>(*result_type).getNestedType();
     auto out = ColumnArray::create(elem_type->createColumn());
 
@@ -109,7 +111,7 @@ ColumnPtr FunctionKqlArrayIif::executeImpl(const ColumnsWithTypeAndName & argume
         arguments[0].column->get(i, array0);
         size_t len0 = array0.get<Array>().size();
         for(size_t k = 0; k < len0; k++)
-        { 
+        {
             if(!isDataTypeBoolORBoolConvertible(array0.get<Array>().at(k).getTypeName()))
                 out_data.insert(Field());
             else
