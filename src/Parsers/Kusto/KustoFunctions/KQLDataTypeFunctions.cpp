@@ -180,7 +180,7 @@ bool DatatypeDecimal::convertImpl(String & out, IParser::Pos & pos)
     --pos;
     arg = getArgument(fn_name, pos);
 
-    //NULL expr returns NULL not execption
+    //NULL expr returns NULL not exception
     static const std::regex expr{"^[0-9]+e[+-]?[0-9]+"};
     bool is_string = std::any_of(arg.begin(), arg.end(), ::isalpha) && Poco::toUpper(arg) != "NULL" && !(std::regex_match(arg, expr));
     if (is_string)

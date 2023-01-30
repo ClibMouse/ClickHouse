@@ -49,7 +49,7 @@ bool ParserKQLMakeSeries :: parseAggregationColumns(AggregationColumns & aggrega
         String aggregation_fun;
         String column;
         double default_value = 0;
-        
+
         String first_token(pos->begin,pos->end);
 
         ++pos;
@@ -102,13 +102,13 @@ bool ParserKQLMakeSeries :: parseFromToStepClause(FromToStepClause & from_to_ste
 
     while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
     {
-        if ( String(pos->begin, pos->end) == "from") 
+        if ( String(pos->begin, pos->end) == "from")
             from_pos = pos;
-        if ( String(pos->begin, pos->end) == "to") 
+        if ( String(pos->begin, pos->end) == "to")
             to_pos = pos;
-        if ( String(pos->begin, pos->end) == "step") 
+        if ( String(pos->begin, pos->end) == "step")
             step_pos = pos;
-        if ( String(pos->begin, pos->end) == "by") 
+        if ( String(pos->begin, pos->end) == "by")
         {
             end_pos = pos;
             break;
@@ -177,7 +177,7 @@ bool ParserKQLMakeSeries :: makeSeries(KQLMakeSeries & kql_make_series, ASTPtr &
     if (!kql_make_series.from_to_step.to_str.empty())
         end_str = getExprFromToken(from_to_step.to_str, max_depth);
 
-    auto date_type_cast = [&] (String & src) 
+    auto date_type_cast = [&] (String & src)
     {
         Tokens tokens(src.c_str(), src.c_str() + src.size());
         IParser::Pos pos(tokens, max_depth);
