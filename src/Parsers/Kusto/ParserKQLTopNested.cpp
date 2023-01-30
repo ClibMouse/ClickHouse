@@ -178,7 +178,7 @@ String ParserKQLTopNested ::calculateTopNestedWithOthers(const TopNestedClauses 
         {
             auto other_values = top_nested_clauses[i].agg_alias;
             String all_others_table = std::format("tb{}_all_others AS (SELECT ", i);
-            String seperator;
+            String separator;
             String first_list;
             for (size_t j = 0; j < i; ++j)
             {
@@ -190,22 +190,22 @@ String ParserKQLTopNested ::calculateTopNestedWithOthers(const TopNestedClauses 
             all_others_table += first_list;
             for (size_t j = i; j < size; ++j)
             {
-                seperator = (i == 0) ? "" : ",";
+                separator = (i == 0) ? "" : ",";
                 if (i == 0)
                 {
-                    seperator = (j == 0) ? "" : ",";
+                    separator = (j == 0) ? "" : ",";
                 }
                 else
-                    seperator = ",";
+                    separator = ",";
                 if (top_nested_clauses[j].others.empty())
                     all_others_table
                         = all_others_table
                         + std::format(
-                              "{} NULL AS {} , NULL AS {}", seperator, top_nested_clauses[j].expr_alias, top_nested_clauses[j].agg_alias);
+                              "{} NULL AS {} , NULL AS {}", separator, top_nested_clauses[j].expr_alias, top_nested_clauses[j].agg_alias);
                 else
                     all_others_table = all_others_table
                         + std::format("{} {} AS {} , {}_value AS {}",
-                                      seperator,
+                                      separator,
                                       getExprFromToken(top_nested_clauses[j].others, max_depth),
                                       top_nested_clauses[j].expr_alias,
                                       other_values,

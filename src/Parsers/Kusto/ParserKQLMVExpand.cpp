@@ -209,8 +209,7 @@ bool ParserKQLMVExpand::genQuery(KQLMVExpand & kql_mv_expand, ASTPtr & select_no
 
         if (!column.to_type.empty())
         {
-            cast_type_column_remove
-                = cast_type_column_remove.empty() ? " Except " + column.alias : cast_type_column_remove + " Except " + column.alias;
+            cast_type_column_remove = cast_type_column_remove.empty() ? " Except " + column.alias : cast_type_column_remove + " Except " + column.alias;
             String rename_str;
 
             if (type_cast[column.to_type] == "Boolean")
