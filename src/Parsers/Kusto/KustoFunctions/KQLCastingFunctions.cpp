@@ -84,12 +84,12 @@ bool ToDecimal::convertImpl(String & out, IParser::Pos & pos)
         return false;
 
     ++pos;
-    if (pos->type == TokenType::QuotedIdentifier || pos->type == TokenType::StringLiteral || pos->type == TokenType::Number)     
+    if (pos->type == TokenType::QuotedIdentifier || pos->type == TokenType::StringLiteral || pos->type == TokenType::Number)
     {
         --pos;
         const auto arg = getArgument(fn_name, pos);
-        const auto scale = std::format("if(position({0}::String,'e') = 0 , ( countSubstrings({0}::String, '.') = 1 ? length(substr({0}::String, position({0}::String,'.') + 1)) : 0 ) , toUInt64(multiIf((position({0}::String,'e+') as x) >0 , substr({0}::String,x+2) , (position({0}::String,'e-') as y )>0 , substr({0}::String,y+2) , position({0}::String,'e-') = 0 AND position({0}::String,'e+') =0 AND position({0}::String,'e')>0, substr({0}::String,position({0}::String,'e')+1) , 0::String)))", arg); 
-        out = std::format("toTypeName({0}) = 'String' OR  toTypeName({0}) = 'FixedString' ? toDecimal128OrNull({0}::String , abs(34 - ({1}::UInt8))) : toDecimal128OrNull({0}::String , abs(17 - ({1}::UInt8)))", arg, scale); 
+        const auto scale = std::format("if(position({0}::String,'e') = 0 , ( countSubstrings({0}::String, '.') = 1 ? length(substr({0}::String, position({0}::String,'.') + 1)) : 0 ) , toUInt64(multiIf((position({0}::String,'e+') as x) >0 , substr({0}::String,x+2) , (position({0}::String,'e-') as y )>0 , substr({0}::String,y+2) , position({0}::String,'e-') = 0 AND position({0}::String,'e+') =0 AND position({0}::String,'e')>0, substr({0}::String,position({0}::String,'e')+1) , 0::String)))", arg);
+        out = std::format("toTypeName({0}) = 'String' OR  toTypeName({0}) = 'FixedString' ? toDecimal128OrNull({0}::String , abs(34 - ({1}::UInt8))) : toDecimal128OrNull({0}::String , abs(17 - ({1}::UInt8)))", arg, scale);
     }
     else
     {

@@ -800,7 +800,7 @@ class FunctionBinaryArithmetic : public IFunction
     {
         if (isDateTime64(type0) && isDateTime64(type1) && is_minus)
                return FunctionFactory::instance().get("dateTime64Diff", context);
-        
+
         return {};
     }
 
