@@ -220,11 +220,11 @@ bool FormatDateTime::convertImpl(String & out, IParser::Pos & pos)
         char c = format[i];
         if (!isalpha(c))
         {
-            //delimeter 
+            //delimiter 
             if (c == ' ' || c == '-' || c == '_' || c == '[' || c == ']' || c == '/' || c == ',' || c == '.' || c == ':')
                 formatspecifier = formatspecifier + c;
             else
-                throw Exception("Invalid format delimeter in function:" + fn_name, ErrorCodes::SYNTAX_ERROR);
+                throw Exception("Invalid format delimiter in function:" + fn_name, ErrorCodes::SYNTAX_ERROR);
             ++i;
         }
         else
