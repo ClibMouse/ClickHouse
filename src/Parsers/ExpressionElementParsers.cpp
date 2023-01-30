@@ -113,7 +113,7 @@ bool ParserSubquery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
         if (!ParserKQLTaleFunction().parse(pos, result_node, expected))
             return false;
     }
-    else 
+    else
     {
         if (pos->type != TokenType::OpeningRoundBracket)
             return false;
@@ -178,7 +178,7 @@ bool ParserSubquery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 
 bool ParserIdentifier::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
-    /// 'kql(' is used for subuquery in Kusto, should not be treated as an identifier if kql followd by (
+    /// 'kql(' is used for subuquery in Kusto, should not be treated as an identifier if kql followed by (
     ParserKeyword s_kql("KQL");
     if (s_kql.ignore(pos, expected))
     {
