@@ -194,7 +194,7 @@ bool ParserKQLMVExpand::genQuery(KQLMVExpand & kql_mv_expand, ASTPtr & select_no
     String cast_type_column_restore, cast_type_column_restore_name ;
     String row_count_str;
     String extra_columns;
-    String input = "dummy_input"; 
+    String input = "dummy_input";
     for (auto column : kql_mv_expand.column_array_exprs)
     {
         if (column.alias == column.column_array_expr)
@@ -206,7 +206,7 @@ bool ParserKQLMVExpand::genQuery(KQLMVExpand & kql_mv_expand, ASTPtr & select_no
         }
 
         if (!column.to_type.empty())
-        {  
+        {
             cast_type_column_remove = cast_type_column_remove.empty() ? " Except " + column.alias : cast_type_column_remove + " Except " + column.alias ;
             String rename_str;
 
