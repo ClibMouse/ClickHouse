@@ -81,7 +81,7 @@ bool DatetimeAdd::convertImpl(String & out, IParser::Pos & pos)
 
     const auto offset = getArgument(fn_name, pos);
     const auto datetime = getArgument(fn_name, pos);
-    
+
     out = std::format("date_add({}, {}, {})",period,offset,datetime);
 
     return true;
@@ -471,7 +471,7 @@ bool UnixTimeMillisecondsToDateTime::convertImpl(String & out, IParser::Pos & po
     if (fn_name.empty())
         return false;
 
-    const auto value = getArgument(fn_name, pos);    
+    const auto value = getArgument(fn_name, pos);
     out = std::format("kql_todatetime(fromUnixTimestamp64Milli({}, 'UTC'))", value);
 
     return true;
@@ -483,7 +483,7 @@ bool UnixTimeNanosecondsToDateTime::convertImpl(String & out, IParser::Pos & pos
     if (fn_name.empty())
         return false;
 
-    const auto value = getArgument(fn_name, pos);     
+    const auto value = getArgument(fn_name, pos);
     out = std::format("kql_todatetime(fromUnixTimestamp64Nano({}, 'UTC'))", value);
 
     return true;
