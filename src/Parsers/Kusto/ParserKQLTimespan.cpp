@@ -229,7 +229,7 @@ std::optional<Int64> ParserKQLTimespan::parse(const std::string_view expression)
                 const auto ticks = kql_timespan.toTicks();
                 if (!ticks)
                     throw_exception();
-                
+
                 return *ticks;
             }
             else if constexpr (std::is_same_v<Type, KQLTimespanValueWithUnit>)

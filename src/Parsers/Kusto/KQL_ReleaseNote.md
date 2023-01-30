@@ -13,19 +13,19 @@ print '-- range function int, int --';
 print range(1, 10);
 print '-- range function float, float, float --';
 print range(1.2, 10.3, 2.2);
-print '-- range function postive float, float, int --';
+print '-- range function positive float, float, int --';
 print range(1.2, 10.3, 2);
-print '-- range function postive float, int, float --';
+print '-- range function positive float, int, float --';
 print range(1.2, 10, 2.2);
-print '-- range function postive integer, int, float --';
+print '-- range function positive integer, int, float --';
 print range(1, 10, 2.2);
-print '-- range function postive intger, float, float --';
+print '-- range function positive integer, float, float --';
 print range(1, 10.5, 2.2);
-print '-- range function postive float, int, int --';
+print '-- range function positive float, int, int --';
 print range(1.2, 10, 2);
-print '-- range function postive int, int, negative int --';
+print '-- range function positive int, int, negative int --';
 print range(12, 3, -2);
-print '-- range function postive float, int, negative float --';
+print '-- range function positive float, int, negative float --';
 print range(12.8, 3, -2.3);
 print '-- range function datetime, datetime, timespan --';
 print range(datetime('2001-01-01'), datetime('2001-01-02'), 5h);
@@ -138,7 +138,7 @@ print range(endofday(datetime(2017-01-01 10:10:17)), endofday(datetime(2017-01-0
 - [KQL Phase 2: summarize using bin has different result than Azure Data Explorer using the same sample data]  
 - [KQL Phase 3: datetime should be rounded in certain cases]  
 - [kql_bin does not accept DateTime type]  
-- [KQL Phase 2 - totimespan should return null when convertion fails.]  
+- [KQL Phase 2 - totimespan should return null when conversion fails.]  
 - [reverse() with datetime and timespan arguments needs to be improved.]  
 - [String operator has throws exception when needle has white space or separator characters]  
 
@@ -207,7 +207,7 @@ print range(endofday(datetime(2017-01-01 10:10:17)), endofday(datetime(2017-01-0
       X | join kind=rightsemi Y  on Key ;
    ```
    **Deviation from ADX**
-   Becasue of the limitation between KQL and SQL. the result may different from ADX.(KQL-CH take the result of ClickHouse)
+   Because of the limitation between KQL and SQL. the result may different from ADX.(KQL-CH take the result of ClickHouse)
    - columns  
       ADX : common columns are duplicatedc in output
       KQL-CH : only one column for common columns 
@@ -216,7 +216,7 @@ print range(endofday(datetime(2017-01-01 10:10:17)), endofday(datetime(2017-01-0
       KQL-CH : column with same name (not common) -> right_.column
    - filters  
       ADX: Kusto is optimized to push filters that come after the join, towards the appropriate join side, left or right, when possible  
-      KQL-CH: because in the domanin of KQL, does not know the schema of tables, so the push need to manualy done by user, like: 
+      KQL-CH: because in the domanin of KQL, does not know the schema of tables, so the push need to manually done by user, like: 
       ```
       t1|join kind = innerunique t2 on key | where value == 'val1.2'
       ```
@@ -252,7 +252,7 @@ print range(endofday(datetime(2017-01-01 10:10:17)), endofday(datetime(2017-01-0
    ```
 
 ## Bugs fixed
-   - [Incorrect Regx convertion]  
+   - [Incorrect Regx conversion]  
    - [KQL phase 2 - timespan calculation results in exception]  
    - [KQL phase 2 - format_timespan returns incorrect results]  
    - [Bin function should support time intervals less than 1 second]  
@@ -268,7 +268,7 @@ print range(endofday(datetime(2017-01-01 10:10:17)), endofday(datetime(2017-01-0
 
    null will be returned for every array that differs in length from the first one.
    ```
-   Becasue array in ClickHouse is not nullable, so an array with a single NULL  ( `[NULL]`) is returned instead of a null if array that differs in length from the first one:
+   Because array in ClickHouse is not nullable, so an array with a single NULL  ( `[NULL]`) is returned instead of a null if array that differs in length from the first one:
    ```
    array_sort_asc(dynamic([2, 1, 3]), dynamic([20, 40, 30]), dynamic([100, 200])) -> [1,2,3,NULL],[10,20,30,40],[NULL]
    ```
@@ -305,12 +305,12 @@ print range(endofday(datetime(2017-01-01 10:10:17)), endofday(datetime(2017-01-0
    └────────┴────────────────────────────┴───────────────┴───────────────┘
    ```
 
-   the following behavious are same as Azure Data Explorer  
+   the following behaviours are same as Azure Data Explorer  
    if no alias specified, the functions return a single tuple includes arrays. can use array sbscripon to access the element inside. for exapmple:
    ```
    print array_sort_asc(dynamic([2, 1, 3]), dynamic([20, 40, 30]), dynamic([100, 200]))[0] -> [1,2,3]
    ```
-   if a signle alias is used the firt array as an column is returned :
+   if a single alias is used the first array as an column is returned :
    ```
    print t = array_sort_asc(dynamic([2, 1, 3]), dynamic([20, 40, 30]), dynamic([100, 200]))
    ┌─t───────┐
@@ -560,7 +560,7 @@ Please note that functions returning arrays with set semantics may return them i
 
  - [set_has_element](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/sethaselementfunction)  
    `print set_has_element(dynamic(["this", "is", "an", "example"]), "example") == true`  
-   `print set_has_element(dynamic(["this", "is", "an", "example"]), "test") == false`  
+   `print set_has_element(dynamic(["this", "is", "an", "example"]), "examples") == false`  
    `print set_has_element(dynamic([1, 2, 3]), 2) == true`  
    `print set_has_element(dynamic([1, 2, 3, 4.2]), 4) == false`  
 
