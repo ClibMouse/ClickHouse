@@ -272,7 +272,7 @@ bool HasAnyIndex::convertImpl(String & out, IParser::Pos & pos)
     ++pos;
     const String lookup = getConvertedArgument(fn_name, pos);
     String src_array = std::format("splitByChar(' ',{})", source);
-    out = std::format("if (empty({1}), -1, indexOf(arrayMap ( x -> (x in {0}), if (empty({1}),[''], arrayMap(x->(toString(x)),{1}))),1) - 1)", src_array, lookup);
+    out = std::format("if (empty({1}), -1, indexOf(arrayMap(x -> (x in {0}), if (empty({1}), [''], arrayMap(x -> (toString(x)), {1}))), 1) - 1)", src_array, lookup);
     return true;
 }
 
@@ -410,18 +410,18 @@ bool ParseURL::convertImpl(String & out, IParser::Pos & pos)
     String query_parameters = std::format("concat('\"Query Parameters\":', concat('{{\"', replace(replace({}, '=', '\":\"'),'&','\",\"') ,'\"}}'))", query_string);
 
     bool all_space = true;
-    for(size_t i = 0; i < url.size(); i++)
+    for (size_t i = 0; i < url.size(); i++)
     {
-        if(url[i] == '\'' || url[i] == '\"')
+        if (url[i] == '\'' || url[i] == '\"')
             continue;
-        if(url[i] != ' ')
+        if (url[i] != ' ')
         {
             all_space = false;
             break;
         }
     }
 
-    if(all_space)
+    if (all_space)
     {
         port = "'\"Port\":\"\"'";
         query_parameters = "'\"Query Parameters\":{}'";
@@ -540,10 +540,10 @@ bool StrCatDelim::convertImpl(String & out, IParser::Pos & pos)
 
     String args;
     args = "concat(";
-    for(size_t i = 1; i < arguments.size(); i++)
+    for (size_t i = 1; i < arguments.size(); i++)
     {
         args += kqlCallToExpression("tostring", {arguments[i]}, pos.max_depth);
-        if(i < arguments.size() - 1)
+        if (i < arguments.size() - 1)
             args += ", " + delimiter + ", ";
     }
     args += ")";
@@ -580,15 +580,15 @@ bool StrRep::convertImpl(String & out, IParser::Pos & pos)
 
     const auto arguments = getArguments(fn_name, pos, ArgumentState::Raw);
 
-    if(arguments.size() < 2 || arguments.size() > 3)
+    if (arguments.size() < 2 || arguments.size() > 3)
         throw Exception("number of arguments do not match in function: " + fn_name, ErrorCodes::SYNTAX_ERROR);
 
     const String value = arguments[0];
     const String multiplier = arguments[1];
 
-    if(arguments.size() == 2)
+    if (arguments.size() == 2)
         out = "repeat(" + value + " , " + multiplier + ")";
-    else if(arguments.size() == 3)
+    else if (arguments.size() == 3)
     {
         const String delimiter = arguments[2];
         const String repeated_str = "repeat(concat(" + kqlCallToExpression("tostring", {value}, pos.max_depth) + " , " + delimiter + ")," + multiplier + ")";

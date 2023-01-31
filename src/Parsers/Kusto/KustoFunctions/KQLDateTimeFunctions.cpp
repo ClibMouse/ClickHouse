@@ -261,18 +261,14 @@ bool FormatDateTime::convertImpl(String & out, IParser::Pos & pos)
     }
     if (decimal > 0 && formatspecifier.find('.') != String::npos)
     {
-        out = std::format(
-            "concat("
-            "substring(toString(formatDateTime({0} , '{1}')),1, position(toString(formatDateTime({0},'{1}')),'.')) ,"
-            "substring(substring(toString({0}), position(toString({0}),'.')+1),1,{2}),"
-            "substring(toString(formatDateTime({0},'{1}')), position(toString(formatDateTime({0},'{1}')), '.')+1, length "
-            "(toString(formatDateTime({0},'{1}'))))) ",
-            datetime,
-            formatspecifier,
-            decimal);
+
+    out = std::format("concat("
+        "substring(toString(formatDateTime({0}, '{1}')), 1, position(toString(formatDateTime({0}, '{1}')), '.')) ,"
+        "substring(substring(toString({0}), position(toString({0}),'.')+1),1,{2}),"
+        "substring(toString(formatDateTime({0}, '{1}')), position(toString(formatDateTime({0}, '{1}')), '.') + 1, length(toString(formatDateTime({0}, '{1}')))))", datetime, formatspecifier, decimal);
     }
     else
-        out = std::format("formatDateTime({0},'{1}')", datetime, formatspecifier);
+        out = std::format("formatDateTime({0}, '{1}')", datetime, formatspecifier);
 
     return true;
 }
