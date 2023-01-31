@@ -53,10 +53,10 @@ bool ParserKQLMVExpand::parseColumnArrayExprs(ColumnArrayExprs & column_array_ex
 
     while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
     {
-        if(pos->type == TokenType::OpeningRoundBracket)
+        if (pos->type == TokenType::OpeningRoundBracket)
             ++bracket_count;
 
-        if(pos->type == TokenType::ClosingRoundBracket)
+        if (pos->type == TokenType::ClosingRoundBracket)
             --bracket_count;
 
         if (String(pos->begin,pos->end) == "=")
@@ -217,7 +217,7 @@ bool ParserKQLMVExpand::genQuery(KQLMVExpand & kql_mv_expand, ASTPtr & select_no
 
             cast_type_column_rename = cast_type_column_rename.empty() ? rename_str : cast_type_column_rename + "," + rename_str;
             cast_type_column_restore = cast_type_column_restore.empty() ? std::format(" Except {}_ali ", column.alias) : cast_type_column_restore + std::format(" Except {}_ali ", column.alias);
-            cast_type_column_restore_name =  cast_type_column_restore_name.empty() ? std::format("{0}_ali as {0}", column.alias ) :cast_type_column_restore_name + std::format(", {0}_ali as {0}", column.alias);
+            cast_type_column_restore_name = cast_type_column_restore_name.empty() ? std::format("{0}_ali as {0}", column.alias) : cast_type_column_restore_name + std::format(", {0}_ali as {0}", column.alias);
         }
 
         if (!kql_mv_expand.with_itemindex.empty())
