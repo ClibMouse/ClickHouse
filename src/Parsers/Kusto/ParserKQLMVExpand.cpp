@@ -219,12 +219,8 @@ bool ParserKQLMVExpand::genQuery(KQLMVExpand & kql_mv_expand, ASTPtr & select_no
                 rename_str = std::format("accurateCastOrNull({0},'{1}') as {0}_ali", column.alias, type_cast[column.to_type]);
 
             cast_type_column_rename = cast_type_column_rename.empty() ? rename_str : cast_type_column_rename + "," + rename_str;
-            cast_type_column_restore = cast_type_column_restore.empty()
-                ? std::format(" Except {}_ali ", column.alias)
-                : cast_type_column_restore + std::format(" Except {}_ali ", column.alias);
-            cast_type_column_restore_name = cast_type_column_restore_name.empty()
-                ? std::format("{0}_ali as {0}", column.alias)
-                : cast_type_column_restore_name + std::format(", {0}_ali as {0}", column.alias);
+            cast_type_column_restore = cast_type_column_restore.empty() ? std::format(" Except {}_ali ", column.alias) : cast_type_column_restore + std::format(" Except {}_ali ", column.alias);
+            cast_type_column_restore_name = cast_type_column_restore_name.empty() ? std::format("{0}_ali as {0}", column.alias) : cast_type_column_restore_name + std::format(", {0}_ali as {0}", column.alias);
         }
 
         if (!kql_mv_expand.with_itemindex.empty())

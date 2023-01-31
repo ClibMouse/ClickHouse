@@ -77,8 +77,10 @@ FunctionKqlToString::executeImpl(const ColumnsWithTypeAndName & arguments, const
         const ColumnsWithTypeAndName to_datetime64_args{argument, createConstColumnWithTypeAndName<DataTypeUInt8>(7, "scale")};
         const auto as_datetime64 = executeFunctionCall(context, "toDateTime64", to_datetime64_args, input_rows_count);
 
-        const ColumnsWithTypeAndName format_datetime_args{
-            asArgument(as_datetime64, "as_datetime64"), createConstColumnWithTypeAndName<DataTypeString>("%FT%T.%fZ", "format_string")};
+        const ColumnsWithTypeAndName format_datetime_args
+        {
+            asArgument(as_datetime64, "as_datetime64"), createConstColumnWithTypeAndName<DataTypeString>("%FT%T.%fZ", "format_string")
+        };
         return executeFunctionCall(context, "formatDateTime", format_datetime_args, input_rows_count).first;
     }
 
