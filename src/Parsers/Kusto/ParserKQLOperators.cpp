@@ -198,7 +198,7 @@ String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
     --token_pos;
     --token_pos;
 
-    new_expr += ch_op + "( ";
+    new_expr += ch_op + "(";
     while (!token_pos->isEnd() && token_pos->type != DB::TokenType::PipeMark && token_pos->type != DB::TokenType::Semicolon)
     {
         auto tmp_arg = DB::String(token_pos->begin, token_pos->end);
