@@ -4,11 +4,6 @@
 
 namespace DB
 {
-namespace ErrorCodes
-{
-    extern const int BAD_ARGUMENTS;
-}
-
 bool ToBool::convertImpl(String & out, IParser::Pos & pos)
 {
     const auto function_name = getKQLFunctionName(pos);
