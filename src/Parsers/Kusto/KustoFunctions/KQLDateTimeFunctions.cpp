@@ -11,6 +11,12 @@
 
 namespace
 {
+
+namespace ErrorCodes
+{
+    extern const int LOGICAL_ERROR;
+}
+
 bool mapToEndOfPeriod(std::string & out, DB::IParser::Pos & pos, const std::string_view period)
 {
     const auto function_name = DB::IParserKQLFunction::getKQLFunctionName(pos);
