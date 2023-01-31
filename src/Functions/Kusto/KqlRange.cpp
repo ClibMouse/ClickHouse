@@ -22,7 +22,6 @@ namespace ErrorCodes
     extern const int ILLEGAL_COLUMN;
     extern const int ILLEGAL_TYPE_OF_ARGUMENT;
     extern const int NUMBER_OF_ARGUMENTS_DOESNT_MATCH;
-    extern const int TYPE_MISMATCH;
 }
 
 static constexpr size_t max_array_size_as_field = 1000000; // the value from ColumnArray.cpp

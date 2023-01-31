@@ -8,6 +8,12 @@
 
 namespace DB
 {
+
+namespace ErrorCodes
+{
+    extern const int ILLEGAL_TYPE_OF_ARGUMENT;
+}
+
 class FunctionDateTime64Diff : public IFunction
 {
     using ColumnDateTime64 = ColumnDecimal<DateTime64>;
