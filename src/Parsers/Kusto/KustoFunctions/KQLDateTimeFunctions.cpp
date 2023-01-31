@@ -12,11 +12,6 @@
 namespace
 {
 
-namespace ErrorCodes
-{
-    extern const int LOGICAL_ERROR;
-}
-
 bool mapToEndOfPeriod(std::string & out, DB::IParser::Pos & pos, const std::string_view period)
 {
     const auto function_name = DB::IParserKQLFunction::getKQLFunctionName(pos);
@@ -53,6 +48,7 @@ namespace DB::ErrorCodes
 extern const int BAD_ARGUMENTS;
 extern const int ILLEGAL_TYPE_OF_ARGUMENT;
 extern const int SYNTAX_ERROR;
+extern const int LOGICAL_ERROR;
 }
 
 namespace DB
