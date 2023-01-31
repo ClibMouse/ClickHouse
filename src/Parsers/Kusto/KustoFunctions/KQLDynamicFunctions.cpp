@@ -17,7 +17,7 @@ bool ArrayConcat::convertImpl(String & out, IParser::Pos & pos)
 
 bool ArrayIif::convertImpl(String & out, IParser::Pos & pos)
 {
-   return directMapping(out, pos, "kql_ArrayIif");
+    return directMapping(out, pos, "kql_ArrayIif");
 }
 
 bool ArrayIndexOf::convertImpl(String & out, IParser::Pos & pos)
