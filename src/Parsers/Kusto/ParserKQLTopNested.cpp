@@ -221,12 +221,12 @@ String ParserKQLTopNested ::calculateTopNestedWithOthers(const TopNestedClauses 
         String last_others_table = std::format("tb{}_others", size - 1);
         query = query
             + std::format(
-                    ", last_query AS ( SELECT {0} FROM {1} UNION ALL SELECT {2} FROM {3}",
+                    ", last_query AS (SELECT {0} FROM {1} UNION ALL SELECT {2} FROM {3}",
                     last_select_list,
                     last_normal_table,
                     last_others_list,
                     last_others_table);
-        if (size > 1 )
+        if (size > 1)
         {
             for (size_t i = 0; i < size - 1; ++i)
             {

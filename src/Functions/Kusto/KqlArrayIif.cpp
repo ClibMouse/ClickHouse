@@ -45,7 +45,7 @@ private:
 
 bool FunctionKqlArrayIif::isDataTypeBoolORBoolConvertible(std::string_view datatype_name) const
 {
-    if(datatype_name.find("Int") != datatype_name.npos ||
+    if (datatype_name.find("Int") != datatype_name.npos ||
        datatype_name.find("Float") != datatype_name.npos ||
        datatype_name.find("Decimal") != datatype_name.npos ||
        datatype_name.find("Bool") != datatype_name.npos)
@@ -88,13 +88,13 @@ ColumnPtr FunctionKqlArrayIif::executeImpl(const ColumnsWithTypeAndName & argume
     const DataTypePtr & elem_type = static_cast<const DataTypeArray &>(*result_type).getNestedType();
     auto out = ColumnArray::create(elem_type->createColumn());
 
-    if(input_rows_count == 0)
+    if (input_rows_count == 0)
         return out;
 
     IColumn & out_data = out->getData();
     IColumn::Offsets & out_offsets = out->getOffsets();
     size_t total_length = 0;
-    for(size_t i = 0; i < input_rows_count; i++)
+    for (size_t i = 0; i < input_rows_count; i++)
     {
         Field array0;
         arguments[0].column->get(i, array0);
@@ -105,27 +105,27 @@ ColumnPtr FunctionKqlArrayIif::executeImpl(const ColumnsWithTypeAndName & argume
     out_offsets.resize(input_rows_count);
     IColumn::Offset current_offset = 0;
 
-    for(size_t i = 0; i < input_rows_count; i++)
+    for (size_t i = 0; i < input_rows_count; i++)
     {
         Field array0;
         arguments[0].column->get(i, array0);
         size_t len0 = array0.get<Array>().size();
-        for(size_t k = 0; k < len0; k++)
+        for (size_t k = 0; k < len0; k++)
         {
-            if(!isDataTypeBoolORBoolConvertible(array0.get<Array>().at(k).getTypeName()))
+            if (!isDataTypeBoolORBoolConvertible(array0.get<Array>().at(k).getTypeName()))
                 out_data.insert(Field());
             else
             {
                 Field temp;
                 std::string dump = array0.get<Array>().at(k).dump();
                 dump = dump.substr(dump.find("_") + 1);
-                if(dump == "0" || dump == "-0")
+                if (dump == "0" || dump == "-0")
                     arguments[2].column->get(i, temp);
                 else
                     arguments[1].column->get(i, temp);
-                if(temp.getTypeName() == "Array")
+                if (temp.getTypeName() == "Array")
                 {
-                    if(k < temp.get<Array>().size())
+                    if (k < temp.get<Array>().size())
                         out_data.insert(temp.get<Array>().at(k));
                     else
                         out_data.insert(Field());
