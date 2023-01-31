@@ -10,7 +10,8 @@ class ParserKQLTopNested : public ParserKQLBase
 {
 
 protected:
-    struct TopNestedClause {
+    struct TopNestedClause
+    {
         String topn;
         String expr_alias;
         String expr;

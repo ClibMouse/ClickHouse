@@ -207,7 +207,7 @@ protected:
     bool convertImpl(String &out,IParser::Pos &pos) override;
 };
 
-void inline getTokens(String format, std::vector<String> & res )
+void inline getTokens(String format, std::vector<String> & res)
 {
     String str = format;
     String token;
