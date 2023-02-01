@@ -418,7 +418,7 @@ bool ParserKQLTopNested ::parseImpl(Pos & pos, ASTPtr & node, Expected & expecte
 
     auto with_node = select_node->as<ASTSelectQuery>()->with();
 
-    auto with_elem = with_node->children[0]->as<ASTWithElement>();
+    auto * with_elem = with_node->children[0]->as<ASTWithElement>();
 
     auto sub_select = with_elem->children[0]->children[0]->children[0]->children[0];
     if (!setSubQuerySource(sub_select, node, false, false, ""))
