@@ -75,7 +75,7 @@ ColumnPtr FunctionKqlDateTime<input_policy>::executeImpl(
         createConstColumnWithTypeAndName<DataTypeUInt8>(9, "scale"),
         createConstColumnWithTypeAndName<DataTypeString>("UTC", "timezone")};
 
-    const auto conversion_function
+    const auto * const conversion_function
         = WhichDataType(*argument.type).isStringOrFixedString() ? getDateTimeParsingFunction(input_policy) : "toDateTime64";
     const auto converted = executeFunctionCall(context, conversion_function, conversion_args, input_rows_count);
 

@@ -156,7 +156,7 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
         if (pos->type == TokenType::ClosingSquareBracket)
             --square_bracket_count;
 
-        if (!KQLOperators().convert(tokens, pos))
+        if (!KQLOperators::convert(tokens, pos))
         {
             if (pos->type == TokenType::BareWord)
             {
