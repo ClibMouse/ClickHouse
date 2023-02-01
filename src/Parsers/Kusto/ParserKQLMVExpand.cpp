@@ -68,7 +68,7 @@ bool ParserKQLMVExpand::parseColumnArrayExprs(ColumnArrayExprs & column_array_ex
             expr_begin_pos = pos;
         }
 
-        auto addColumns = [&]
+        auto add_columns = [&]
         {
             column_array_expr = getExprFromToken(String(expr_begin_pos->begin, expr_end_pos->end), pos.max_depth);
 
@@ -110,7 +110,7 @@ bool ParserKQLMVExpand::parseColumnArrayExprs(ColumnArrayExprs & column_array_ex
                 expr_end_pos = pos;
                 --expr_end_pos;
             }
-            addColumns();
+            add_columns();
             expr_begin_pos = pos;
             expr_end_pos = pos;
             ++expr_begin_pos;
@@ -133,7 +133,7 @@ bool ParserKQLMVExpand::parseColumnArrayExprs(ColumnArrayExprs & column_array_ex
                 expr_end_pos = pos;
                 --expr_end_pos;
             }
-            addColumns();
+            add_columns();
             break;
         }
     }
