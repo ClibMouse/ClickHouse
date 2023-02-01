@@ -55,9 +55,9 @@ Int64 kqlTimespanToTicks(const arithmetic auto value, const KQLTimespanUnit unit
     }
 }
 
-struct timespan_units_ : public x3::symbols<KQLTimespanUnit>
+struct TimespanUnits : public x3::symbols<KQLTimespanUnit>
 {
-    timespan_units_()
+    TimespanUnits()
     {
         // clang-format off
         add
@@ -100,7 +100,7 @@ struct timespan_units_ : public x3::symbols<KQLTimespanUnit>
     }
 };
 
-const timespan_units_ timespan_units;
+const TimespanUnits timespan_units;
 
 struct KQLTimespanComponents
 {
@@ -211,8 +211,8 @@ std::optional<Int64> ParserKQLTimespan::parse(const std::string_view expression)
     const auto throw_exception
         = [&expression] { throw Exception(ErrorCodes::BAD_ARGUMENTS, "Not a correct timespan expression: {}", expression); };
 
-    auto first = expression.cbegin();
-    auto last = expression.cend();
+    const auto * first = expression.cbegin();
+    const auto * last = expression.cend();
 
     boost::variant<KQLTimespanComponents, KQLTimespanValueWithUnit, Int64, KQLTimespanNull> kql_timespan_variant;
     const auto success = x3::parse(first, last, KQL_TIMESPAN, kql_timespan_variant);

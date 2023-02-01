@@ -54,7 +54,7 @@ bool DatatypeDatetime::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
 
-    const auto argument = extractLiteralArgumentWithoutQuotes(fn_name, pos);
+    auto argument = extractLiteralArgumentWithoutQuotes(fn_name, pos);
     const auto mutated_argument = std::invoke(
         [&argument]
         {

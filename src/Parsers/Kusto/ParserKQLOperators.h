@@ -7,6 +7,6 @@ namespace DB
 class KQLOperators
 {
 public:
-    bool convert(std::vector<String> & tokens, IParser::Pos & pos);
+    bool static convert(std::vector<String> & tokens, IParser::Pos & pos);
 };
 }
