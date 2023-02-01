@@ -338,7 +338,7 @@ ASTPtr ClientBase::parseQuery(const char *& pos, const char * end, bool allow_mu
 
     const Dialect & dialect = settings.dialect;
 
-    auto begin = pos;
+    const auto * begin = pos;
 
     if (is_interactive || ignore_error)
     {

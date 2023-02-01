@@ -97,13 +97,13 @@ bool ParserKQLBase::setSubQuerySource(
                     ->table_expression->as<ASTTableExpression>()
                     ->subquery->as<ASTSubquery>()
                     ->alias
-                    = std::move(alias);
+                    = alias;
             else if (table_expr->as<ASTTablesInSelectQueryElement>()->table_expression->as<ASTTableExpression>()->database_and_table_name)
             {
                 table_expr
                     = table_expr->as<ASTTablesInSelectQueryElement>()->table_expression->as<ASTTableExpression>()->database_and_table_name;
                 if (auto * ast_with_alias = dynamic_cast<ASTWithAlias *>(table_expr.get()))
-                    ast_with_alias->alias = std::move(alias);
+                    ast_with_alias->alias = alias;
             }
         }
     };
@@ -287,7 +287,7 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
             ++columms_start_pos;
         }
 
-        for (auto token : tokens)
+        for (auto const  & token : tokens)
             column_str = column_str.empty() ? token : column_str + " " + token;
 
         if (has_alias)
