@@ -34,7 +34,7 @@ public:
     bool useDefaultImplementationForNulls() const override { return false; }
     bool useDefaultImplementationForNothing() const override { return false; }
 
-    bool isDataTypeBoolORBoolConvertible(std::string_view datatype_name) const;
+    static bool isDataTypeBoolORBoolConvertible(std::string_view datatype_name);
 
     DataTypePtr getReturnTypeImpl(const DataTypes & arguments) const override;
     ColumnPtr executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, size_t input_rows_count) const override;
@@ -43,7 +43,7 @@ private:
     ContextPtr context;
 };
 
-bool FunctionKqlArrayIif::isDataTypeBoolORBoolConvertible(std::string_view datatype_name) const
+bool FunctionKqlArrayIif::isDataTypeBoolORBoolConvertible(std::string_view datatype_name)
 {
     if (datatype_name.find("Int") != datatype_name.npos ||
         datatype_name.find("Float") != datatype_name.npos ||
