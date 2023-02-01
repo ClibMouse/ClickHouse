@@ -46,10 +46,10 @@ private:
 bool FunctionKqlArrayIif::isDataTypeBoolORBoolConvertible(std::string_view datatype_name) const
 {
     if (datatype_name.find("Int") != datatype_name.npos ||
-       datatype_name.find("Float") != datatype_name.npos ||
-       datatype_name.find("Decimal") != datatype_name.npos ||
-       datatype_name.find("Bool") != datatype_name.npos)
-    return true;
+        datatype_name.find("Float") != datatype_name.npos ||
+        datatype_name.find("Decimal") != datatype_name.npos ||
+        datatype_name.find("Bool") != datatype_name.npos)
+        return true;
     return false;
 }
 
@@ -118,7 +118,7 @@ ColumnPtr FunctionKqlArrayIif::executeImpl(const ColumnsWithTypeAndName & argume
             {
                 Field temp;
                 std::string dump = array0.get<Array>().at(k).dump();
-                dump = dump.substr(dump.find("_") + 1);
+                dump = dump.substr(dump.find('_') + 1);
                 if (dump == "0" || dump == "-0")
                     arguments[2].column->get(i, temp);
                 else
