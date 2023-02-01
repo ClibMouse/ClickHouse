@@ -115,7 +115,7 @@ String genHasAnyAllOpExpr(
 
     auto haystack = tokens.back();
 
-    const auto logic_op = (kql_op == "has_all") ? " and " : " or ";
+    const auto *const logic_op = (kql_op == "has_all") ? " and " : " or ";
 
     while (isValidKQLPos(token_pos) && token_pos->type != TokenType::PipeMark && token_pos->type != TokenType::Semicolon)
     {
@@ -136,7 +136,7 @@ String genHasAnyAllOpExpr(
 
 String genEqOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos, const DB::String & ch_op)
 {
-    const DB::String tmp_arg(token_pos->begin, token_pos->end);
+    DB::String tmp_arg(token_pos->begin, token_pos->end);
 
     if (tokens.empty() || tmp_arg != "~")
         return tmp_arg;
