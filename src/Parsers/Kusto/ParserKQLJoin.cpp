@@ -214,7 +214,7 @@ bool ParserKQLJoin ::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
     {
         join_kind = "INNER JOIN";
         String distinct_column;
-        for (auto col : left_columns)
+        for (auto const & col : left_columns)
             distinct_column = distinct_column.empty() ? col : distinct_column + "," + col;
 
         String distinct_query = std::format("(SELECT DISTINCT ON ({}) * FROM dum_tbl)", distinct_column);
@@ -250,7 +250,7 @@ bool ParserKQLJoin ::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
     }
     else
     {
-        for (auto str : attribute_list)
+        for (auto const & str : attribute_list)
             str_attributes = str_attributes.empty() ? str : str_attributes + "," + str;
 
         query_join = std::format("SELECT * FROM tbl {} {} USING {}", join_kind, str_right_table, str_attributes);
