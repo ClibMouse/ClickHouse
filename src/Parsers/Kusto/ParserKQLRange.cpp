@@ -14,7 +14,7 @@ namespace ErrorCodes
 bool ParserKQLRange::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expected*/)
 {
     ASTPtr select_node;
-    String columnName, start, stop, step;
+    String column_name, start, stop, step;
     auto start_pos = pos;
     auto end_pos = pos;
     while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
@@ -24,15 +24,15 @@ bool ParserKQLRange::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expected*/
             end_pos = pos;
             --end_pos;
             if (end_pos < start_pos)
-                throw Exception("Missing columnName for range operator", ErrorCodes::SYNTAX_ERROR);
+                throw Exception("Missing column name for range operator", ErrorCodes::SYNTAX_ERROR);
 
-            columnName = String(start_pos->begin, end_pos->end);
+            column_name = String(start_pos->begin, end_pos->end);
             start_pos = pos;
             ++start_pos;
         }
         if (String(pos->begin, pos->end) == "to")
         {
-            if (columnName.empty())
+            if (column_name.empty())
                 throw Exception("Missing `from` for range operator", ErrorCodes::SYNTAX_ERROR);
             end_pos = pos;
             --end_pos;
@@ -44,7 +44,7 @@ bool ParserKQLRange::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expected*/
         }
         if (String(pos->begin, pos->end) == "step")
         {
-            if (columnName.empty())
+            if (column_name.empty())
                 throw Exception("Missing `from` for range operator", ErrorCodes::SYNTAX_ERROR);
             if (start.empty())
                 throw Exception("Missing 'to' for range operator", ErrorCodes::SYNTAX_ERROR);
@@ -61,7 +61,7 @@ bool ParserKQLRange::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expected*/
         ++pos;
     }
 
-    if (columnName.empty() || start.empty() || stop.empty())
+    if (column_name.empty() || start.empty() || stop.empty())
         throw Exception("Missing required expression for range operator", ErrorCodes::SYNTAX_ERROR);
 
     end_pos = pos;
@@ -71,11 +71,11 @@ bool ParserKQLRange::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expected*/
 
     step = String(start_pos->begin, end_pos->end);
 
-    columnName = getExprFromToken(columnName, pos.max_depth);
+    column_name = getExprFromToken(column_name, pos.max_depth);
     start = getExprFromToken(start, pos.max_depth);
     stop = getExprFromToken(stop, pos.max_depth);
     step = getExprFromToken(step, pos.max_depth);
-    String query = std::format("SELECT * FROM (SELECT kql_range({0}, {1},{2}) AS {3}) ARRAY JOIN {3}", start, stop, step, columnName);
+    String query = std::format("SELECT * FROM (SELECT kql_range({0}, {1},{2}) AS {3}) ARRAY JOIN {3}", start, stop, step, column_name);
 
     if (!parseSQLQueryByString(std::make_unique<ParserSelectQuery>(), query, select_node, pos.max_depth))
         return false;
