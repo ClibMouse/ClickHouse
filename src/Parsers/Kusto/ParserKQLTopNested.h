@@ -27,10 +27,10 @@ protected:
     const char * getName() const override { return "KQL top-nested"; }
     bool parseImpl(Pos & pos, ASTPtr & node, Expected & expected) override;
 
-    bool parseSingleTopNestedClause(Pos & begin_pos, Pos & last_pos, TopNestedClause & top_nested_clause, const int layer);
+    static bool parseSingleTopNestedClause(Pos & begin_pos, Pos & last_pos, TopNestedClause & top_nested_clause, const int layer);
     bool parseTopNestedClause(Pos & pos, TopNestedClauses & top_nested_clauses);
     String calculateTopNestedWithOthers(const TopNestedClauses & top_nested_clauses, const uint32_t max_depth);
-    String calculateSingleTopNestedWithOthers(const TopNestedClauses & top_nested_clauses, size_t layer, bool has_others, const uint32_t max_depth);
+    static String calculateSingleTopNestedWithOthers(const TopNestedClauses & top_nested_clauses, size_t layer, bool has_others, const uint32_t max_depth);
 };
 
 }

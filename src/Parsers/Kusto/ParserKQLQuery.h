@@ -36,7 +36,7 @@ protected:
     static bool pre_process(String & source, Pos & pos);
     const char * getName() const override { return "KQL query"; }
     bool parseImpl(Pos & pos, ASTPtr & node, Expected & expected) override;
-    bool executeImpl(Pos & pos, ASTPtr & node, Expected & expected);
+    static bool executeImpl(Pos & pos, ASTPtr & node, Expected & expected);
 };
 
 class ParserKQLSubquery : public ParserKQLBase
