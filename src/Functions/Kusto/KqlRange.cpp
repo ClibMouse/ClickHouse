@@ -795,7 +795,7 @@ private:
         const auto & end_col = arguments[1].column;
         Int64 step_value = 3600000000000;
 
-        auto & start_data = typeid_cast<const ColumnVector<Int64> &>(*start_col).getData();
+        const auto & start_data = typeid_cast<const ColumnVector<Int64> &>(*start_col).getData();
         const auto & end_data = typeid_cast<const ColumnVector<Int64> &>(*end_col).getData();
 
         //The maximum number of values in KQL is 1,048,576 (2^20).
