@@ -246,7 +246,6 @@ bool ExtractJson::convertImpl(String & out, IParser::Pos & pos)
         }
     }
     const auto json_val = std::format("JSON_VALUE({0},{1})", json_datasource, json_datapath);
-
     if (datatype == "Decimal")
     {
         out = std::format("countSubstrings({0}, '.') > 1 ? NULL: length(substr({0}, position({0},'.') + 1)))", json_val);
@@ -255,9 +254,8 @@ bool ExtractJson::convertImpl(String & out, IParser::Pos & pos)
     else
     {
         if (datatype == "Boolean")
-            out = std::format("toInt64OrNull({})", json_val);
-
-        if (!datatype.empty())
+            out = std::format("if(toInt64OrNull({}) > 0, true, false)", json_val);
+        else if (!datatype.empty())
             out =  std::format("accurateCastOrNull({},'{}')", json_val, datatype);
     }
     return true;
