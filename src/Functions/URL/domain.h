@@ -1,9 +1,9 @@
 #pragma once
 
-#include "protocol.h"
-#include <base/find_symbols.h>
 #include <cstring>
+#include <base/find_symbols.h>
 #include <Common/StringUtils/StringUtils.h>
+#include "protocol.h"
 
 namespace DB
 {
@@ -41,33 +41,34 @@ inline std::string_view getURLHostRFC(const char * data, size_t size)
             {
                 switch (*pos)
                 {
-                case '.':
-                case '-':
-                case '+':
-                    break;
-                case ' ': /// restricted symbols
-                case '\t':
-                case '<':
-                case '>':
-                case '%':
-                case '{':
-                case '}':
-                case '|':
-                case '\\':
-                case '^':
-                case '~':
-                case '[':
-                case ']':
-                case ';':
-                case '=':
-                case '&':
-                    return std::string_view{};
-                default:
-                    goto exloop;
+                    case '.':
+                    case '-':
+                    case '+':
+                        break;
+                    case ' ': /// restricted symbols
+                    case '\t':
+                    case '<':
+                    case '>':
+                    case '%':
+                    case '{':
+                    case '}':
+                    case '|':
+                    case '\\':
+                    case '^':
+                    case '~':
+                    case '[':
+                    case ']':
+                    case ';':
+                    case '=':
+                    case '&':
+                        return std::string_view{};
+                    default:
+                        goto exloop;
                 }
             }
         }
-exloop: if ((scheme_end - pos) > 2 && *pos == ':' && *(pos + 1) == '/' && *(pos + 2) == '/')
+    exloop:
+        if ((scheme_end - pos) > 2 && *pos == ':' && *(pos + 1) == '/' && *(pos + 2) == '/')
             pos += 3;
         else
             pos = data;
@@ -82,44 +83,47 @@ exloop: if ((scheme_end - pos) > 2 && *pos == ':' && *(pos + 1) == '/' && *(pos 
     {
         switch (*pos)
         {
-        case '.':
-            if (has_at_symbol || colon_pos == nullptr)
-                dot_pos = pos;
-            break;
-        case ':':
-            if (has_at_symbol || colon_pos) goto done;
-            colon_pos = pos;
-            break;
-        case '/': /// end symbols
-        case '?':
-        case '#':
-            goto done;
-        case '@': /// myemail@gmail.com
-            if (has_terminator_after_colon) return std::string_view{};
-            if (has_at_symbol) goto done;
-            has_at_symbol = true;
-            dot_pos = start_of_host = pos + 1;
-	    break;
-        case ' ': /// restricted symbols in whole URL
-        case '\t':
-        case '<':
-        case '>':
-        case '%':
-        case '{':
-        case '}':
-        case '|':
-        case '\\':
-        case '^':
-        case '~':
-        case '[':
-        case ']':
-        case ';':
-        case '=':
-        case '&':
-            if (colon_pos == nullptr)
-                return std::string_view{};
-            else
-                has_terminator_after_colon = true;
+            case '.':
+                if (has_at_symbol || colon_pos == nullptr)
+                    dot_pos = pos;
+                break;
+            case ':':
+                if (has_at_symbol || colon_pos)
+                    goto done;
+                colon_pos = pos;
+                break;
+            case '/': /// end symbols
+            case '?':
+            case '#':
+                goto done;
+            case '@': /// myemail@gmail.com
+                if (has_terminator_after_colon)
+                    return std::string_view{};
+                if (has_at_symbol)
+                    goto done;
+                has_at_symbol = true;
+                dot_pos = start_of_host = pos + 1;
+                break;
+            case ' ': /// restricted symbols in whole URL
+            case '\t':
+            case '<':
+            case '>':
+            case '%':
+            case '{':
+            case '}':
+            case '|':
+            case '\\':
+            case '^':
+            case '~':
+            case '[':
+            case ']':
+            case ';':
+            case '=':
+            case '&':
+                if (colon_pos == nullptr)
+                    return std::string_view{};
+                else
+                    has_terminator_after_colon = true;
         }
     }
 
@@ -150,33 +154,34 @@ inline std::string_view getURLHost(const char * data, size_t size)
             {
                 switch (*pos)
                 {
-                case '.':
-                case '-':
-                case '+':
-                    break;
-                case ' ': /// restricted symbols
-                case '\t':
-                case '<':
-                case '>':
-                case '%':
-                case '{':
-                case '}':
-                case '|':
-                case '\\':
-                case '^':
-                case '~':
-                case '[':
-                case ']':
-                case ';':
-                case '=':
-                case '&':
-                    return std::string_view{};
-                default:
-                    goto exloop;
+                    case '.':
+                    case '-':
+                    case '+':
+                        break;
+                    case ' ': /// restricted symbols
+                    case '\t':
+                    case '<':
+                    case '>':
+                    case '%':
+                    case '{':
+                    case '}':
+                    case '|':
+                    case '\\':
+                    case '^':
+                    case '~':
+                    case '[':
+                    case ']':
+                    case ';':
+                    case '=':
+                    case '&':
+                        return std::string_view{};
+                    default:
+                        goto exloop;
                 }
             }
         }
-exloop: if ((scheme_end - pos) > 2 && *pos == ':' && *(pos + 1) == '/' && *(pos + 2) == '/')
+    exloop:
+        if ((scheme_end - pos) > 2 && *pos == ':' && *(pos + 1) == '/' && *(pos + 2) == '/')
             pos += 3;
         else
             pos = data;
@@ -188,34 +193,34 @@ exloop: if ((scheme_end - pos) > 2 && *pos == ':' && *(pos + 1) == '/' && *(pos 
     {
         switch (*pos)
         {
-        case '.':
-            dot_pos = pos;
-            break;
-        case ':': /// end symbols
-        case '/':
-        case '?':
-        case '#':
-            return checkAndReturnHost(pos, dot_pos, start_of_host);
-        case '@': /// myemail@gmail.com
-            start_of_host = pos + 1;
-            break;
-        case ' ': /// restricted symbols in whole URL
-        case '\t':
-        case '<':
-        case '>':
-        case '%':
-        case '{':
-        case '}':
-        case '|':
-        case '\\':
-        case '^':
-        case '~':
-        case '[':
-        case ']':
-        case ';':
-        case '=':
-        case '&':
-            return std::string_view{};
+            case '.':
+                dot_pos = pos;
+                break;
+            case ':': /// end symbols
+            case '/':
+            case '?':
+            case '#':
+                return checkAndReturnHost(pos, dot_pos, start_of_host);
+            case '@': /// myemail@gmail.com
+                start_of_host = pos + 1;
+                break;
+            case ' ': /// restricted symbols in whole URL
+            case '\t':
+            case '<':
+            case '>':
+            case '%':
+            case '{':
+            case '}':
+            case '|':
+            case '\\':
+            case '^':
+            case '~':
+            case '[':
+            case ']':
+            case ';':
+            case '=':
+            case '&':
+                return std::string_view{};
         }
     }
 
@@ -240,7 +245,7 @@ struct ExtractDomain
         else
         {
             if (without_www && host.size() > 4 && !strncmp(host.data(), "www.", 4))
-                host = { host.data() + 4, host.size() - 4 };
+                host = {host.data() + 4, host.size() - 4};
 
             res_data = host.data();
             res_size = host.size();

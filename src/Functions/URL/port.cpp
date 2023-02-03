@@ -1,10 +1,10 @@
+#include <Columns/ColumnArray.h>
+#include <Columns/ColumnConst.h>
+#include <Columns/ColumnsNumber.h>
+#include <DataTypes/DataTypesNumber.h>
 #include <Functions/FunctionFactory.h>
 #include <Functions/IFunction.h>
 #include <Common/StringUtils/StringUtils.h>
-#include <DataTypes/DataTypesNumber.h>
-#include <Columns/ColumnsNumber.h>
-#include <Columns/ColumnArray.h>
-#include <Columns/ColumnConst.h>
 #include "domain.h"
 
 
@@ -18,7 +18,7 @@ namespace ErrorCodes
     extern const int NUMBER_OF_ARGUMENTS_DOESNT_MATCH;
 }
 
-template<bool conform_rfc>
+template <bool conform_rfc>
 struct FunctionPortImpl : public IFunction
 {
     bool isVariadic() const override { return true; }
@@ -73,7 +73,8 @@ struct FunctionPortImpl : public IFunction
 }
 
 private:
-    static void vector(UInt16 default_port, const ColumnString::Chars & data, const ColumnString::Offsets & offsets, PaddedPODArray<UInt16> & res)
+    static void
+    vector(UInt16 default_port, const ColumnString::Chars & data, const ColumnString::Offsets & offsets, PaddedPODArray<UInt16> & res)
     {
         size_t size = offsets.size();
 
@@ -83,7 +84,7 @@ private:
             res[i] = extractPort(default_port, data, prev_offset, offsets[i] - prev_offset - 1);
             prev_offset = offsets[i];
         }
-}
+    }
 
     static UInt16 extractPort(UInt16 default_port, const ColumnString::Chars & buf, size_t offset, size_t size)
     {
@@ -91,8 +92,8 @@ private:
         const char * end = p + size;
 
         std::string_view host;
-        
-	host = getURLHostRFC(p, size);
+
+        host = getURLHostRFC(p, size);
 
         if (host.empty())
             return default_port;
@@ -137,17 +138,11 @@ struct FunctionPortRFC : public FunctionPortImpl<true>
 REGISTER_FUNCTION(Port)
 {
     factory.registerFunction<FunctionPort>(
-    {
-        R"(Returns the port or `default_port` if there is no port in the URL (or in case of validation error).)",
-        Documentation::Examples{},
-        Documentation::Categories{"URL"}
-    });
+        {R"(Returns the port or `default_port` if there is no port in the URL (or in case of validation error).)",
+         Documentation::Examples{},
+         Documentation::Categories{"URL"}});
     factory.registerFunction<FunctionPortRFC>(
-    {
-        R"(Similar to `port`, but conforms to RFC 3986.)",
-        Documentation::Examples{},
-        Documentation::Categories{"URL"}
-    });
+        {R"(Similar to `port`, but conforms to RFC 3986.)", Documentation::Examples{}, Documentation::Categories{"URL"}});
 }
 
 }
