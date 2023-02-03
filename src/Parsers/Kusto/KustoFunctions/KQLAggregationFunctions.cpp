@@ -71,10 +71,10 @@ bool DCount::convertImpl(String & out, IParser::Pos & pos)
     {
         ++pos;
         const auto accuracy = getConvertedArgument(fn_name, pos);
-        out = "count ( DISTINCT " + value + " , " + accuracy + " ) ";
+        out = "count(DISTINCT " + value + " , " + accuracy + ")";
     }
     else
-        out = "count ( DISTINCT " + value + " )";
+        out = "count(DISTINCT " + value + ")";
     return true;
 }
 
@@ -92,10 +92,10 @@ bool DCountIf::convertImpl(String & out, IParser::Pos & pos)
     {
         ++pos;
         const auto accuracy = getConvertedArgument(fn_name, pos);
-        out = "count ( DISTINCT " + value + " , " + condition + " , " + accuracy + " ) ";
+        out = "count(DISTINCT " + value + " , " + condition + " , " + accuracy + ")";
     }
     else
-        out = "countIf ( DISTINCT " + value + " , " + condition + " )";
+        out = "countIf(DISTINCT" + value + " , " + condition + ")";
     return true;
 }
 
