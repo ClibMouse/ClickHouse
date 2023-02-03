@@ -95,7 +95,7 @@ bool DCountIf::convertImpl(String & out, IParser::Pos & pos)
         out = "count(DISTINCT " + value + " , " + condition + " , " + accuracy + ")";
     }
     else
-        out = "countIf(DISTINCT" + value + " , " + condition + ")";
+        out = "countIf(DISTINCT " + value + " , " + condition + ")";
     return true;
 }
 
