@@ -99,7 +99,7 @@ exloop: if ((scheme_end - pos) > 2 && *pos == ':' && *(pos + 1) == '/' && *(pos 
             if (has_at_symbol) goto done;
             has_at_symbol = true;
             dot_pos = start_of_host = pos + 1;
-            break;
+	    break;
         case ' ': /// restricted symbols in whole URL
         case '\t':
         case '<':
@@ -230,10 +230,7 @@ struct ExtractDomain
     static void execute(Pos data, size_t size, Pos & res_data, size_t & res_size)
     {
         std::string_view host;
-        if constexpr (conform_rfc)
-          host = getURLHostRFC(data, size);
-        else
-          host = getURLHost(data, size);
+        host = getURLHostRFC(data, size);
 
         if (host.empty())
         {

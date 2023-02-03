@@ -91,10 +91,8 @@ private:
         const char * end = p + size;
 
         std::string_view host;
-        if constexpr (conform_rfc)
-            host = getURLHostRFC(p, size);
-        else
-            host = getURLHost(p, size);
+        
+	host = getURLHostRFC(p, size);
 
         if (host.empty())
             return default_port;
