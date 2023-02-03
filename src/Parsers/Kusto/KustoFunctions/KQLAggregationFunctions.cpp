@@ -264,7 +264,7 @@ bool Percentilew::convertImpl(String & out, IParser::Pos & pos)
     String value = getConvertedArgument(fn_name, pos);
     trim(value);
 
-    out = "quantileExactWeighted(" + value + "/100)(" + bucket_column + "," + frequency_column +")";
+    out = "quantileExactWeighted(" + value + "/100)(" + bucket_column + "," + frequency_column + ")";
     return true;
 }
 
@@ -293,7 +293,7 @@ bool Percentiles::convertImpl(String & out, IParser::Pos & pos)
         else
             ++pos;
     }
-    out = expr + ")("+ column_name +")";
+    out = expr + ")(" + column_name + ")";
     return true;
 }
 
