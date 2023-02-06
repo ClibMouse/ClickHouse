@@ -62,6 +62,8 @@
 - [tan()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/tanfunction)
 
 # January XX, 2023
+## bug fix
+- [parse_url() may not return the correct hostname and port when a username:password@ is present]
 ## Functions
 - [range()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/rangefunction)  
 Difference from ADX:  

@@ -98,7 +98,7 @@ exloop: if ((scheme_end - pos) > 2 && *pos == ':' && *(pos + 1) == '/' && *(pos 
             if (has_terminator_after_colon) return std::string_view{};
             if (has_at_symbol) goto done;
             has_at_symbol = true;
-            start_of_host = pos + 1;
+            dot_pos = start_of_host = pos + 1;
             break;
         case ' ': /// restricted symbols in whole URL
         case '\t':
