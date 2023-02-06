@@ -411,8 +411,8 @@ bool ParseURL::convertImpl(String & out, IParser::Pos & pos)
     const String url = getConvertedArgument(fn_name, pos);
 
     const String scheme = std::format(R"(concat('"Scheme":"', protocol({0}),'"'))",url);
-    const String host = std::format(R"(concat('"Host":"', domainRFC({0}),'"'))",url);
-    String port = std::format(R"(concat('"Port":"', toString(portRFC({0})),'"'))",url);
+    const String host = std::format(R"(concat('"Host":"', domainKQL({0}),'"'))",url);
+    String port = std::format(R"(concat('"Port":"', toString(portKQL({0})),'"'))",url);
     const String path = std::format(R"(concat('"Path":"', path({0}),'"'))",url);
     const String username_pwd = std::format("netloc({0})",url);
     const String query_string = std::format("queryString({0})",url);

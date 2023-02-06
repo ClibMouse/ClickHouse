@@ -18,7 +18,7 @@ namespace ErrorCodes
     extern const int NUMBER_OF_ARGUMENTS_DOESNT_MATCH;
 }
 
-template <bool conform_rfc>
+template <UInt8 conform_rfc>
 struct FunctionPortImpl : public IFunction
 {
     bool isVariadic() const override { return true; }
@@ -93,7 +93,12 @@ private:
 
         std::string_view host;
 
-        host = getURLHostRFC(p, size);
+        if constexpr (conform_rfc == 1)
+            host = getURLHostRFC(p, size);
+        else if constexpr (conform_rfc == 0)	
+            host = getURLHost(p, size);
+	else
+            host = getURLHostKQL(p, size);
 
         if (host.empty())
             return default_port;
@@ -121,18 +126,25 @@ private:
     }
 };
 
-struct FunctionPort : public FunctionPortImpl<false>
+struct FunctionPort : public FunctionPortImpl<0>
 {
     static constexpr auto name = "port";
     String getName() const override { return name; }
     static FunctionPtr create(ContextPtr) { return std::make_shared<FunctionPort>(); }
 };
 
-struct FunctionPortRFC : public FunctionPortImpl<true>
+struct FunctionPortRFC : public FunctionPortImpl<1>
 {
     static constexpr auto name = "portRFC";
     String getName() const override { return name; }
     static FunctionPtr create(ContextPtr) { return std::make_shared<FunctionPortRFC>(); }
+};
+
+struct FunctionPortKQL : public FunctionPortImpl<2>
+{
+    static constexpr auto name = "portKQL";
+    String getName() const override { return name; }
+    static FunctionPtr create(ContextPtr) { return std::make_shared<FunctionPortKQL>(); }
 };
 
 REGISTER_FUNCTION(Port)
@@ -143,6 +155,8 @@ REGISTER_FUNCTION(Port)
          Documentation::Categories{"URL"}});
     factory.registerFunction<FunctionPortRFC>(
         {R"(Similar to `port`, but conforms to RFC 3986.)", Documentation::Examples{}, Documentation::Categories{"URL"}});
+    factory.registerFunction<FunctionPortKQL>(
+        {R"(Similar to `portRFC`, but does not require a FQDN in certain cases.)", Documentation::Examples{}, Documentation::Categories{"URL"}});
 }
 
 }

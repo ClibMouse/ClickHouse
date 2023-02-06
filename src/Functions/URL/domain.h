@@ -83,47 +83,44 @@ inline std::string_view getURLHostRFC(const char * data, size_t size)
     {
         switch (*pos)
         {
-            case '.':
-                if (has_at_symbol || colon_pos == nullptr)
-                    dot_pos = pos;
-                break;
-            case ':':
-                if (has_at_symbol || colon_pos)
-                    goto done;
-                colon_pos = pos;
-                break;
-            case '/': /// end symbols
-            case '?':
-            case '#':
-                goto done;
-            case '@': /// myemail@gmail.com
-                if (has_terminator_after_colon)
-                    return std::string_view{};
-                if (has_at_symbol)
-                    goto done;
-                has_at_symbol = true;
-                dot_pos = start_of_host = pos + 1;
-                break;
-            case ' ': /// restricted symbols in whole URL
-            case '\t':
-            case '<':
-            case '>':
-            case '%':
-            case '{':
-            case '}':
-            case '|':
-            case '\\':
-            case '^':
-            case '~':
-            case '[':
-            case ']':
-            case ';':
-            case '=':
-            case '&':
-                if (colon_pos == nullptr)
-                    return std::string_view{};
-                else
-                    has_terminator_after_colon = true;
+        case '.':
+            if (has_at_symbol || colon_pos == nullptr)
+                dot_pos = pos;
+            break;
+        case ':':
+            if (has_at_symbol || colon_pos) goto done;
+            colon_pos = pos;
+            break;
+        case '/': /// end symbols
+        case '?':
+        case '#':
+            goto done;
+        case '@': /// myemail@gmail.com
+            if (has_terminator_after_colon) return std::string_view{};
+            if (has_at_symbol) goto done;
+            has_at_symbol = true;
+            start_of_host = pos + 1;
+            break;
+        case ' ': /// restricted symbols in whole URL
+        case '\t':
+        case '<':
+        case '>':
+        case '%':
+        case '{':
+        case '}':
+        case '|':
+        case '\\':
+        case '^':
+        case '~':
+        case '[':
+        case ']':
+        case ';':
+        case '=':
+        case '&':
+            if (colon_pos == nullptr)
+                return std::string_view{};
+            else
+                has_terminator_after_colon = true;
         }
     }
 
@@ -227,7 +224,117 @@ inline std::string_view getURLHost(const char * data, size_t size)
     return checkAndReturnHost(pos, dot_pos, start_of_host);
 }
 
-template <bool without_www, bool conform_rfc>
+/// Extracts host from given url (RFC).
+///
+/// @return like RFC function but will work in some cases without a .
+inline std::string_view getURLHostKQL(const char * data, size_t size)
+{
+    Pos pos = data;
+    Pos end = data + size;
+
+    if (*pos == '/' && *(pos + 1) == '/')
+    {
+        pos += 2;
+    }
+    else
+    {
+        Pos scheme_end = data + std::min(size, 16UL);
+        for (++pos; pos < scheme_end; ++pos)
+        {
+            if (!isAlphaNumericASCII(*pos))
+            {
+                switch (*pos)
+                {
+                    case '.':
+                    case '-':
+                    case '+':
+                        break;
+                    case ' ': /// restricted symbols
+                    case '\t':
+                    case '<':
+                    case '>':
+                    case '%':
+                    case '{':
+                    case '}':
+                    case '|':
+                    case '\\':
+                    case '^':
+                    case '~':
+                    case '[':
+                    case ']':
+                    case ';':
+                    case '=':
+                    case '&':
+                        return std::string_view{};
+                    default:
+                        goto exloop;
+                }
+            }
+        }
+    exloop:
+        if ((scheme_end - pos) > 2 && *pos == ':' && *(pos + 1) == '/' && *(pos + 2) == '/')
+            pos += 3;
+        else
+            pos = data;
+    }
+
+    Pos dot_pos = nullptr;
+    Pos colon_pos = nullptr;
+    bool has_at_symbol = false;
+    bool has_terminator_after_colon = false;
+    const auto * start_of_host = pos;
+    for (; pos < end; ++pos)
+    {
+        switch (*pos)
+        {
+        case '.':
+            if (has_at_symbol || colon_pos == nullptr)
+                dot_pos = pos;
+            break;
+        case ':':
+            if (has_at_symbol || colon_pos) goto done;
+            colon_pos = pos;
+            break;
+        case '/': /// end symbols
+        case '?':
+        case '#':
+            goto done;
+        case '@': /// myemail@gmail.com
+            if (has_terminator_after_colon) return std::string_view{};
+            if (has_at_symbol) goto done;
+            has_at_symbol = true;
+            dot_pos = start_of_host = pos + 1;
+            break;
+        case ' ': /// restricted symbols in whole URL
+        case '\t':
+        case '<':
+        case '>':
+        case '%':
+        case '{':
+        case '}':
+        case '|':
+        case '\\':
+        case '^':
+        case '~':
+        case '[':
+        case ']':
+        case ';':
+        case '=':
+        case '&':
+            if (colon_pos == nullptr)
+                return std::string_view{};
+            else
+                has_terminator_after_colon = true;
+        }
+    }
+
+done:
+    if (!has_at_symbol)
+        pos = colon_pos ? colon_pos : pos;
+    return checkAndReturnHost(pos, dot_pos, start_of_host);
+}
+
+template <bool without_www, UInt8 conform_rfc>
 struct ExtractDomain
 {
     static size_t getReserveLengthForElement() { return 15; }
@@ -235,7 +342,12 @@ struct ExtractDomain
     static void execute(Pos data, size_t size, Pos & res_data, size_t & res_size)
     {
         std::string_view host;
-        host = getURLHostRFC(data, size);
+        if constexpr (conform_rfc == 1)
+            host = getURLHostRFC(data, size);
+        else if constexpr (conform_rfc == 0)
+            host = getURLHost(data, size);
+        else
+            host = getURLHostKQL(data, size);
 
         if (host.empty())
         {

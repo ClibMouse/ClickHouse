@@ -6,10 +6,10 @@ namespace DB
 {
 
 struct NameDomainWithoutWWW { static constexpr auto name = "domainWithoutWWW"; };
-using FunctionDomainWithoutWWW = FunctionStringToString<ExtractSubstringImpl<ExtractDomain<true, false>>, NameDomainWithoutWWW>;
+using FunctionDomainWithoutWWW = FunctionStringToString<ExtractSubstringImpl<ExtractDomain<true, 0>>, NameDomainWithoutWWW>;
 
 struct NameDomainWithoutWWWRFC { static constexpr auto name = "domainWithoutWWWRFC"; };
-using FunctionDomainWithoutWWWRFC = FunctionStringToString<ExtractSubstringImpl<ExtractDomain<true, true>>, NameDomainWithoutWWWRFC>;
+using FunctionDomainWithoutWWWRFC = FunctionStringToString<ExtractSubstringImpl<ExtractDomain<true, 1>>, NameDomainWithoutWWWRFC>;
 
 
 REGISTER_FUNCTION(DomainWithoutWWW)
