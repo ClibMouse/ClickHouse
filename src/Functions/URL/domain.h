@@ -343,11 +343,17 @@ struct ExtractDomain
     {
         std::string_view host;
         if constexpr (conform_rfc == 1)
+        {
             host = getURLHostRFC(data, size);
+        }
         else if constexpr (conform_rfc == 0)
+        {
             host = getURLHost(data, size);
+        }
         else
+        {
             host = getURLHostKQL(data, size);
+        }
 
         if (host.empty())
         {

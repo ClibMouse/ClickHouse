@@ -94,11 +94,17 @@ private:
         std::string_view host;
 
         if constexpr (conform_rfc == 1)
+        {
             host = getURLHostRFC(p, size);
-        else if constexpr (conform_rfc == 0)	
+        }
+        else if constexpr (conform_rfc == 0)
+        {
             host = getURLHost(p, size);
-	else
+        }
+        else
+        {
             host = getURLHostKQL(p, size);
+        }
 
         if (host.empty())
             return default_port;
