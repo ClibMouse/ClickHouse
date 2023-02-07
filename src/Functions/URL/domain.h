@@ -20,6 +20,14 @@ inline std::string_view checkAndReturnHost(const Pos & pos, const Pos & dot_pos,
     return std::string_view(start_of_host, pos - start_of_host);
 }
 
+inline std::string_view checkAndReturnHostKQL(const Pos & pos, const Pos & start_of_host)
+{
+    if (start_of_host >= pos)
+        return std::string_view{};
+
+    return std::string_view(start_of_host, pos - start_of_host);
+}
+
 /// Extracts host from given url (RPC).
 ///
 /// @return empty string view if the host is not valid (i.e. it does not have dot, or there no symbol after dot).
@@ -278,7 +286,6 @@ inline std::string_view getURLHostKQL(const char * data, size_t size)
             pos = data;
     }
 
-    Pos dot_pos = nullptr;
     Pos colon_pos = nullptr;
     bool has_at_symbol = false;
     bool has_terminator_after_colon = false;
@@ -288,8 +295,6 @@ inline std::string_view getURLHostKQL(const char * data, size_t size)
         switch (*pos)
         {
         case '.':
-            if (has_at_symbol || colon_pos == nullptr)
-                dot_pos = pos;
             break;
         case ':':
             if (has_at_symbol || colon_pos) goto done;
@@ -303,7 +308,7 @@ inline std::string_view getURLHostKQL(const char * data, size_t size)
             if (has_terminator_after_colon) return std::string_view{};
             if (has_at_symbol) goto done;
             has_at_symbol = true;
-            dot_pos = start_of_host = pos + 1;
+            start_of_host = pos + 1;
             break;
         case ' ': /// restricted symbols in whole URL
         case '\t':
@@ -331,7 +336,7 @@ inline std::string_view getURLHostKQL(const char * data, size_t size)
 done:
     if (!has_at_symbol)
         pos = colon_pos ? colon_pos : pos;
-    return checkAndReturnHost(pos, dot_pos, start_of_host);
+    return checkAndReturnHostKQL(pos, start_of_host);
 }
 
 template <bool without_www, UInt8 conform_rfc>
