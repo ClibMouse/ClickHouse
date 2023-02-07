@@ -99,6 +99,13 @@ const std::unordered_map<String, KQLOperatorValue> KQLOperator = {
     {"startswith_cs", KQLOperatorValue::startswith_cs},
     {"!startswith_cs", KQLOperatorValue::not_startswith_cs},
 };
+
+constexpr std::string_view HAS_CS_OPERATOR_TRANSLATION{"ifNull(hasTokenOrNull({0}, {1}), position({0}, {1}) > 0)"};
+constexpr std::string_view HAS_OPERATOR_TRANSLATION{
+    "ifNull(hasTokenCaseInsensitiveOrNull({0}, {1}), positionCaseInsensitive({0}, {1}) > 0)"};
+constexpr std::string_view NOT_HAS_CS_OPERATOR_TRANSLATION{"not ifNull(hasTokenOrNull({0}, {1}), position({0}, {1}) > 0)"};
+constexpr std::string_view NOT_HAS_OPERATOR_TRANSLATION{
+    "not ifNull(hasTokenCaseInsensitiveOrNull({0}, {1}), positionCaseInsensitive({0}, {1}) > 0)"};
 }
 
 String genHasAnyAllOpExpr(
@@ -113,7 +120,7 @@ String genHasAnyAllOpExpr(
         throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", kql_op);
 
     auto haystack = tokens.back();
-    const auto *const logic_op = (kql_op == "has_all") ? " and " : " or ";
+    const auto * const logic_op = (kql_op == "has_all") ? " and " : " or ";
     while (!token_pos->isEnd() && token_pos->type != DB::TokenType::PipeMark && token_pos->type != DB::TokenType::Semicolon)
     {
         auto tmp_arg = DB::IParserKQLFunction::getExpression(token_pos);
@@ -443,28 +450,24 @@ bool KQLOperators::convert(std::vector<String> & tokens, IParser::Pos & pos)
             new_expr = "!=";
             break;
         case KQLOperatorValue::has:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "ifNull(hasTokenCaseInsensitiveOrNull({0}, {1}), {0} = {1})", WildcardsPos::none);
+            new_expr = genHaystackOpExpr(tokens, pos, op, HAS_OPERATOR_TRANSLATION, WildcardsPos::none);
             break;
 
         case KQLOperatorValue::not_has:
-            new_expr
-                = genHaystackOpExpr(tokens, pos, op, "not ifNull(hasTokenCaseInsensitiveOrNull({0}, {1}), {0} = {1})", WildcardsPos::none);
+            new_expr = genHaystackOpExpr(tokens, pos, op, NOT_HAS_OPERATOR_TRANSLATION, WildcardsPos::none);
             break;
 
         case KQLOperatorValue::has_all:
-            new_expr = genHasAnyAllOpExpr(tokens, pos, op, "ifNull(hasTokenCaseInsensitiveOrNull({0}, {1}), {0} = {1})");
-            break;
-
         case KQLOperatorValue::has_any:
-            new_expr = genHasAnyAllOpExpr(tokens, pos, op, "ifNull(hasTokenCaseInsensitiveOrNull({0}, {1}), {0} = {1})");
+            new_expr = genHasAnyAllOpExpr(tokens, pos, op, HAS_OPERATOR_TRANSLATION);
             break;
 
         case KQLOperatorValue::has_cs:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "ifNull(hasTokenOrNull({0}, {1}), {0} = {1})", WildcardsPos::none);
+            new_expr = genHaystackOpExpr(tokens, pos, op, HAS_CS_OPERATOR_TRANSLATION, WildcardsPos::none);
             break;
 
         case KQLOperatorValue::not_has_cs:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "not ifNull(hasTokenOrNull({0}, {1}), {0} = {1})", WildcardsPos::none);
+            new_expr = genHaystackOpExpr(tokens, pos, op, NOT_HAS_CS_OPERATOR_TRANSLATION, WildcardsPos::none);
             break;
 
         case KQLOperatorValue::hasprefix:
