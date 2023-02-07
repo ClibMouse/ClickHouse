@@ -270,7 +270,7 @@ jobs:
         run: |
           docker ps --quiet | xargs --no-run-if-empty docker kill ||:
           docker ps --all --quiet | xargs --no-run-if-empty docker rm -f ||:
-          sudo rm -fr "$TEMP_PATH" "$CACHES_PATH"  
+          sudo rm -fr "$TEMP_PATH" "$CACHES_PATH"
   UnitTestsReleaseClang:
     needs: [BuilderBinRelease]
     runs-on: [self-hosted, fuzzer-unit-tester]
