@@ -5,6 +5,26 @@
 - [dcount()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/dcount-aggfunction) and [dcountif()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/dcountif-aggfunction)
    docunt and dcountif now accept the additional accuracy parameter which is the base-2 logarithm of the number of cells in  [HyperLogLog](https://en.wikipedia.org/wiki/HyperLogLog).
 ## Functions
+- [abs()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/abs-function)
+   `print abs(-5)`
+- [ceiling()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/ceilingfunction)
+   `print c1 = ceiling(-1.1), c2 = ceiling(0), c3 = ceiling(0.9)`
+- [exp()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/exp-function)
+   `print exp(2)`
+- [exp2()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/exp2-function)
+   `print exp2(2)`    
+- [exp10()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/exp10-function)
+   `print exp10(3)`
+- [log()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/log-function)
+   `print log(5)`
+- [log2()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/log2-function)
+   `print log2(5)`
+- [log10()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/log10-function)
+   `print log10(5)`
+- [pow()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/powfunction)
+   `print pow(2, 3)`
+- [sqrt()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sqrtfunction) 
+   `print sqrt(256)`
 - [range()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/rangefunction)  
 Difference from ADX:  
    Return  empty array [] if range is empty, while ADX return NULL
