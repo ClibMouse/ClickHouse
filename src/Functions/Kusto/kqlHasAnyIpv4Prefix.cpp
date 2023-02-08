@@ -12,6 +12,12 @@
 
 namespace DB
 {
+namespace ErrorCodes
+{
+    extern const int ILLEGAL_TYPE_OF_ARGUMENT;
+    extern const int BAD_ARGUMENTS;
+    extern const int NUMBER_OF_ARGUMENTS_DOESNT_MATCH;
+}
 template <typename Name, bool is_any>
 class FunctionKqlHasIpv4PrefixGeneric : public IFunction
 {
@@ -96,7 +102,7 @@ public:
                 }
             }
         }
-            
+
         else if (input_rows_count && isArray(arguments.at(1).type))
         {
             Field array0;
@@ -138,7 +144,7 @@ public:
                         .get("isIPv4String", context)
                         ->build(isipv4string_args)
                         ->execute(isipv4string_args, result_type, input_rows_count);
-                    
+
                     if (isipv4->getUInt(0) == 1)
                     {
                         if (std::any_of(ipList.begin(), ipList.end(), [i, matches](const std::string & str) -> bool { return str == matches[i].str().substr(0, str.size()); }))
