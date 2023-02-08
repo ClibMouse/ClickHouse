@@ -128,7 +128,7 @@ public:
             }
         }
 
-        if (!ipList.empty())
+        if (!ips.empty())
         {
             std::string source = arguments[0].column->getDataAt(0).toString();
             std::regex ip_finder("([^[:alnum:]]|^)([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})([^[:alnum:]]|$)");
@@ -139,12 +139,12 @@ public:
             {
                 for (size_t i = 0; i < matches.size(); i++)
                 {
-                    if (std::any_of(ipList.begin(), ipList.end(), [i, matches](const std::string & str) -> bool { return str == matches[i]; }))
+                    if (std::any_of(ips.begin(), ips.end(), [i, matches](const std::string & str) -> bool { return str == matches[i]; }))
                     {
                         found_match = true;
                     }
                 }
-                if (foundMatch == true)
+                if (found_match == true)
                     return bool_type->createColumnConst(input_rows_count,1);
             }
         }
