@@ -1067,7 +1067,7 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::has_ipv4_prefix:
             return std::make_unique<HasIpv4Prefix>();
-        
+
         case KQLFunction::has_any_ipv4_prefix:
             return std::make_unique<HasAnyIpv4Prefix>();
 

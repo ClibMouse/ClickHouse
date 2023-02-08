@@ -12,6 +12,12 @@
 
 namespace DB
 {
+namespace ErrorCodes
+{
+    extern const int ILLEGAL_TYPE_OF_ARGUMENT;
+    extern const int BAD_ARGUMENTS;
+}
+
 template <typename Name, bool is_any>
 class FunctionKqlHasIpv4Generic : public IFunction
 {
@@ -95,7 +101,7 @@ public:
                 }
             }
         }
-            
+
         else if (isArray(arguments.at(1).type))
         {
             Field array0;
@@ -138,10 +144,10 @@ public:
                     }
                 }
                 if (foundMatch == true)
-                    return bool_type->createColumnConst(input_rows_count,1); 
+                    return bool_type->createColumnConst(input_rows_count,1);
             }
         }
-        return bool_type->createColumnConst(input_rows_count,0); 
+        return bool_type->createColumnConst(input_rows_count,0);
     }
 
 private:
