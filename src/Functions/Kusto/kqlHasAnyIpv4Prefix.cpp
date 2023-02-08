@@ -36,9 +36,9 @@ public:
 
     DataTypePtr getReturnTypeImpl(const ColumnsWithTypeAndName & arguments) const override
     {
-        auto argsLength = arguments.size();
+        auto args_length = arguments.size();
 
-        if (argsLength < 2)
+        if (args_length < 2)
         {
             throw Exception(
                 "Number of arguments for function " + getName() + " doesn't match: passed " + toString(arguments.size())
@@ -81,8 +81,8 @@ public:
     ColumnPtr executeImpl(
         const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const size_t input_rows_count) const override
     {
-        auto argsLength = arguments.size();
-        std::vector<std::string> ipList;
+        auto args_length = arguments.size();
+        std::vector<std::string> ips;
         auto bool_type = std::make_shared<DataTypeUInt8>();
 
         if (input_rows_count && isStringOrFixedString(arguments.at(1).type))
@@ -98,7 +98,7 @@ public:
 
                 if (std::count(ip_prefix.begin(), ip_prefix.end(), '.') == 3 || ip_prefix.back() == '.')
                 {
-                    ipList.push_back(ip_prefix);
+                    ips.push_back(ip_prefix);
                 }
             }
         }
@@ -121,13 +121,13 @@ public:
 
                     if (std::count(ip_prefix.begin(), ip_prefix.end(), '.') == 3 || ip_prefix.back() == '.')
                     {
-                        ipList.push_back(ip_prefix);
+                        ips.push_back(ip_prefix);
                     }
                 }
             }
         }
 
-        if (!ipList.empty())
+        if (!ips.empty())
         {
             std::string source = arguments[0].column->getDataAt(0).toString();
             std::regex ip_finder("([^[:alnum:]]|^)([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})([^[:alnum:]]|$)");

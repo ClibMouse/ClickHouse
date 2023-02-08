@@ -37,9 +37,9 @@ public:
 
     DataTypePtr getReturnTypeImpl(const ColumnsWithTypeAndName & arguments) const override
     {
-        auto argsLength = arguments.size();
+        auto args_length = arguments.size();
 
-        if (argsLength < 2)
+        if (args_length < 2)
         {
             throw Exception(
                 "Number of arguments for function " + getName() + " doesn't match: passed " + toString(arguments.size())
@@ -61,7 +61,7 @@ public:
         {
             if (is_any)
             {
-                for (size_t i = 2; i < argsLength; i++)
+                for (size_t i = 2; i < args_length; i++)
                 {
                     if (!isStringOrFixedString(arguments.at(i).type))
                     {
@@ -82,13 +82,13 @@ public:
     ColumnPtr executeImpl(
         const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const size_t input_rows_count) const override
     {
-        auto argsLength = arguments.size();
-        std::vector<std::string> ipList;
+        auto args_length = arguments.size();
+        std::vector<std::string> ips;
         auto bool_type = std::make_shared<DataTypeUInt8>();
 
         if (isStringOrFixedString(arguments.at(1).type))
         {
-            for (size_t i = 1; i < argsLength; i++)
+            for (size_t i = 1; i < args_length; i++)
             {
                 const ColumnsWithTypeAndName isipv4string_args = {arguments[i]};
                 auto isipv4 = FunctionFactory::instance()
@@ -98,7 +98,7 @@ public:
                 if (isipv4->getUInt(0) == 1)
                 {
                     std::string ip = arguments[i].column->getDataAt(0).toString();
-                    ipList.push_back(ip);
+                    ips.push_back(ip);
                 }
             }
         }
@@ -122,7 +122,7 @@ public:
                         ->execute(isipv4string_args, result_type, input_rows_count);
                     if (isipv4->getUInt(0) == 1)
                     {
-                        ipList.push_back(toString(array0.get<Array>().at(k)));
+                        ips.push_back(toString(array0.get<Array>().at(k)));
                     }
                 }
             }
@@ -133,7 +133,7 @@ public:
             std::string source = arguments[0].column->getDataAt(0).toString();
             std::regex ip_finder("([^[:alnum:]]|^)([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})([^[:alnum:]]|$)");
             std::smatch matches;
-            bool foundMatch = false;
+            bool found_match = false;
 
             if (std::regex_search(source, matches, ip_finder))
             {
@@ -141,7 +141,7 @@ public:
                 {
                     if (std::any_of(ipList.begin(), ipList.end(), [i, matches](const std::string & str) -> bool { return str == matches[i]; }))
                     {
-                        foundMatch = true;
+                        found_match = true;
                     }
                 }
                 if (foundMatch == true)
