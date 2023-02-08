@@ -200,6 +200,10 @@ enum class KQLFunction : uint16_t
     parse_ipv6_mask,
     format_ipv4,
     format_ipv4_mask,
+    has_ipv4,
+    has_any_ipv4,
+    has_ipv4_prefix,
+    has_any_ipv4_prefix,
 
     binary_and,
     binary_not,
@@ -445,6 +449,10 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"parse_ipv6_mask", KQLFunction::parse_ipv6_mask},
     {"format_ipv4", KQLFunction::format_ipv4},
     {"format_ipv4_mask", KQLFunction::format_ipv4_mask},
+    {"has_ipv4", KQLFunction::has_ipv4},
+    {"has_any_ipv4", KQLFunction::has_any_ipv4},
+    {"has_ipv4_prefix", KQLFunction::has_ipv4_prefix},
+    {"has_any_ipv4_prefix", KQLFunction::has_any_ipv4_prefix},
 
     {"binary_and", KQLFunction::binary_and},
     {"binary_not", KQLFunction::binary_not},
@@ -1050,6 +1058,18 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::format_ipv4_mask:
             return std::make_unique<FormatIpv4Mask>();
+
+        case KQLFunction::has_ipv4:
+            return std::make_unique<HasIpv4>();
+
+        case KQLFunction::has_any_ipv4:
+            return std::make_unique<HasAnyIpv4>();
+
+        case KQLFunction::has_ipv4_prefix:
+            return std::make_unique<HasIpv4Prefix>();
+        
+        case KQLFunction::has_any_ipv4_prefix:
+            return std::make_unique<HasAnyIpv4Prefix>();
 
         case KQLFunction::binary_and:
             return std::make_unique<BinaryAnd>();
