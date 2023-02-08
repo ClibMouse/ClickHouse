@@ -284,4 +284,83 @@ bool FormatIpv4Mask::convertImpl(String & out, IParser::Pos & pos)
         kqlCallToExpression("ipv4_netmask_suffix", {"tostring(" + ip_address + ")"}, pos.max_depth));
     return true;
 }
+
+bool HasIpv4::convertImpl(String & out, IParser::Pos & pos)
+{
+    const auto function_name = getKQLFunctionName(pos);
+    if (function_name.empty())
+        return false;
+    const auto source = getArgument(function_name, pos, ArgumentState::Raw);
+    const auto ip_address = getArgument(function_name, pos, ArgumentState::Parsed);
+
+    out = std::format(
+        "kql_has_ipv4({0}, {1})",
+        source,
+        ip_address);
+    return true;
 }
+
+bool HasAnyIpv4::convertImpl(String & out, IParser::Pos & pos)
+{
+    const auto function_name = getKQLFunctionName(pos);
+    if (function_name.empty())
+        return false;
+    const auto source = getArgument(function_name, pos, ArgumentState::Raw);
+    const auto first_address = getArgument(function_name, pos, ArgumentState::Parsed);
+    const auto ip_addrs = getArguments(function_name, pos, ArgumentState::Parsed);
+
+    out = std::format(
+        "kql_has_any_ipv4({0}, {1}",
+        source,
+        first_address);
+
+    for (auto ip : ip_addrs)
+    {
+        out += std::format(
+            ",{0}",
+            ip);
+    }
+    out += ")";
+    return true;
+}
+
+bool HasIpv4Prefix::convertImpl(String & out, IParser::Pos & pos)
+{
+    const auto function_name = getKQLFunctionName(pos);
+    if (function_name.empty())
+        return false;
+    const auto source = getArgument(function_name, pos, ArgumentState::Raw);
+    const auto ip_address = getArgument(function_name, pos, ArgumentState::Parsed);
+
+    out = std::format(
+        "kql_has_ipv4_prefix({0}, {1})",
+        source,
+        ip_address);
+    return true;
+}
+
+bool HasAnyIpv4Prefix::convertImpl(String & out, IParser::Pos & pos)
+{
+    const auto function_name = getKQLFunctionName(pos);
+    if (function_name.empty())
+        return false;
+    const auto source = getArgument(function_name, pos, ArgumentState::Raw);
+    const auto first_address = getArgument(function_name, pos, ArgumentState::Parsed);
+    const auto ip_addrs = getArguments(function_name, pos, ArgumentState::Parsed);
+
+    out = std::format(
+        "kql_has_any_ipv4_prefix({0}, {1}",
+        source,
+        first_address);
+
+    for (auto ip : ip_addrs)
+    {
+        out += std::format(
+            ",{0}",
+            ip);
+    }
+    out += ")";
+    return true;
+}
+}
+
