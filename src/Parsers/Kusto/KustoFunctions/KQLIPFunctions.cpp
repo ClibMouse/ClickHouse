@@ -287,17 +287,7 @@ bool FormatIpv4Mask::convertImpl(String & out, IParser::Pos & pos)
 
 bool HasIpv4::convertImpl(String & out, IParser::Pos & pos)
 {
-    const auto function_name = getKQLFunctionName(pos);
-    if (function_name.empty())
-        return false;
-    const auto source = getArgument(function_name, pos, ArgumentState::Raw);
-    const auto ip_address = getArgument(function_name, pos, ArgumentState::Parsed);
-
-    out = std::format(
-        "kql_has_ipv4({0}, {1})",
-        source,
-        ip_address);
-    return true;
+    return directMapping(out, pos, "kql_has_ipv4");
 }
 
 bool HasAnyIpv4::convertImpl(String & out, IParser::Pos & pos)
@@ -326,17 +316,7 @@ bool HasAnyIpv4::convertImpl(String & out, IParser::Pos & pos)
 
 bool HasIpv4Prefix::convertImpl(String & out, IParser::Pos & pos)
 {
-    const auto function_name = getKQLFunctionName(pos);
-    if (function_name.empty())
-        return false;
-    const auto source = getArgument(function_name, pos, ArgumentState::Raw);
-    const auto ip_address = getArgument(function_name, pos, ArgumentState::Parsed);
-
-    out = std::format(
-        "kql_has_ipv4_prefix({0}, {1})",
-        source,
-        ip_address);
-    return true;
+    return directMapping(out, pos, "kql_has_ipv4_prefix");
 }
 
 bool HasAnyIpv4Prefix::convertImpl(String & out, IParser::Pos & pos)
