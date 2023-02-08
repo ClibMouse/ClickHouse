@@ -223,7 +223,18 @@ enum class KQLFunction : uint16_t
     datatype_real,
     datatype_timespan,
     datatype_decimal,
-    range
+    range,
+
+    abs,
+    ceiling,
+    exp,
+    exp2,
+    exp10,
+    log,
+    log2,
+    log10,
+    pow,
+    sqrt
 };
 
 const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
@@ -440,7 +451,19 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"timespan", KQLFunction::datatype_timespan},
     {"time", KQLFunction::datatype_timespan},
     {"decimal", KQLFunction::datatype_decimal},
-    {"range", KQLFunction::range}
+    {"range", KQLFunction::range},
+
+    {"abs", KQLFunction::abs},
+    {"ceiling", KQLFunction::ceiling},
+    {"exp", KQLFunction::exp},
+    {"exp2", KQLFunction::exp2},
+    {"exp10", KQLFunction::exp10},
+    {"log", KQLFunction::log},
+    {"log2", KQLFunction::log2},
+    {"log10", KQLFunction::log10},
+    {"pow", KQLFunction::pow},
+    {"sqrt", KQLFunction::sqrt}
+
     };
 }
 
@@ -1049,6 +1072,38 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::range:
             return std::make_unique<Range>();
+
+        case KQLFunction::abs:
+            return std::make_unique<Abs>();
+
+        case KQLFunction::ceiling:
+            return std::make_unique<Ceiling>();
+
+        case KQLFunction::exp:
+            return std::make_unique<Exp>();
+
+        case KQLFunction::exp2:
+            return std::make_unique<Exp2>();
+
+        case KQLFunction::exp10:
+            return std::make_unique<Exp10>();
+
+        case KQLFunction::log:
+            return std::make_unique<Log>();
+
+        case KQLFunction::log2:
+            return std::make_unique<Log2>();
+
+        case KQLFunction::log10:
+            return std::make_unique<Log10>();
+
+        case KQLFunction::pow:
+            return std::make_unique<Pow>();
+
+        case KQLFunction::sqrt:
+            return std::make_unique<Sqrt>();
+
+
     }
 }
 }
