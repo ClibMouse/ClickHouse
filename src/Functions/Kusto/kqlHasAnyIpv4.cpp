@@ -59,7 +59,7 @@ public:
 
         if (isStringOrFixedString(arguments.at(1).type))
         {
-            if(is_any)
+            if (is_any)
             {
                 for (size_t i = 2; i < argsLength; i++)
                 {
@@ -109,7 +109,7 @@ public:
             arguments[1].column->get(0, array0);
             size_t len0 = array0.get<Array>().size();
 
-            for(size_t k = 0; k < len0; k++)
+            for (size_t k = 0; k < len0; k++)
             {
                 if (array0.get<Array>().at(k).getType() == Field::Types::String)
                 {
@@ -135,7 +135,7 @@ public:
             std::smatch matches;
             bool foundMatch = false;
 
-            if(std::regex_search(source, matches, ip_finder))
+            if (std::regex_search(source, matches, ip_finder))
             {
                 for (size_t i = 0; i < matches.size(); i++)
                 {
