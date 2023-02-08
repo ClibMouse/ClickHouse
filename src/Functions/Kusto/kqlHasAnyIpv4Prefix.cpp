@@ -60,7 +60,7 @@ public:
         {
             if (is_any)
             {
-                for (size_t i = 2; i < argsLength; i++)
+                for (size_t i = 2; i < args_length; i++)
                 {
                     if (!isStringOrFixedString(arguments.at(i).type))
                     {
@@ -87,7 +87,7 @@ public:
 
         if (input_rows_count && isStringOrFixedString(arguments.at(1).type))
         {
-            for (size_t i = 1; i < argsLength; i++)
+            for (size_t i = 1; i < args_length; i++)
             {
                 std::string ip_prefix = arguments[i].column->getDataAt(0).toString();
 
@@ -147,7 +147,7 @@ public:
 
                     if (isipv4->getUInt(0) == 1)
                     {
-                        if (std::any_of(ipList.begin(), ipList.end(), [i, matches](const std::string & str) -> bool { return str == matches[i].str().substr(0, str.size()); }))
+                        if (std::any_of(ips.begin(), ips.end(), [i, matches](const std::string & str) -> bool { return str == matches[i].str().substr(0, str.size()); }))
                         {
                             return bool_type->createColumnConst(input_rows_count,1);
                         }
