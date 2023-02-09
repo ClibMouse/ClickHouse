@@ -1,7 +1,5 @@
 #include "KQLMathematicalFunctions.h"
 
-#include <Common/StringUtils/StringUtils.h>
-
 #include <format>
 
 namespace DB

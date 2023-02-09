@@ -464,7 +464,7 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"pow", KQLFunction::pow},
     {"sqrt", KQLFunction::sqrt}
 
-    };
+};
 }
 
 namespace DB
@@ -475,7 +475,7 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
     if (kql_function_it == KQL_FUNCTIONS.end())
         return nullptr;
 
-    const auto& kql_function_id = kql_function_it->second;
+    const auto & kql_function_id = kql_function_it->second;
     switch (kql_function_id)
     {
         case KQLFunction::none:
@@ -1102,8 +1102,6 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::sqrt:
             return std::make_unique<Sqrt>();
-
-
     }
 }
 }
