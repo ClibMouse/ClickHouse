@@ -36,7 +36,7 @@ public:
 
     DataTypePtr getReturnTypeImpl(const ColumnsWithTypeAndName & arguments) const override
     {
-        auto args_length = arguments.size();
+        const auto args_length = arguments.size();
 
         if (args_length < 2)
         {
@@ -81,7 +81,7 @@ public:
     ColumnPtr executeImpl(
         const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const size_t input_rows_count) const override
     {
-        auto args_length = arguments.size();
+        const auto args_length = arguments.size();
         std::vector<std::string> ips;
         auto bool_type = std::make_shared<DataTypeUInt8>();
 
