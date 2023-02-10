@@ -1,9 +1,6 @@
 ## KQL implemented features  
 
-# January XX, 2023
-## Improvement
-- [dcount()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/dcount-aggfunction) and [dcountif()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/dcountif-aggfunction)
-   docunt and dcountif now accept the additional accuracy parameter which is the base-2 logarithm of the number of cells in  [HyperLogLog](https://en.wikipedia.org/wiki/HyperLogLog).
+# February XX, 2023
 ## Functions
 - [abs()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/abs-function)
    `print abs(-5)`
@@ -12,7 +9,7 @@
 - [exp()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/exp-function)
    `print exp(2)`
 - [exp2()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/exp2-function)
-   `print exp2(2)`    
+   `print exp2(2)`
 - [exp10()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/exp10-function)
    `print exp10(3)`
 - [log()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/log-function)
@@ -23,8 +20,14 @@
    `print log10(5)`
 - [pow()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/powfunction)
    `print pow(2, 3)`
-- [sqrt()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sqrtfunction) 
+- [sqrt()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sqrtfunction)
    `print sqrt(256)`
+
+# January XX, 2023
+## Improvement
+- [dcount()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/dcount-aggfunction) and [dcountif()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/dcountif-aggfunction)
+   docunt and dcountif now accept the additional accuracy parameter which is the base-2 logarithm of the number of cells in  [HyperLogLog](https://en.wikipedia.org/wiki/HyperLogLog).
+## Functions
 - [range()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/rangefunction)  
 Difference from ADX:  
    Return  empty array [] if range is empty, while ADX return NULL
