@@ -174,6 +174,7 @@ print totimespan('abc');
 print totimespan('12.23:12:23') / totimespan(1s);
 print totimespan(strcat('12.', '23', ':12:', '23')) / timespan(1s);
 print totimespan(timespan(16:30));
+print totimespan("'asdadsasd");
 print '-- tolong()';
 print tolong('123');
 print tolong('abc');
