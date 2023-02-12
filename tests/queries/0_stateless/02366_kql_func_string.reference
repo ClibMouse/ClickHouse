@@ -284,6 +284,7 @@ true
 1-2-A-00:00:01
 1-2-A-55
 1-2-A-7.99
+qqqqq fffffff \'asd bcd\' "moo moo "
 
 -- base64_encode_fromguid()
 8jMxriJurkmwahbmqbIS6w==
@@ -308,6 +309,7 @@ Kusto1
 -- strcat --
 a1235.00:00:00
 a111.01:00:00
+ab\'c
 -- strcmp()
 0	1	-1	1
 -- substring()
