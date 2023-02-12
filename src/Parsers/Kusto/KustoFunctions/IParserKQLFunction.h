@@ -79,6 +79,7 @@ public:
     static String
     kqlCallToExpression(std::string_view function_name, std::initializer_list<const std::string_view> params, uint32_t max_depth);
     static String kqlCallToExpression(std::string_view function_name, std::span<const std::string_view> params, uint32_t max_depth);
+    static String getEscapedString(const String & input);
 
 protected:
     virtual bool convertImpl(String & out, IParser::Pos & pos) = 0;
