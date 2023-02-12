@@ -189,7 +189,7 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
             {
                 String token;
                 if (pos->type == TokenType::QuotedIdentifier)
-                    token = "'" + String(pos->begin + 1, pos->end - 1) + "'";
+                    token = "'" + getEscapedString(String(pos->begin + 1, pos->end - 1)) + "'";
                 else if (pos->type == TokenType::OpeningSquareBracket)
                 {
                     ++pos;
@@ -344,7 +344,7 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
         }
     }
     else if (pos->type == TokenType::QuotedIdentifier)
-        arg = "'" + String(pos->begin + 1, pos->end - 1) + "'";
+        arg = "'" + getEscapedString(String(pos->begin + 1, pos->end - 1)) + "'";
     else if (pos->type == TokenType::OpeningSquareBracket)
     {
         ++pos;
@@ -358,5 +358,17 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
     }
 
     return arg;
+}
+
+String IParserKQLFunction::getEscapedString(const String & input)
+{
+    String output;
+    for (auto & ch: input)
+    {
+        if (ch == '\'')
+            output += '\'';
+        output += ch;
+    }
+    return output;
 }
 }
