@@ -55,7 +55,7 @@ public:
 
         if (isStringOrFixedString(arguments.at(1).type))
         {
-            if constexpr(is_any)
+            if constexpr (is_any)
             {
                 for (size_t i = 2; i < args_length; i++)
                 {
@@ -80,11 +80,6 @@ public:
     {
         const auto args_length = arguments.size();
         auto result_column = ColumnUInt8::create();
-        auto isipv4string = [&, result_type] (ColumnsWithTypeAndName args) {
-            return FunctionFactory::instance()
-                .get("isIPv4String", context)
-                ->build(args)
-                ->execute(args, result_type, 1);};
         
         for (size_t i = 0; i < input_rows_count; i++)
         {
