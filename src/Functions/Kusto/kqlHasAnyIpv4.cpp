@@ -56,7 +56,7 @@ public:
 
         if (isStringOrFixedString(arguments.at(1).type))
         {
-            if constexpr(is_any)
+            if constexpr (is_any)
             {
                 for (size_t i = 2; i < args_length; i++)
                 {
