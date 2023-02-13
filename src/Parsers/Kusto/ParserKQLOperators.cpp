@@ -242,7 +242,7 @@ std::string genInOpExpr(DB::IParser::Pos & token_pos, const std::string & kql_op
             ++tmp_pos;
         }
 
-        if (pos->type != TokenType::ClosingRoundBracket)
+        if (pos->type != DB::TokenType::ClosingRoundBracket)
             throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", kql_op);
 
         token_pos = pos;
