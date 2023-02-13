@@ -23,9 +23,9 @@ bool Ipv4Compare::convertImpl(String & out, IParser::Pos & pos)
     out = std::format(
         "if(isNull({0} as lhs_ip_{5}) or isNull({1} as lhs_mask_{5}) "
         "or isNull({2} as rhs_ip_{5}) or isNull({3} as rhs_mask_{5}), null, "
-        "sign(IPv4StringToNumOrNull(toString((tupleElement(IPv4CIDRToRange(assumeNotNull(lhs_ip_{5}), "
-        "toUInt8(min2({4}, min2(assumeNotNull(lhs_mask_{5}), assumeNotNull(rhs_mask_{5})))) as mask_{5}), 1))))"
-        "   - IPv4StringToNumOrNull(toString((tupleElement(IPv4CIDRToRange(assumeNotNull(rhs_ip_{5}), mask_{5}), 1))))))",
+        "sign(toInt64(tupleElement(IPv4CIDRToRange(assumeNotNull(lhs_ip_{5}), "
+        "toUInt8(min2({4}, min2(assumeNotNull(lhs_mask_{5}), assumeNotNull(rhs_mask_{5})))) as mask_{5}), 1)::UInt32)"
+        "   - toInt64(tupleElement(IPv4CIDRToRange(assumeNotNull(rhs_ip_{5}), mask_{5}), 1)::UInt32)))",
         kqlCallToExpression("parse_ipv4", {lhs}, pos.max_depth),
         kqlCallToExpression("ipv4_netmask_suffix", {lhs}, pos.max_depth),
         kqlCallToExpression("parse_ipv4", {rhs}, pos.max_depth),
@@ -128,7 +128,7 @@ bool ParseIpv4::convertImpl(String & out, IParser::Pos & pos)
     out = std::format(
         "multiIf(length(splitByChar('/', {0}) as tokens_{1}) = 1, IPv4StringToNumOrNull(tokens_{1}[1]) as ip_{1}, "
         "length(tokens_{1}) = 2 and isNotNull(ip_{1}) and isNotNull(toUInt8OrNull(tokens_{1}[-1]) as mask_{1}), "
-        "IPv4StringToNumOrNull(toString(tupleElement(IPv4CIDRToRange(toIPv4(assumeNotNull(ip_{1})), assumeNotNull(mask_{1})), 1))), null)",
+        "tupleElement(IPv4CIDRToRange(assumeNotNull(ip_{1}), assumeNotNull(mask_{1})), 1)::UInt32, null)",
         ip_address,
         generateUniqueIdentifier());
     return true;
