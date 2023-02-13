@@ -79,17 +79,15 @@ public:
     ColumnPtr executeImpl(
         const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const size_t input_rows_count) const override
     {
-        (void)input_rows_count;
         const auto args_length = arguments.size();
         auto result_column = ColumnUInt8::create();
-        const auto max_rows = std::max_element(arguments.begin(), arguments.end(), [] (ColumnWithTypeAndName const & lhs, ColumnWithTypeAndName const & rhs) { return lhs.column->size() < rhs.column->size(); })[0].column->size();
         auto isipv4string = [&, result_type] (ColumnsWithTypeAndName args) {
             return FunctionFactory::instance()
                 .get("isIPv4String", context)
                 ->build(args)
                 ->execute(args, result_type, 1);};
 
-        for (size_t i = 0; i < max_rows; i++)
+        for (size_t i = 0; i < input_rows_count; i++)
         {
             bool res = false;
             std::vector<std::string> ips;
@@ -97,7 +95,7 @@ public:
             {
                 for (size_t j = 1; j < args_length; j++)
                 {
-                    std::string arg = arguments[j].column->size() == max_rows ? arguments[j].column->getDataAt(i).toString() : arguments[j].column->getDataAt(0).toString();
+                    std::string arg = arguments[j].column->size() == input_rows_count ? arguments[j].column->getDataAt(i).toString() : arguments[j].column->getDataAt(0).toString();
 
                     ColumnPtr column_ip = DataTypeString().createColumnConst(1, toField(String(arg)));
                     const ColumnsWithTypeAndName isipv4string_args = {ColumnWithTypeAndName(column_ip, std::make_shared<DataTypeString>(), "ip")};
@@ -113,7 +111,7 @@ public:
             else if (isArray(arguments.at(1).type))
             {
                 Field array0;
-                arguments[1].column->size() == max_rows ? arguments[1].column->get(i, array0) : arguments[1].column->get(0, array0);
+                arguments[1].column->size() == input_rows_count ? arguments[1].column->get(i, array0) : arguments[1].column->get(0, array0);
                 const auto len0 = array0.get<Array>().size();
 
                 for (size_t j = 0; j < len0; j++)
@@ -134,7 +132,7 @@ public:
 
             if (!ips.empty())
             {
-                std::string source = arguments[0].column->size() == max_rows ? arguments[0].column->getDataAt(i).toString() : arguments[0].column->getDataAt(0).toString();
+                std::string source = arguments[0].column->size() == input_rows_count ? arguments[0].column->getDataAt(i).toString() : arguments[0].column->getDataAt(0).toString();
                 std::regex ip_finder("([^[:alnum:]]|^)([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})([^[:alnum:]]|$)");
                 std::smatch matches;
 
