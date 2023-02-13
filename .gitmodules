@@ -48,7 +48,7 @@
 	url = https://github.com/ClickHouse/boost.git
 [submodule "contrib/base64"]
 	path = contrib/base64
-	url = https://github.com/ClickHouse/Turbo-Base64.git
+	url = https://github.com/ClibMouse/Turbo-Base64.git
 [submodule "contrib/arrow"]
 	path = contrib/arrow
 	url = https://github.com/ClickHouse/arrow.git
