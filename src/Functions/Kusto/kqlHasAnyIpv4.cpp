@@ -41,39 +41,36 @@ public:
 
         if (args_length < 2)
         {
-            throw Exception(
-                "Number of arguments for function " + getName() + " doesn't match: passed " + toString(arguments.size())
-                + ", should be 2 or more.",
-                ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH);
+            throw Exception(ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "Number of arguments for function {} doesn't match: passed {}, should be 2 or more.", getName(), toString(arguments.size()));
         }
 
         if (!isStringOrFixedString(arguments.at(0).type))
         {
-            throw Exception("Illegal type of argument of function " + getName(), ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT);
+            throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type of argument of function {}", getName());
         }
 
         if (!isStringOrFixedString(arguments.at(1).type) && !isArray(arguments.at(1).type))
         {
-            throw Exception("Illegal type of argument of function " + getName(), ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT);
+            throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type of argument of function {}", getName());
         }
 
         if (isStringOrFixedString(arguments.at(1).type))
         {
-            if (is_any)
+            if constexpr(is_any)
             {
                 for (size_t i = 2; i < args_length; i++)
                 {
                     if (!isStringOrFixedString(arguments.at(i).type))
                     {
-                        throw Exception("Illegal type of argument of function " + getName(), ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT);
+                        throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type of argument of function {}", getName());
                     }
                 }
             }
         }
 
-        else if (is_any == false || !isArray(arguments.at(1).type))
+        else if (!is_any || !isArray(arguments.at(1).type))
         {
-            throw Exception("Illegal type of argument of function " + getName(), ErrorCodes::BAD_ARGUMENTS);
+            throw Exception(ErrorCodes::BAD_ARGUMENTS, "Illegal type of argument of function {}", getName());
         }
 
         return std::make_shared<DataTypeUInt8>();
@@ -82,73 +79,81 @@ public:
     ColumnPtr executeImpl(
         const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const size_t input_rows_count) const override
     {
+        (void)input_rows_count;
         const auto args_length = arguments.size();
-        std::vector<std::string> ips;
-        auto bool_type = std::make_shared<DataTypeUInt8>();
+        auto result_column = ColumnUInt8::create();
+        const auto max_rows = std::max_element(arguments.begin(), arguments.end(), [] (ColumnWithTypeAndName const & lhs, ColumnWithTypeAndName const & rhs) { return lhs.column->size() < rhs.column->size(); })[0].column->size();
+        auto isipv4string = [&, result_type] (ColumnsWithTypeAndName args) {
+            return FunctionFactory::instance()
+                .get("isIPv4String", context)
+                ->build(args)
+                ->execute(args, result_type, 1);};
 
-        if (isStringOrFixedString(arguments.at(1).type))
+        for (size_t i = 0; i < max_rows; i++)
         {
-            for (size_t i = 1; i < args_length; i++)
+            bool res = false;
+            std::vector<std::string> ips;
+            if (isStringOrFixedString(arguments.at(1).type))
             {
-                const ColumnsWithTypeAndName isipv4string_args = {arguments[i]};
-                auto isipv4 = FunctionFactory::instance()
-                    .get("isIPv4String", context)
-                    ->build(isipv4string_args)
-                    ->execute(isipv4string_args, result_type, input_rows_count);
-                if (isipv4->getUInt(0) == 1)
+                for (size_t j = 1; j < args_length; j++)
                 {
-                    std::string ip = arguments[i].column->getDataAt(0).toString();
-                    ips.push_back(ip);
-                }
-            }
-        }
+                    std::string arg = arguments[j].column->size() == max_rows ? arguments[j].column->getDataAt(i).toString() : arguments[j].column->getDataAt(0).toString();
 
-        else if (isArray(arguments.at(1).type))
-        {
-            Field array0;
-            arguments[1].column->get(0, array0);
-            size_t len0 = array0.get<Array>().size();
-
-            for (size_t k = 0; k < len0; k++)
-            {
-                if (array0.get<Array>().at(k).getType() == Field::Types::String)
-                {
-                    ColumnPtr column_ip = DataTypeString().createColumnConst(1, array0.get<Array>().at(k));
+                    ColumnPtr column_ip = DataTypeString().createColumnConst(1, toField(String(arg)));
                     const ColumnsWithTypeAndName isipv4string_args = {ColumnWithTypeAndName(column_ip, std::make_shared<DataTypeString>(), "ip")};
 
-                    auto isipv4 = FunctionFactory::instance()
-                        .get("isIPv4String", context)
-                        ->build(isipv4string_args)
-                        ->execute(isipv4string_args, result_type, input_rows_count);
+                    auto isipv4 = isipv4string(isipv4string_args);
                     if (isipv4->getUInt(0) == 1)
                     {
-                        ips.push_back(toString(array0.get<Array>().at(k)));
+                        ips.push_back(arg);
                     }
                 }
             }
-        }
 
-        if (!ips.empty())
-        {
-            std::string source = arguments[0].column->getDataAt(0).toString();
-            std::regex ip_finder("([^[:alnum:]]|^)([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})([^[:alnum:]]|$)");
-            std::smatch matches;
-            bool found_match = false;
-
-            if (std::regex_search(source, matches, ip_finder))
+            else if (isArray(arguments.at(1).type))
             {
-                for (size_t i = 0; i < matches.size(); i++)
+                Field array0;
+                arguments[1].column->size() == max_rows ? arguments[1].column->get(i, array0) : arguments[1].column->get(0, array0);
+                const auto len0 = array0.get<Array>().size();
+
+                for (size_t j = 0; j < len0; j++)
                 {
-                    if (std::any_of(ips.begin(), ips.end(), [i, matches](const std::string & str) -> bool { return str == matches[i]; }))
+                    if (array0.get<Array>().at(j).getType() == Field::Types::String)
                     {
-                        found_match = true;
+                        ColumnPtr column_ip = DataTypeString().createColumnConst(1, array0.get<Array>().at(j));
+                        const ColumnsWithTypeAndName isipv4string_args = {ColumnWithTypeAndName(column_ip, std::make_shared<DataTypeString>(), "ip")};
+
+                        auto isipv4 = isipv4string(isipv4string_args);
+                        if (isipv4->getUInt(0) == 1)
+                        {
+                            ips.push_back(toString(array0.get<Array>().at(j)));
+                        }
                     }
                 }
-                if (found_match == true)
-                    return bool_type->createColumnConst(input_rows_count,1);
             }
+
+            if (!ips.empty())
+            {
+                std::string source = arguments[0].column->size() == max_rows ? arguments[0].column->getDataAt(i).toString() : arguments[0].column->getDataAt(0).toString();
+                std::regex ip_finder("([^[:alnum:]]|^)([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})([^[:alnum:]]|$)");
+                std::smatch matches;
+
+                while (std::regex_search(source, matches, ip_finder))
+                {
+                    for (size_t j = 0; j < matches.size(); j++)
+                    {
+                        if (std::any_of(ips.begin(), ips.end(), [j, matches](const std::string & str) -> bool { return str == matches[j]; }))
+                        {
+                            res = true;
+                            break;
+                        }
+                    }
+                    source = matches.suffix().str();
+                }
+            }
+            result_column->insertValue(UInt8(res));
         }
-        return bool_type->createColumnConst(input_rows_count,0);
+        return result_column;
     }
 
 private:
