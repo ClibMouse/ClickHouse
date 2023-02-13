@@ -7,8 +7,8 @@
 #include <Functions/FunctionHelpers.h>
 #include <Functions/IFunction.h>
 #include <Functions/Kusto/KqlFunctionBase.h>
-#include <iostream>
 #include <regex>
+#include <ranges>
 
 namespace DB
 {
@@ -57,13 +57,9 @@ public:
         {
             if constexpr (is_any)
             {
-                for (size_t i = 2; i < args_length; i++)
-                {
-                    if (!isStringOrFixedString(arguments.at(i).type))
-                    {
-                        throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type of argument of function {}", getName());
-                    }
-                }
+                const auto are_arguments_valid = std::ranges::all_of(arguments | std::views::drop(2), [](const auto & argument) { return isStringOrFixedString(argument.type); });
+                if (!are_arguments_valid)
+                    throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type of argument of function {}", getName());
             }
         }
 
@@ -80,7 +76,7 @@ public:
     {
         const auto args_length = arguments.size();
         auto result_column = ColumnUInt8::create();
-        
+
         for (size_t i = 0; i < input_rows_count; i++)
         {
             bool res = false;
