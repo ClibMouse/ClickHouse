@@ -101,6 +101,7 @@ bool ParserKQLMVExpand::parseColumnArrayExprs(ColumnArrayExprs & column_array_ex
             ++pos;
             if (!close_bracket.ignore(pos, expected))
                 return false;
+            --pos;
         }
 
         if ((pos->type == TokenType::Comma && bracket_count == 0) || String(pos->begin, pos->end) == "limit" || pos->type == TokenType::Semicolon)
