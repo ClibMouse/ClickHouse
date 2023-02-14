@@ -5,6 +5,20 @@
 namespace DB
 {
 
+Tokens::Tokens(const char * begin, const char * end, size_t max_query_size)
+{
+    Lexer lexer(begin, end, max_query_size);
+
+    bool stop = false;
+    do
+    {
+        Token token = lexer.nextToken();
+        stop = token.isEnd() || token.type == TokenType::ErrorMaxQuerySizeExceeded;
+        if (token.isSignificant())
+            data.emplace_back(std::move(token));
+    } while (!stop);
+}
+
 UnmatchedParentheses checkUnmatchedParentheses(TokenIterator begin)
 {
     std::unordered_set<String> valid_kql_negative_suffix

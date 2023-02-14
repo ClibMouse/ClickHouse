@@ -1,42 +1,30 @@
 #include <Client/ClientBase.h>
+#include <Client/LineReader.h>
+#include <Client/ClientBaseHelpers.h>
+#include <Client/TestHint.h>
+#include <Client/InternalTextLogs.h>
+#include <Client/TestTags.h>
 
-#include <iostream>
-#include <filesystem>
-#include <map>
-#include <unordered_map>
-
-#include "config.h"
-
+#include <base/argsToConfig.h>
+#include <base/safeExit.h>
+#include <Core/Block.h>
+#include <Core/Protocol.h>
 #include <Common/DateLUT.h>
 #include <Common/MemoryTracker.h>
-#include <base/argsToConfig.h>
-#include <base/LineReader.h>
 #include <Common/scope_guard_safe.h>
-#include <base/safeExit.h>
 #include <Common/Exception.h>
 #include <Common/getNumberOfPhysicalCPUCores.h>
 #include <Common/tests/gtest_global_context.h>
 #include <Common/typeid_cast.h>
-#include <Columns/ColumnString.h>
-#include <Columns/ColumnsNumber.h>
-#include <Core/Block.h>
-#include <Core/Protocol.h>
-#include <Formats/FormatFactory.h>
-#include <Access/AccessControl.h>
-
-#include "config_version.h"
-
 #include <Common/UTF8Helpers.h>
 #include <Common/TerminalSize.h>
 #include <Common/clearPasswordFromCommandLine.h>
 #include <Common/StringUtils/StringUtils.h>
 #include <Common/filesystemHelpers.h>
 #include <Common/NetException.h>
-#include <Storages/ColumnsDescription.h>
-
-#include <Client/ClientBaseHelpers.h>
-#include <Client/TestHint.h>
-#include "TestTags.h"
+#include <Columns/ColumnString.h>
+#include <Columns/ColumnsNumber.h>
+#include <Formats/FormatFactory.h>
 
 #include <Parsers/parseQuery.h>
 #include <Parsers/ParserQuery.h>
@@ -53,26 +41,36 @@
 #include <Parsers/ASTLiteral.h>
 #include <Parsers/ASTIdentifier.h>
 #include <Parsers/ASTColumnDeclaration.h>
+#include <Parsers/Kusto/ParserKQLStatement.h>
 
 #include <Processors/Formats/Impl/NullFormat.h>
 #include <Processors/Formats/IInputFormat.h>
 #include <Processors/Formats/IOutputFormat.h>
-#include <QueryPipeline/QueryPipeline.h>
-#include <QueryPipeline/QueryPipelineBuilder.h>
 #include <Processors/QueryPlan/QueryPlan.h>
 #include <Processors/QueryPlan/BuildQueryPipelineSettings.h>
 #include <Processors/QueryPlan/Optimizations/QueryPlanOptimizationSettings.h>
 #include <Processors/Executors/PullingAsyncPipelineExecutor.h>
 #include <Processors/Transforms/AddingDefaultsTransform.h>
+#include <QueryPipeline/QueryPipeline.h>
+#include <QueryPipeline/QueryPipelineBuilder.h>
 #include <Interpreters/ReplaceQueryParameterVisitor.h>
 #include <Interpreters/ProfileEventsExt.h>
 #include <IO/WriteBufferFromOStream.h>
 #include <IO/WriteBufferFromFileDescriptor.h>
 #include <IO/CompressionMethod.h>
-#include <Client/InternalTextLogs.h>
 #include <IO/ForkWriteBuffer.h>
-#include <Parsers/Kusto/ParserKQLStatement.h>
+
+#include <Access/AccessControl.h>
+#include <Storages/ColumnsDescription.h>
+
 #include <boost/algorithm/string/case_conv.hpp>
+#include <iostream>
+#include <filesystem>
+#include <map>
+#include <unordered_map>
+
+#include "config_version.h"
+#include "config.h"
 
 
 namespace fs = std::filesystem;
@@ -440,7 +438,7 @@ void ClientBase::sendExternalTables(ASTPtr parsed_query)
 {
     const auto * select = parsed_query->as<ASTSelectWithUnionQuery>();
     if (!select && !external_tables.empty())
-        throw Exception("External tables could be sent only with select query", ErrorCodes::BAD_ARGUMENTS);
+        throw Exception(ErrorCodes::BAD_ARGUMENTS, "External tables could be sent only with select query");
 
     std::vector<ExternalTableDataPtr> data;
     for (auto & table : external_tables)
@@ -622,7 +620,7 @@ try
             if (query_with_output->format != nullptr)
             {
                 if (has_vertical_output_suffix)
-                    throw Exception("Output format already specified", ErrorCodes::CLIENT_OUTPUT_FORMAT_SPECIFIED);
+                    throw Exception(ErrorCodes::CLIENT_OUTPUT_FORMAT_SPECIFIED, "Output format already specified");
                 const auto & id = query_with_output->format->as<ASTIdentifier &>();
                 current_format = id.name();
             }
@@ -1061,7 +1059,13 @@ void ClientBase::onEndOfStream()
         progress_indication.clearProgressOutput(*tty_buf);
 
     if (output_format)
+    {
+        /// Do our best to estimate the start of the query so the output format matches the one reported by the server
+        bool is_running = false;
+        output_format->setStartTime(
+            clock_gettime_ns(CLOCK_MONOTONIC) - static_cast<UInt64>(progress_indication.elapsedSeconds() * 1000000000), is_running);
         output_format->finalize();
+    }
 
     resetOutput();
 
@@ -1137,6 +1141,8 @@ void ClientBase::onProfileEvents(Block & block)
 /// Flush all buffers.
 void ClientBase::resetOutput()
 {
+    if (output_format)
+        output_format->finalize();
     output_format.reset();
     logs_out_stream.reset();
 
@@ -1189,10 +1195,9 @@ bool ClientBase::receiveSampleBlock(Block & out, ColumnsDescription & columns_de
                 return receiveSampleBlock(out, columns_description, parsed_query);
 
             default:
-                throw NetException(
-                    "Unexpected packet from server (expected Data, Exception or Log, got "
-                        + String(Protocol::Server::toString(packet.type)) + ")",
-                    ErrorCodes::UNEXPECTED_PACKET_FROM_SERVER);
+                throw NetException(ErrorCodes::UNEXPECTED_PACKET_FROM_SERVER,
+                    "Unexpected packet from server (expected Data, Exception or Log, got {})",
+                    String(Protocol::Server::toString(packet.type)));
         }
     }
 }
@@ -1232,7 +1237,7 @@ void ClientBase::processInsertQuery(const String & query_to_execute, ASTPtr pars
     {
         const auto & settings = global_context->getSettingsRef();
         if (settings.throw_if_no_data_to_insert)
-            throw Exception("No data to insert", ErrorCodes::NO_DATA_TO_INSERT);
+            throw Exception(ErrorCodes::NO_DATA_TO_INSERT, "No data to insert");
         else
             return;
     }
@@ -1275,7 +1280,9 @@ void ClientBase::sendData(Block & sample, const ColumnsDescription & columns_des
     auto columns_description_for_query = columns_description.empty() ? ColumnsDescription(sample.getNamesAndTypesList()) : columns_description;
     if (columns_description_for_query.empty())
     {
-        throw Exception(ErrorCodes::LOGICAL_ERROR, "Column description is empty and it can't be built from sample from table. Cannot execute query.");
+        throw Exception(ErrorCodes::LOGICAL_ERROR,
+                        "Column description is empty and it can't be built from sample from table. "
+                        "Cannot execute query.");
     }
 
     /// If INSERT data must be sent.
@@ -1393,7 +1400,7 @@ void ClientBase::sendData(Block & sample, const ColumnsDescription & columns_des
         sendDataFromStdin(sample, columns_description_for_query, parsed_query);
     }
     else
-        throw Exception("No data to insert", ErrorCodes::NO_DATA_TO_INSERT);
+        throw Exception(ErrorCodes::NO_DATA_TO_INSERT, "No data to insert");
 }
 
 
@@ -1533,10 +1540,9 @@ bool ClientBase::receiveEndOfQuery()
                 break;
 
             default:
-                throw NetException(
-                    "Unexpected packet from server (expected Exception, EndOfStream, Log, Progress or ProfileEvents. Got "
-                        + String(Protocol::Server::toString(packet.type)) + ")",
-                    ErrorCodes::UNEXPECTED_PACKET_FROM_SERVER);
+                throw NetException(ErrorCodes::UNEXPECTED_PACKET_FROM_SERVER,
+                    "Unexpected packet from server (expected Exception, EndOfStream, Log, Progress or ProfileEvents. Got {})",
+                    String(Protocol::Server::toString(packet.type)));
         }
     }
 }
@@ -1641,7 +1647,7 @@ void ClientBase::processParsedSingleQuery(const String & full_query, const Strin
         if (insert && (!insert->select || input_function) && !insert->watch && !is_async_insert)
         {
             if (input_function && insert->format.empty())
-                throw Exception("FORMAT must be specified for function input()", ErrorCodes::INVALID_USAGE_OF_INPUT);
+                throw Exception(ErrorCodes::INVALID_USAGE_OF_INPUT, "FORMAT must be specified for function input()");
 
             processInsertQuery(query_to_execute, parsed_query);
         }
@@ -2075,9 +2081,9 @@ void ClientBase::initQueryIdFormats()
 void ClientBase::runInteractive()
 {
     if (config().has("query_id"))
-        throw Exception("query_id could be specified only in non-interactive mode", ErrorCodes::BAD_ARGUMENTS);
+        throw Exception(ErrorCodes::BAD_ARGUMENTS, "query_id could be specified only in non-interactive mode");
     if (print_time_to_stderr)
-        throw Exception("time option could be specified only in non-interactive mode", ErrorCodes::BAD_ARGUMENTS);
+        throw Exception(ErrorCodes::BAD_ARGUMENTS, "time option could be specified only in non-interactive mode");
 
     initQueryIdFormats();
 
@@ -2318,7 +2324,8 @@ void ClientBase::parseAndCheckOptions(OptionsDescription & options_description, 
     {
         auto hints = this->getHints(unrecognized_options[0]);
         if (!hints.empty())
-            throw Exception(ErrorCodes::UNRECOGNIZED_ARGUMENTS, "Unrecognized option '{}'. Maybe you meant {}", unrecognized_options[0], toString(hints));
+            throw Exception(ErrorCodes::UNRECOGNIZED_ARGUMENTS, "Unrecognized option '{}'. Maybe you meant {}",
+                            unrecognized_options[0], toString(hints));
 
         throw Exception(ErrorCodes::UNRECOGNIZED_ARGUMENTS, "Unrecognized option '{}'", unrecognized_options[0]);
     }

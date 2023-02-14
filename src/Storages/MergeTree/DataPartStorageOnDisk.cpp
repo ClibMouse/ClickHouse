@@ -59,9 +59,9 @@ std::string DataPartStorageOnDisk::getFullRootPath() const
     return fs::path(volume->getDisk()->getPath()) / root_path / "";
 }
 
-MutableDataPartStoragePtr DataPartStorageOnDisk::getProjection(const std::string & name)
+MutableDataPartStoragePtr DataPartStorageOnDisk::getProjection(const std::string & name, bool use_parent_transaction) // NOLINT
 {
-    return std::shared_ptr<DataPartStorageOnDisk>(new DataPartStorageOnDisk(volume, std::string(fs::path(root_path) / part_dir), name, transaction));
+    return std::shared_ptr<DataPartStorageOnDisk>(new DataPartStorageOnDisk(volume, std::string(fs::path(root_path) / part_dir), name, use_parent_transaction ? transaction : nullptr));
 }
 
 DataPartStoragePtr DataPartStorageOnDisk::getProjection(const std::string & name) const
@@ -522,7 +522,7 @@ String DataPartStorageOnDisk::getUniqueId() const
 {
     auto disk = volume->getDisk();
     if (!disk->supportZeroCopyReplication())
-        throw Exception(fmt::format("Disk {} doesn't support zero-copy replication", disk->getName()), ErrorCodes::LOGICAL_ERROR);
+        throw Exception(ErrorCodes::LOGICAL_ERROR, "Disk {} doesn't support zero-copy replication", disk->getName());
 
     return disk->getUniqueId(fs::path(getRelativePath()) / "checksums.txt");
 }
@@ -638,12 +638,17 @@ MutableDataPartStoragePtr DataPartStorageOnDisk::clonePart(
 }
 
 void DataPartStorageOnDisk::rename(
-    const std::string & new_root_path,
-    const std::string & new_part_dir,
+    std::string new_root_path,
+    std::string new_part_dir,
     Poco::Logger * log,
     bool remove_new_dir_if_exists,
     bool fsync_part_dir)
 {
+    if (new_root_path.ends_with('/'))
+        new_root_path.pop_back();
+    if (new_part_dir.ends_with('/'))
+        new_part_dir.pop_back();
+
     String to = fs::path(new_root_path) / new_part_dir / "";
 
     if (volume->getDisk()->exists(to))
@@ -668,7 +673,6 @@ void DataPartStorageOnDisk::rename(
                 fullPath(volume->getDisk(), to));
         }
     }
-
     String from = getRelativePath();
 
     /// Why?
@@ -676,14 +680,15 @@ void DataPartStorageOnDisk::rename(
     {
         disk.setLastModified(from, Poco::Timestamp::fromEpochTime(time(nullptr)));
         disk.moveDirectory(from, to);
+
+        /// Only after moveDirectory() since before the directory does not exists.
+        SyncGuardPtr to_sync_guard;
+        if (fsync_part_dir)
+            to_sync_guard = volume->getDisk()->getDirectorySyncGuard(to);
     });
 
     part_dir = new_part_dir;
     root_path = new_root_path;
-
-    SyncGuardPtr sync_guard;
-    if (fsync_part_dir)
-        sync_guard = volume->getDisk()->getDirectorySyncGuard(getRelativePath());
 }
 
 void DataPartStorageOnDisk::changeRootPath(const std::string & from_root, const std::string & to_root)
@@ -731,10 +736,19 @@ std::unique_ptr<WriteBufferFromFileBase> DataPartStorageOnDisk::writeFile(
     size_t buf_size,
     const WriteSettings & settings)
 {
-    if (transaction)
-        return transaction->writeFile(fs::path(root_path) / part_dir / name, buf_size, WriteMode::Rewrite, settings, /* autocommit = */ false);
+    return writeFile(name, buf_size, WriteMode::Rewrite, settings);
+}
 
-    return volume->getDisk()->writeFile(fs::path(root_path) / part_dir / name, buf_size, WriteMode::Rewrite, settings);
+std::unique_ptr<WriteBufferFromFileBase> DataPartStorageOnDisk::writeFile(
+    const String & name,
+    size_t buf_size,
+    WriteMode mode,
+    const WriteSettings & settings)
+{
+    if (transaction)
+        return transaction->writeFile(fs::path(root_path) / part_dir / name, buf_size, mode, settings, /* autocommit = */ false);
+
+    return volume->getDisk()->writeFile(fs::path(root_path) / part_dir / name, buf_size, mode, settings);
 }
 
 std::unique_ptr<WriteBufferFromFileBase> DataPartStorageOnDisk::writeTransactionFile(WriteMode mode) const

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IO/WriteSettings.h"
+#include <IO/WriteSettings.h>
 #include <Core/Block.h>
 #include <base/types.h>
 #include <Core/NamesAndTypes.h>
@@ -21,8 +21,6 @@
 #include <Interpreters/TransactionVersionMetadata.h>
 #include <DataTypes/Serializations/SerializationInfo.h>
 #include <Storages/MergeTree/IPartMetadataManager.h>
-
-#include <shared_mutex>
 
 
 namespace zkutil
@@ -45,6 +43,17 @@ class IMergeTreeDataPartWriter;
 class MarkCache;
 class UncompressedCache;
 class MergeTreeTransaction;
+
+
+enum class DataPartRemovalState
+{
+    NOT_ATTEMPTED,
+    VISIBLE_TO_TRANSACTIONS,
+    NON_UNIQUE_OWNERSHIP,
+    NOT_REACHED_REMOVAL_TIME,
+    HAS_SKIPPED_MUTATION_PARENT,
+    REMOVED,
+};
 
 /// Description of the data part.
 class IMergeTreeDataPart : public std::enable_shared_from_this<IMergeTreeDataPart>, public DataPartStorageHolder
@@ -139,6 +148,7 @@ public:
 
     const NamesAndTypesList & getColumns() const { return columns; }
     const ColumnsDescription & getColumnsDescription() const { return columns_description; }
+    const ColumnsDescription & getColumnsDescriptionWithCollectedNested() const { return columns_description_with_collected_nested; }
 
     NameAndTypePair getColumn(const String & name) const;
     std::optional<NameAndTypePair> tryGetColumn(const String & column_name) const;
@@ -323,7 +333,7 @@ public:
     virtual void renameTo(const String & new_relative_path, bool remove_new_dir_if_exists);
 
     /// Makes clone of a part in detached/ directory via hard links
-    virtual void makeCloneInDetached(const String & prefix, const StorageMetadataPtr & metadata_snapshot) const;
+    virtual DataPartStoragePtr makeCloneInDetached(const String & prefix, const StorageMetadataPtr & metadata_snapshot) const;
 
     /// Makes full clone of part in specified subdirectory (relative to storage data directory, e.g. "detached") on another disk
     MutableDataPartStoragePtr makeCloneOnDisk(const DiskPtr & disk, const String & directory_name) const;
@@ -446,6 +456,10 @@ public:
     void removeDeleteOnDestroyMarker();
     void removeVersionMetadata();
 
+    mutable std::atomic<DataPartRemovalState> removal_state = DataPartRemovalState::NOT_ATTEMPTED;
+
+    mutable std::atomic<time_t> last_removal_attemp_time = 0;
+
 protected:
 
     /// Total size of all columns, calculated once in calcuateColumnSizesOnDisk
@@ -517,6 +531,10 @@ private:
     /// Columns description for more convenient access
     /// to columns by name and getting subcolumns.
     ColumnsDescription columns_description;
+
+    /// The same as above but after call of Nested::collect().
+    /// It is used while reading from wide parts.
+    ColumnsDescription columns_description_with_collected_nested;
 
     /// Reads part unique identifier (if exists) from uuid.txt
     void loadUUID();

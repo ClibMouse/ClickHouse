@@ -138,7 +138,8 @@ void MergeTreeWriteAheadLog::rotate(const std::unique_lock<std::mutex> &)
 MergeTreeData::MutableDataPartsVector MergeTreeWriteAheadLog::restore(
     const StorageMetadataPtr & metadata_snapshot,
     ContextPtr context,
-    std::unique_lock<std::mutex> & parts_lock)
+    std::unique_lock<std::mutex> & parts_lock,
+    bool readonly)
 {
     std::unique_lock lock(write_mutex);
 
@@ -192,7 +193,7 @@ MergeTreeData::MutableDataPartsVector MergeTreeWriteAheadLog::restore(
             }
             else
             {
-                throw Exception("Unknown action type: " + toString(static_cast<UInt8>(action_type)), ErrorCodes::CORRUPTED_DATA);
+                throw Exception(ErrorCodes::CORRUPTED_DATA, "Unknown action type: {}", toString(static_cast<UInt8>(action_type)));
             }
         }
         catch (const Exception & e)
@@ -207,7 +208,10 @@ MergeTreeData::MutableDataPartsVector MergeTreeWriteAheadLog::restore(
                 /// If file is broken, do not write new parts to it.
                 /// But if it contains any part rotate and save them.
                 if (max_block_number == -1)
-                    disk->removeFile(path);
+                {
+                    if (!readonly)
+                        disk->removeFile(path);
+                }
                 else if (name == DEFAULT_WAL_FILE_NAME)
                     rotate(lock);
 
@@ -256,7 +260,7 @@ MergeTreeData::MutableDataPartsVector MergeTreeWriteAheadLog::restore(
         [&dropped_parts](const auto & part) { return dropped_parts.count(part->name) == 0; });
 
     /// All parts in WAL had been already committed into the disk -> clear the WAL
-    if (result.empty())
+    if (!readonly && result.empty())
     {
         LOG_DEBUG(log, "WAL file '{}' had been completely processed. Removing.", path);
         disk->removeFile(path);
@@ -352,8 +356,9 @@ void MergeTreeWriteAheadLog::ActionMetadata::read(ReadBuffer & meta_in)
 {
     readIntBinary(min_compatible_version, meta_in);
     if (min_compatible_version > WAL_VERSION)
-        throw Exception("WAL metadata version " + toString(min_compatible_version)
-                        + " is not compatible with this ClickHouse version", ErrorCodes::UNKNOWN_FORMAT_VERSION);
+        throw Exception(ErrorCodes::UNKNOWN_FORMAT_VERSION,
+                        "WAL metadata version {} is not compatible with this ClickHouse version",
+                        toString(min_compatible_version));
 
     size_t metadata_size;
     readVarUInt(metadata_size, meta_in);
