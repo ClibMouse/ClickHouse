@@ -83,3 +83,34 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_IP, ParserRegexTest,
             R"(SELECT if\(empty\(ifNull\(if\(\(\(\(toUInt32OrNull\(toString\(replaceRegexpOne\(A, concat\('\^', '::'\), ''\)\)\) AS param_as_uint32_\d+\) IS NOT NULL\) AND \(toTypeName\(replaceRegexpOne\(A, concat\('\^', '::'\), ''\)\) = 'String'\)\) OR \(\(B - 96\) < 0\) OR \(\(ifNull\(param_as_uint32_\d+, multiIf\(length\(splitByChar\('/', ifNull\(kql_tostring\(replaceRegexpOne\(A, concat\('\^', '::'\), ''\)\), ''\)\) AS tokens_\d+\) = 1, IPv4StringToNumOrNull\(tokens_\d+\[1\]\) AS ip_\d+, \(length\(tokens_\d+\) = 2\) AND \(ip_\d+ IS NOT NULL\) AND \(\(toUInt8OrNull\(tokens_\d+\[-1\]\) AS mask_\d+\) IS NOT NULL\), CAST\(IPv4CIDRToRange\(assumeNotNull\(ip_\d+\), assumeNotNull\(mask_\d+\)\)\.1, 'UInt32'\), NULL\)\) AS ip_as_number_\d+\) IS NULL\), NULL, IPv4NumToString\(bitAnd\(ip_as_number_\d+, bitNot\(toUInt32\(intExp2\(32 - \(B - 96\)\) - 1\)\)\)\)\), ''\) AS ipv4_\d+\), if\(\(length\(splitByChar\('/', concat\(ifNull\(kql_tostring\(ifNull\(kql_tostring\(if\(\(length\(splitByChar\('/', A\) AS tokens_\d+\) > 2\) OR \(\(IPv6StringToNumOrNull\(tokens_\d+\[1\]\) AS ip_\d+\) IS NULL\) OR \(\(length\(tokens_\d+\) = 2\) AND \(\(toUInt8OrNull\(tokens_\d+\[-1\]\) AS mask_\d+\) IS NULL\)\), NULL, arrayStringConcat\(flatten\(extractAllGroups\(lower\(hex\(IPv6CIDRToRange\(assumeNotNull\(ip_\d+\), toUInt8\(ifNull\(mask_\d+ \+ if\(isIPv4String\(tokens_\d+\[1\]\), 96, 0\), 128\)\)\)\.1\)\), '\(\[\\\\da-f\]\{4\}\)'\)\), ':'\)\)\), ''\)\), ''\), ifNull\(kql_tostring\('/'\), ''\), ifNull\(kql_tostring\(ifNull\(kql_tostring\(B\), ''\)\), ''\), ''\)\) AS tokens_\d+\) > 2\) OR \(\(IPv6StringToNumOrNull\(tokens_\d+\[1\]\) AS ip_\d+\) IS NULL\) OR \(\(length\(tokens_\d+\) = 2\) AND \(\(toUInt8OrNull\(tokens_\d+\[-1\]\) AS mask_\d+\) IS NULL\)\), NULL, arrayStringConcat\(flatten\(extractAllGroups\(lower\(hex\(IPv6CIDRToRange\(assumeNotNull\(ip_\d+\), toUInt8\(ifNull\(mask_\d+ \+ if\(isIPv4String\(tokens_\d+\[1\]\), 96, 0\), 128\)\)\)\.1\)\), '\(\[\\\\da-f\]\{4\}\)'\)\), ':'\)\), if\(\(length\(splitByChar\('/', ipv4_\d+\) AS tokens_\d+\) > 2\) OR \(\(IPv6StringToNumOrNull\(tokens_\d+\[1\]\) AS ip_\d+\) IS NULL\) OR \(\(length\(tokens_\d+\) = 2\) AND \(\(toUInt8OrNull\(tokens_\d+\[-1\]\) AS mask_\d+\) IS NULL\)\), NULL, arrayStringConcat\(flatten\(extractAllGroups\(lower\(hex\(IPv6CIDRToRange\(assumeNotNull\(ip_\d+\), toUInt8\(ifNull\(mask_\d+ \+ if\(isIPv4String\(tokens_\d+\[1\]\), 96, 0\), 128\)\)\)\.1\)\), '\(\[\\\\da-f\]\{4\}\)'\)\), ':'\)\)\))"
         }
 })));
+
+INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_IP, ParserTest,
+    ::testing::Combine(
+        ::testing::Values(std::make_shared<DB::ParserKQLQuery>()),
+        ::testing::ValuesIn(std::initializer_list<ParserTestCase>{
+    {
+        "print has_ipv4(A, B)",
+	"SELECT kql_has_ipv4(A, B)"
+    },
+    {
+        "print has_ipv4_prefix(A, B)",
+	"SELECT kql_has_ipv4_prefix(A, B)"
+    },
+    {
+        "print has_any_ipv4(A, B, C)",
+	"SELECT kql_has_any_ipv4(A, B, C)"
+    },
+    {
+        "print has_any_ipv4_prefix(A, B, C)",
+	"SELECT kql_has_any_ipv4_prefix(A, B, C)"
+    },
+    {
+        "print has_any_ipv4(A, dynamic(['1.2.3.4']))",
+	"SELECT kql_has_any_ipv4(A, ['1.2.3.4'])"
+    },
+    {
+        "print has_any_ipv4_prefix(A, dynamic(['1.2.3.4']))",
+	"SELECT kql_has_any_ipv4_prefix(A, ['1.2.3.4'])"
+    }
+})));
+
