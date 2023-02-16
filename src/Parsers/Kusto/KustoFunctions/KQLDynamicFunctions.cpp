@@ -6,7 +6,6 @@ namespace DB
 {
 namespace ErrorCodes
 {
-    extern const int NUMBER_OF_ARGUMENTS_DOESNT_MATCH;
     extern const int SYNTAX_ERROR;
 }
 
@@ -321,11 +320,7 @@ bool Zip::convertImpl(String & out, IParser::Pos & pos)
     if (function_name.empty())
         return false;
 
-    const auto arguments = getArguments(function_name, pos);
-    if (const auto size = arguments.size(); size < 2 || size > 16)
-        throw Exception(
-            ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "Between 2 and 16 arguments are expected, but {} were provided", size);
-
+    const auto arguments = getArguments(function_name, pos, ArgumentState::Parsed, {2, 16});
     const auto unique_identifier = generateUniqueIdentifier();
     const auto resized_arguments = std::invoke(
         [&arguments, &unique_identifier]
@@ -336,7 +331,8 @@ bool Zip::convertImpl(String & out, IParser::Pos & pos)
                 lengths.append(i > 0 ? ", " : "");
                 lengths.append(std::format(
                     "length(if(match(toTypeName({0}), 'Array\\(Nullable\\(.*\\)\\)'), {0}, "
-                    "cast({0}, concat('Array(', extract(toTypeName(if(length({0}) = 0, [NULL], {0})), 'Array\\((.*)\\)'), ')'))) as arg{1}_{2})",
+                    "cast({0}, concat('Array(', extract(toTypeName(if(length({0}) = 0, [NULL], {0})), 'Array\\((.*)\\)'), ')'))) as "
+                    "arg{1}_{2})",
                     arguments[i],
                     i,
                     unique_identifier));

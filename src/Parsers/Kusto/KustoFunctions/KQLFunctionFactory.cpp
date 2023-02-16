@@ -223,7 +223,38 @@ enum class KQLFunction : uint16_t
     datatype_real,
     datatype_timespan,
     datatype_decimal,
-    range
+    range,
+
+    abs,
+    acos,
+    asin,
+    atan,
+    atan2,
+    ceiling,
+    cos,
+    cot,
+    degrees,
+    exp,
+    exp2,
+    exp10,
+    gamma,
+    isfinite,
+    isinf,
+    log,
+    log2,
+    log10,
+    loggamma,
+    max_of,
+    min_of,
+    pi,
+    pow,
+    radians,
+    rand,
+    round,
+    sign,
+    sin,
+    sqrt,
+    tan
 };
 
 const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
@@ -440,8 +471,38 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"timespan", KQLFunction::datatype_timespan},
     {"time", KQLFunction::datatype_timespan},
     {"decimal", KQLFunction::datatype_decimal},
-    {"range", KQLFunction::range}
-    };
+    {"range", KQLFunction::range},
+
+    {"abs", KQLFunction::abs},
+    {"acos", KQLFunction::acos},
+    {"asin", KQLFunction::asin},
+    {"atan", KQLFunction::atan},
+    {"atan2", KQLFunction::atan2},
+    {"ceiling", KQLFunction::ceiling},
+    {"cos", KQLFunction::cos},
+    {"cot", KQLFunction::cot},
+    {"degrees", KQLFunction::degrees},
+    {"exp", KQLFunction::exp},
+    {"exp2", KQLFunction::exp2},
+    {"exp10", KQLFunction::exp10},
+    {"gamma", KQLFunction::gamma},
+    {"isfinite", KQLFunction::isfinite},
+    {"isinf", KQLFunction::isinf},
+    {"log", KQLFunction::log},
+    {"log2", KQLFunction::log2},
+    {"log10", KQLFunction::log10},
+    {"loggamma", KQLFunction::loggamma},
+    {"max_of", KQLFunction::max_of},
+    {"min_of", KQLFunction::min_of},
+    {"pi", KQLFunction::pi},
+    {"pow", KQLFunction::pow},
+    {"radians", KQLFunction::radians},
+    {"rand", KQLFunction::rand},
+    {"round", KQLFunction::round},
+    {"sign", KQLFunction::sign},
+    {"sin", KQLFunction::sin},
+    {"sqrt", KQLFunction::sqrt},
+    {"tan", KQLFunction::tan}};
 }
 
 namespace DB
@@ -1049,6 +1110,96 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::range:
             return std::make_unique<Range>();
+
+        case KQLFunction::abs:
+            return std::make_unique<Abs>();
+
+        case KQLFunction::acos:
+            return std::make_unique<Acos>();
+
+        case KQLFunction::asin:
+            return std::make_unique<Asin>();
+
+        case KQLFunction::atan:
+            return std::make_unique<Atan>();
+
+        case KQLFunction::atan2:
+            return std::make_unique<Atan2>();
+
+        case KQLFunction::cos:
+            return std::make_unique<Cos>();
+
+        case KQLFunction::cot:
+            return std::make_unique<Cot>();
+
+        case KQLFunction::ceiling:
+            return std::make_unique<Ceiling>();
+
+        case KQLFunction::degrees:
+            return std::make_unique<Degrees>();
+
+        case KQLFunction::exp:
+            return std::make_unique<Exp>();
+
+        case KQLFunction::exp2:
+            return std::make_unique<Exp2>();
+
+        case KQLFunction::exp10:
+            return std::make_unique<Exp10>();
+
+        case KQLFunction::gamma:
+            return std::make_unique<Gamma>();
+
+        case KQLFunction::isfinite:
+            return std::make_unique<IsFinite>();
+
+        case KQLFunction::isinf:
+            return std::make_unique<IsInfinite>();
+
+        case KQLFunction::log:
+            return std::make_unique<Log>();
+
+        case KQLFunction::log2:
+            return std::make_unique<Log2>();
+
+        case KQLFunction::log10:
+            return std::make_unique<Log10>();
+
+        case KQLFunction::loggamma:
+            return std::make_unique<LogGamma>();
+
+        case KQLFunction::max_of:
+            return std::make_unique<MaxOf>();
+
+        case KQLFunction::min_of:
+            return std::make_unique<MinOf>();
+
+        case KQLFunction::pi:
+            return std::make_unique<Pi>();
+
+        case KQLFunction::pow:
+            return std::make_unique<Pow>();
+
+        case KQLFunction::radians:
+            return std::make_unique<Radians>();
+
+        case KQLFunction::rand:
+            return std::make_unique<Rand>();
+
+        case KQLFunction::round:
+            return std::make_unique<Round>();
+
+        case KQLFunction::sign:
+            return std::make_unique<Sign>();
+
+        case KQLFunction::sin:
+            return std::make_unique<Sin>();
+
+        case KQLFunction::sqrt:
+            return std::make_unique<Sqrt>();
+
+        case KQLFunction::tan:
+            return std::make_unique<Tan>();
     }
 }
 }
