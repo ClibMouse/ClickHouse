@@ -558,10 +558,7 @@ bool StrCatDelim::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
 
-    const auto arguments = getArguments(fn_name, pos, ArgumentState::Raw);
-    if (arguments.size() < 2 || arguments.size() > 64)
-        throw Exception("argument count out of bound in function: " + fn_name, ErrorCodes::SYNTAX_ERROR);
-
+    const auto arguments = getArguments(fn_name, pos, ArgumentState::Raw, {2, 64});
     const String & delimiter = arguments[0];
 
     String args;
@@ -604,11 +601,7 @@ bool StrRep::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
 
-    const auto arguments = getArguments(fn_name, pos, ArgumentState::Raw);
-
-    if (arguments.size() < 2 || arguments.size() > 3)
-        throw Exception("number of arguments do not match in function: " + fn_name, ErrorCodes::SYNTAX_ERROR);
-
+    const auto arguments = getArguments(fn_name, pos, ArgumentState::Raw, {2, 3});
     const String & value = arguments[0];
     const String & multiplier = arguments[1];
 
