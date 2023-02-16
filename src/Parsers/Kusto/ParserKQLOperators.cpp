@@ -358,7 +358,7 @@ std::string genHaystackOpExpr(
             ch_op,
             std::make_format_args(
                 tokens.back(),
-                "'" + left_wildcards + left_space + DB::IParserKQLFunction::getEscapedString(String(token_pos->begin + 1, token_pos->end - 1)) + right_space + right_wildcards
+                "'" + left_wildcards + left_space + DB::IParserKQLFunction::escapeSingleQuotes(String(token_pos->begin + 1, token_pos->end - 1)) + right_space + right_wildcards
                     + "'"));
     else if (!tokens.empty() && token_pos->type == DB::TokenType::BareWord)
     {
