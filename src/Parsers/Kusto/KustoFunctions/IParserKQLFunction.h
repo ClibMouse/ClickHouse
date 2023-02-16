@@ -66,8 +66,11 @@ public:
 
     static String generateUniqueIdentifier();
     static String getArgument(const String & function_name, DB::IParser::Pos & pos, ArgumentState argument_state = ArgumentState::Parsed);
-    static std::vector<std::string>
-    getArguments(const String & function_name, DB::IParser::Pos & pos, ArgumentState argument_state = ArgumentState::Parsed);
+    static std::vector<std::string> getArguments(
+        const String & function_name,
+        DB::IParser::Pos & pos,
+        ArgumentState argument_state = ArgumentState::Parsed,
+        const Interval & argument_count_interval = {0, Interval::max_bound});
     static String getConvertedArgument(const String & fn_name, IParser::Pos & pos);
     static String getExpression(IParser::Pos & pos);
     static String getKQLFunctionName(IParser::Pos & pos);
