@@ -314,12 +314,22 @@ bool IndexOf::convertImpl(String & out, IParser::Pos & pos)
 
 bool IsEmpty::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "empty");
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+    const auto arg = getArgument(fn_name, pos, ArgumentState::Raw);
+    out.append("empty(" + kqlCallToExpression("tostring", {arg}, pos.max_depth) + ")");
+    return true;
 }
 
 bool IsNotEmpty::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "notEmpty");
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+    const auto arg = getArgument(fn_name, pos, ArgumentState::Raw);
+    out.append("notEmpty(" + kqlCallToExpression("tostring", {arg}, pos.max_depth) + ")");
+    return true;
 }
 
 bool IsNotNull::convertImpl(String & out, IParser::Pos & pos)
