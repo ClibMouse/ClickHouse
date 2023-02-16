@@ -28,6 +28,18 @@ Management abcd defg	33
 Skilled Manual	5
 Professional	6
 Management abcd defg	1
+Cameron	Rodriguez	28
+Christine	Nara	33
+Latoya	Shen	25
+Joshua	Lee	26
+Dalton	Wood	42
+Peter	Nara	26
+Edward	Hernandez	36
+\N	why	38
+Apple		28
+Stephanie	Cox	33
+Angel	Stewart	46
+Theodore	Diaz	28
 -- make_list() --
 Skilled Manual	['Bachelors','Graduate Degree','High School','Partial College','Bachelors']
 Professional	['Graduate Degree','Partial College','Partial College','Partial College','Partial College','Partial College']
