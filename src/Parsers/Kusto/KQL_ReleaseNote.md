@@ -1,9 +1,8 @@
 ## KQL implemented features  
-
 # February XX, 2023
 ## Bugfixes
 - KQL - has operator fails to return result when needle has separator character
-
+- [isempty() and isnotempty() not accepting non-quoted strings]
 # January XX, 2023
 ## Functions
 - [range()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/rangefunction)  
