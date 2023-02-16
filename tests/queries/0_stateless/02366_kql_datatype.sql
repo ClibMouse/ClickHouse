@@ -184,4 +184,5 @@ print todecimal('abc');
 print todecimal(1e5);
 print todecimal(1e-5);
 tb1 | project todecimal(str);
+print todecimal('9999999999999999999999999999999999');
 -- print todecimal(4 * 2 + 3); -> 11
