@@ -137,12 +137,18 @@ Apple		Skilled Manual	Bachelors	28
 -- Customers | where isempty(LastName)
 Apple		Skilled Manual	Bachelors	28
 
+-- print isempty(1.2345)
+0
+
 -- Customers | where isnotempty(LastName)
 Theodore	Diaz	Skilled Manual	Bachelors	28
 Stephanie	Cox	Management abcd defg	Bachelors	33
 Peter	Nara	Skilled Manual	Graduate Degree	26
 Latoya	Shen	Professional	Graduate Degree	25
 \N	why	Professional	Partial College	38
+
+-- print isnotempty(1.2345)
+1
 
 -- Customers | where isnotnull(FirstName)
 Latoya	Shen	Professional	Graduate Degree	25
@@ -259,6 +265,7 @@ iPhone
 26
 26
 26
+true
 26
 \N
 
