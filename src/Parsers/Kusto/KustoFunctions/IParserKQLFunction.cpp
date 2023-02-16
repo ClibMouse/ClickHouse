@@ -125,11 +125,22 @@ String IParserKQLFunction::getArgument(const String & function_name, DB::IParser
     throw Exception(std::format("Required argument was not provided in {}", function_name), ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH);
 }
 
-std::vector<std::string> IParserKQLFunction::getArguments(const String & function_name, DB::IParser::Pos & pos, const ArgumentState argument_state)
+std::vector<std::string> IParserKQLFunction::getArguments(
+    const String & function_name, DB::IParser::Pos & pos, const ArgumentState argument_state, const Interval & argument_count_interval)
 {
     std::vector<std::string> arguments;
     while (auto argument = getOptionalArgument(function_name, pos, argument_state))
+    {
         arguments.push_back(std::move(*argument));
+    }
+    if (!argument_count_interval.IsWithinBounds(static_cast<int>(arguments.size())))
+        throw Exception(
+            ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH,
+            "{}: between {} and {} arguments are expected, but {} were provided",
+            function_name,
+            argument_count_interval.Min(),
+            argument_count_interval.Max(),
+            arguments.size());
 
     return arguments;
 }
@@ -236,7 +247,7 @@ IParserKQLFunction::getOptionalArgument(const String & function_name, DB::IParse
             magic_enum::enum_type_name<ArgumentState>(),
             magic_enum::enum_name(argument_state));
 
-    const auto* begin = pos->begin;
+    const auto * begin = pos->begin;
     std::stack<DB::TokenType> scopes;
     while (!pos->isEnd() && (!scopes.empty() || (pos->type != DB::TokenType::Comma && pos->type != DB::TokenType::ClosingRoundBracket)))
     {
