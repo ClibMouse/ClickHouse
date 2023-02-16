@@ -147,6 +147,10 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
             "SELECT accurateCastOrNull(JSON_VALUE('{\"a\":123, \"b\":\"{\"c\":456}\"}', '$.a'), 'Int64')"
         },
         {
+            "print extract_json( '$.a' , '{\"a\":123, \"b\":\"{\"c\":456}\"}' , typeof(bool))",
+            "SELECT if(toInt64OrNull(JSON_VALUE('{\"a\":123, \"b\":\"{\"c\":456}\"}', '$.a')) > 0, true, false)"
+        },
+        {
             "print parse_command_line('echo \"hello world!\" print$?', 'windows')",
             "SELECT if(empty('echo \"hello world!\" print$?') OR hasAll(splitByChar(' ', 'echo \"hello world!\" print$?'), ['']), arrayMap(x -> NULL, splitByChar(' ', '')), splitByChar(' ', 'echo \"hello world!\" print$?'))"
         },
@@ -209,5 +213,13 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         {
             "print from_time = strrep(3s,2,' ')",
             "SELECT substr(repeat(concat(ifNull(kql_tostring(toIntervalNanosecond(3000000000)), ''), ' '), 2), 1, length(repeat(concat(ifNull(kql_tostring(toIntervalNanosecond(3000000000)), ''), ' '), 2)) - length(' ')) AS from_time"
+        },
+        {
+            "print isempty(1.12345)",
+            "SELECT empty(ifNull(kql_tostring(1.12345), ''))"
+        },
+        {
+            "print isnotempty('1.12345')",
+            "SELECT notEmpty(ifNull(kql_tostring('1.12345'), ''))"
         }
 })));
