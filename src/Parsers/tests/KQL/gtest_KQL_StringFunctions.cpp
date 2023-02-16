@@ -213,5 +213,13 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserTest,
         {
             "print from_time = strrep(3s,2,' ')",
             "SELECT substr(repeat(concat(ifNull(kql_tostring(toIntervalNanosecond(3000000000)), ''), ' '), 2), 1, length(repeat(concat(ifNull(kql_tostring(toIntervalNanosecond(3000000000)), ''), ' '), 2)) - length(' ')) AS from_time"
+        },
+        {
+            "print isempty(1.12345)",
+            "SELECT empty(ifNull(kql_tostring(1.12345), ''))"
+        },
+        {
+            "print isnotempty('1.12345')",
+            "SELECT notEmpty(ifNull(kql_tostring('1.12345'), ''))"
         }
 })));
