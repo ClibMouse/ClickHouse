@@ -3,6 +3,64 @@
 ## Bugfixes
 - KQL - has operator fails to return result when needle has separator character
 - [isempty() and isnotempty() not accepting non-quoted strings]
+## Functions
+- [abs()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/abs-function)
+   `print abs(-5)`
+- [acos()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/acosfunction)
+- [asin()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/asinfunction)
+    print asin(0.5)
+- [atan()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/atanfunction)
+    print atan(0.5)
+- [atan2()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/atan2function)
+    print atan2(1,1)
+- [ceiling()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/ceilingfunction)
+   `print c1 = ceiling(-1.1), c2 = ceiling(0), c3 = ceiling(0.9)`
+- [cos()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/cosfunction)
+    print cos(1)
+- [cot()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/cotfunction)
+    print cot(1)
+- [degrees()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/degreesfunction)
+    print degrees(pi()/4)
+- [exp()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/exp-function)
+   `print exp(2)`
+- [exp2()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/exp2-function)
+   `print exp2(2)`
+- [exp10()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/exp10-function)
+   `print exp10(3)`
+- [gamma()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/gammafunction)
+- [isfinite()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/isfinitefunction)
+    print isfinite(1.0/0.0)
+- [isinf()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/isinffunction)
+    print isinf(1.0/0.0)
+- [log()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/log-function)
+   `print log(5)`
+- [log2()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/log2-function)
+   `print log2(5)`
+- [log10()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/log10-function)
+   `print log10(5)`
+- [loggamma()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/loggammafunction)
+    print loggamma(5)
+- [max_of()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/max-offunction)
+    print result = max_of(10, 1, -3, 17) 
+- [min_of()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/min-offunction)
+    print result = min_of(10, 1, -3, 17) 
+- [pi()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/pifunction)
+    print pi()
+- [pow()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/powfunction)
+    print pow(2, 3)`
+- [radians()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/radiansfunction)
+    print radians0 = radians(90), radians1 = radians(180), radians2 = radians(360) 
+- [rand()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/randfunction)
+    print rand(1000)
+- [round()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/roundfunction)
+    print round(2.15, 1)
+- [sign()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/signfunction)
+    print s1 = sign(-42), s2 = sign(0), s3 = sign(11.2)
+- [sin()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sinfunction)
+- [sqrt()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sqrtfunction)
+   `print sqrt(256)`
+- [tan()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/tanfunction)
+
 # January XX, 2023
 ## Functions
 - [range()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/rangefunction)  
