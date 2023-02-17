@@ -104,7 +104,7 @@ public:
             {
                 Field array0;
                 arguments[1].column->size() == input_rows_count ? arguments[1].column->get(i, array0) : arguments[1].column->get(0, array0);
-                size_t len0 = array0.get<Array>().size();
+                const auto len0 = array0.get<Array>().size();
 
                 for (size_t j = 0; j < len0; j++)
                 {
