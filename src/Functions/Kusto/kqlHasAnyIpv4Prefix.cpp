@@ -86,7 +86,7 @@ public:
             {
                 for (size_t j = 1; j < args_length; j++)
                 {
-                    auto arg = arguments[j].column->size() == input_rows_count ? arguments[j].column->getDataAt(i).toString() : arguments[j].column->getDataAt(0).toString();
+                    auto arg = arguments[j].column->getDataAt(i).toString();
 
                     if (arg.empty())
                     {
@@ -103,7 +103,7 @@ public:
             else if (isArray(arguments.at(1).type))
             {
                 Field array0;
-                arguments[1].column->size() == input_rows_count ? arguments[1].column->get(i, array0) : arguments[1].column->get(0, array0);
+                arguments[1].column->get(i, array0);
                 const auto len0 = array0.get<Array>().size();
 
                 for (size_t j = 0; j < len0; j++)
@@ -127,7 +127,7 @@ public:
 
             if (!ips.empty())
             {
-                std::string source = arguments[0].column->size() == input_rows_count ? arguments[0].column->getDataAt(i).toString() : arguments[0].column->getDataAt(0).toString();
+                std::string source = arguments[0].column->getDataAt(i).toString();
                 std::regex ip_finder("([^[:alnum:]]|^)([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})([^[:alnum:]]|$)");
                 std::smatch matches;
 
