@@ -87,7 +87,7 @@ public:
             {
                 for (size_t j = 1; j < args_length; j++)
                 {
-                    std::string arg = arguments[j].column->size() == input_rows_count ? arguments[j].column->getDataAt(i).toString() : arguments[j].column->getDataAt(0).toString();
+                    auto arg = arguments[j].column->size() == input_rows_count ? arguments[j].column->getDataAt(i).toString() : arguments[j].column->getDataAt(0).toString();
 
                     ColumnPtr column_ip = DataTypeString().createColumnConst(1, toField(String(arg)));
                     const ColumnsWithTypeAndName isipv4string_args = {ColumnWithTypeAndName(column_ip, std::make_shared<DataTypeString>(), "ip")};
@@ -95,7 +95,7 @@ public:
                     auto isipv4 = isipv4string(isipv4string_args);
                     if (isipv4->getUInt(0) == 1)
                     {
-                        ips.push_back(arg);
+                        ips.push_back(std::move(arg));
                     }
                 }
             }
