@@ -86,7 +86,7 @@ public:
             {
                 for (size_t j = 1; j < args_length; j++)
                 {
-                    std::string arg = arguments[j].column->size() == input_rows_count ? arguments[j].column->getDataAt(i).toString() : arguments[j].column->getDataAt(0).toString();
+                    auto arg = arguments[j].column->size() == input_rows_count ? arguments[j].column->getDataAt(i).toString() : arguments[j].column->getDataAt(0).toString();
 
                     if (arg.empty())
                     {
@@ -95,7 +95,7 @@ public:
 
                     if (std::count(arg.begin(), arg.end(), '.') == 3 || arg.back() == '.')
                     {
-                        ips.push_back(arg);
+                        ips.push_back(std::move(arg));
                     }
                 }
             }
@@ -110,7 +110,7 @@ public:
                 {
                     if (array0.get<Array>().at(j).getType() == Field::Types::String)
                     {
-                        std::string ip_prefix = toString(array0.get<Array>().at(j));
+                        auto ip_prefix = toString(array0.get<Array>().at(j));
 
                         if (ip_prefix.empty())
                         {
@@ -119,7 +119,7 @@ public:
 
                         if (std::count(ip_prefix.begin(), ip_prefix.end(), '.') == 3 || ip_prefix.back() == '.')
                         {
-                            ips.push_back(ip_prefix);
+                            ips.push_back(std::move(ip_prefix));
                         }
                     }
                 }
