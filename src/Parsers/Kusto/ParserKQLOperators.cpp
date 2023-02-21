@@ -2,6 +2,7 @@
 #include "KustoFunctions/IParserKQLFunction.h"
 #include "ParserKQLStatement.h"
 
+#include <Interpreters/ITokenExtractor.h>
 #include <Parsers/CommonParsers.h>
 
 #include <format>
@@ -100,16 +101,56 @@ const std::unordered_map<String, KQLOperatorValue> KQLOperator = {
     {"!startswith_cs", KQLOperatorValue::not_startswith_cs},
 };
 
-constexpr std::string_view HAS_CS_OPERATOR_TRANSLATION{"ifNull(hasTokenOrNull({0}, {1}), position({0}, {1}) > 0)"};
-constexpr std::string_view HAS_OPERATOR_TRANSLATION{
-    "ifNull(hasTokenCaseInsensitiveOrNull({0}, {1}), positionCaseInsensitive({0}, {1}) > 0)"};
-constexpr std::string_view NOT_HAS_CS_OPERATOR_TRANSLATION{"not ifNull(hasTokenOrNull({0}, {1}), position({0}, {1}) > 0)"};
-constexpr std::string_view NOT_HAS_OPERATOR_TRANSLATION{
-    "not ifNull(hasTokenCaseInsensitiveOrNull({0}, {1}), positionCaseInsensitive({0}, {1}) > 0)"};
+std::string applyFormatString(const std::string_view format_string, const std::string & haystack, const std::string & needle)
+{
+    return std::vformat(format_string, std::make_format_args(haystack, needle));
+}
+
+std::string constructHasOperatorTranslation(const KQLOperatorValue kql_op, const std::string & haystack, const std::string & needle)
+{
+    if (kql_op != KQLOperatorValue::has && kql_op != KQLOperatorValue::not_has && kql_op != KQLOperatorValue::has_cs
+        && kql_op != KQLOperatorValue::not_has_cs && kql_op != KQLOperatorValue::has_all && kql_op != KQLOperatorValue::has_any)
+        throw DB::Exception(DB::ErrorCodes::LOGICAL_ERROR, "Unexpected operator: {}", magic_enum::enum_name(kql_op));
+
+    const auto tokens = std::invoke(
+        [&needle]
+        {
+            std::vector<std::string_view> result;
+            size_t pos = 0;
+            size_t start = 0;
+            size_t length = 0;
+            DB::SplitTokenExtractor token_extractor;
+            while (pos < needle.length() && token_extractor.nextInString(needle.c_str(), needle.length(), &pos, &start, &length))
+                result.emplace_back(needle.c_str() + start, length);
+
+            return result;
+        });
+
+    const auto is_case_sensitive = kql_op == KQLOperatorValue::has_cs || kql_op == KQLOperatorValue::not_has_cs;
+    const auto has_token_suffix = is_case_sensitive ? "" : "CaseInsensitive";
+    const auto has_all_tokens = std::accumulate(
+        tokens.cbegin(),
+        tokens.cend(),
+        std::string(),
+        [&has_token_suffix, &haystack](auto acc, const auto & token)
+        { return std::move(acc) + std::format("hasToken{}({}, '{}') and ", has_token_suffix, haystack, token); });
+
+    const auto is_negation = kql_op == KQLOperatorValue::not_has || kql_op == KQLOperatorValue::not_has_cs;
+    return std::format(
+        "{4}ifNull(hasToken{3}OrNull({0}, {1}), {2} position{3}({0}, {1}) > 0)",
+        haystack,
+        needle,
+        has_all_tokens,
+        has_token_suffix,
+        is_negation ? "not " : "");
+}
 }
 
 String genHasAnyAllOpExpr(
-    std::vector<std::string> & tokens, DB::IParser::Pos & token_pos, const std::string & kql_op, const std::string_view ch_op)
+    std::vector<std::string> & tokens,
+    DB::IParser::Pos & token_pos,
+    const std::string & kql_op,
+    const std::function<std::string(const std::string &, const std::string &)> & translate)
 {
     std::string new_expr;
     DB::Expected expected;
@@ -127,7 +168,7 @@ String genHasAnyAllOpExpr(
         if (token_pos->type == DB::TokenType::Comma)
             new_expr += logic_op;
         else
-            new_expr += std::vformat(ch_op, std::make_format_args(haystack, tmp_arg));
+            new_expr += translate(haystack, tmp_arg);
 
         ++token_pos;
         if (token_pos->type == DB::TokenType::ClosingRoundBracket)
@@ -265,7 +306,7 @@ std::string genHaystackOpExpr(
     std::vector<std::string> & tokens,
     DB::IParser::Pos & token_pos,
     const std::string & kql_op,
-    const std::string_view ch_op,
+    const std::function<std::string(const std::string &, const std::string &)> & translate,
     WildcardsPos wildcards_pos,
     WildcardsPos space_pos = WildcardsPos::none)
 {
@@ -312,19 +353,15 @@ std::string genHaystackOpExpr(
     ++token_pos;
 
     if (!tokens.empty() && (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier))
-        new_expr = std::vformat(
-            ch_op,
-            std::make_format_args(
-                tokens.back(),
-                "'" + left_wildcards + left_space + std::string(token_pos->begin + 1, token_pos->end - 1) + right_space + right_wildcards
-                    + "'"));
+        new_expr = translate(
+            tokens.back(),
+            "'" + left_wildcards + left_space + std::string(token_pos->begin + 1, token_pos->end - 1) + right_space + right_wildcards
+                + "'");
     else if (!tokens.empty() && token_pos->type == DB::TokenType::BareWord)
     {
         auto tmp_arg = DB::IParserKQLFunction::getExpression(token_pos);
-        new_expr = std::vformat(
-            ch_op,
-            std::make_format_args(
-                tokens.back(), "concat('" + left_wildcards + left_space + "', " + tmp_arg + ", '" + right_space + right_wildcards + "')"));
+        new_expr = translate(
+            tokens.back(), "concat('" + left_wildcards + left_space + "', " + tmp_arg + ", '" + right_space + right_wildcards + "')");
     }
     else
         throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", kql_op);
@@ -403,35 +440,36 @@ bool KQLOperators::convert(std::vector<String> & tokens, IParser::Pos & pos)
     switch (op_value)
     {
         case KQLOperatorValue::contains:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "ilike({0}, {1})", WildcardsPos::both);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "ilike({0}, {1})"), WildcardsPos::both);
             break;
 
         case KQLOperatorValue::not_contains:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "not ilike({0}, {1})", WildcardsPos::both);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "not ilike({0}, {1})"), WildcardsPos::both);
             break;
 
         case KQLOperatorValue::contains_cs:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "like({0}, {1})", WildcardsPos::both);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "like({0}, {1})"), WildcardsPos::both);
             break;
 
         case KQLOperatorValue::not_contains_cs:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "not like({0}, {1})", WildcardsPos::both);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "not like({0}, {1})"), WildcardsPos::both);
             break;
 
         case KQLOperatorValue::endswith:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "ilike({0}, {1})", WildcardsPos::left);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "ilike({0}, {1})"), WildcardsPos::left);
             break;
 
         case KQLOperatorValue::not_endswith:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "not ilike({0}, {1})", WildcardsPos::left);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "not ilike({0}, {1})"), WildcardsPos::left);
             break;
 
         case KQLOperatorValue::endswith_cs:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "endsWith({0}, {1})", WildcardsPos::none);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "endsWith({0}, {1})"), WildcardsPos::none);
             break;
 
         case KQLOperatorValue::not_endswith_cs:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "not endsWith({0}, {1})", WildcardsPos::none);
+            new_expr
+                = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "not endsWith({0}, {1})"), WildcardsPos::none);
             break;
 
         case KQLOperatorValue::equal:
@@ -450,80 +488,90 @@ bool KQLOperators::convert(std::vector<String> & tokens, IParser::Pos & pos)
             new_expr = "!=";
             break;
         case KQLOperatorValue::has:
-            new_expr = genHaystackOpExpr(tokens, pos, op, HAS_OPERATOR_TRANSLATION, WildcardsPos::none);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&constructHasOperatorTranslation, op_value), WildcardsPos::none);
             break;
 
         case KQLOperatorValue::not_has:
-            new_expr = genHaystackOpExpr(tokens, pos, op, NOT_HAS_OPERATOR_TRANSLATION, WildcardsPos::none);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&constructHasOperatorTranslation, op_value), WildcardsPos::none);
             break;
 
         case KQLOperatorValue::has_all:
         case KQLOperatorValue::has_any:
-            new_expr = genHasAnyAllOpExpr(tokens, pos, op, HAS_OPERATOR_TRANSLATION);
+            new_expr = genHasAnyAllOpExpr(tokens, pos, op, std::bind_front(&constructHasOperatorTranslation, op_value));
             break;
 
         case KQLOperatorValue::has_cs:
-            new_expr = genHaystackOpExpr(tokens, pos, op, HAS_CS_OPERATOR_TRANSLATION, WildcardsPos::none);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&constructHasOperatorTranslation, op_value), WildcardsPos::none);
             break;
 
         case KQLOperatorValue::not_has_cs:
-            new_expr = genHaystackOpExpr(tokens, pos, op, NOT_HAS_CS_OPERATOR_TRANSLATION, WildcardsPos::none);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&constructHasOperatorTranslation, op_value), WildcardsPos::none);
             break;
 
         case KQLOperatorValue::hasprefix:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "ilike({0}, {1})", WildcardsPos::right);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "ilike({0}, {1})"), WildcardsPos::right);
             new_expr += " or ";
             tokens.push_back(last_op);
-            new_expr += genHaystackOpExpr(tokens, last_pos, op, "ilike({0}, {1})", WildcardsPos::both, WildcardsPos::left);
+            new_expr += genHaystackOpExpr(
+                tokens, last_pos, op, std::bind_front(&applyFormatString, "ilike({0}, {1})"), WildcardsPos::both, WildcardsPos::left);
             break;
 
         case KQLOperatorValue::not_hasprefix:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "not ilike({0}, {1})", WildcardsPos::right);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "not ilike({0}, {1})"), WildcardsPos::right);
             new_expr += " and ";
             tokens.push_back(last_op);
-            new_expr += genHaystackOpExpr(tokens, last_pos, op, "not ilike({0}, {1})", WildcardsPos::both, WildcardsPos::left);
+            new_expr += genHaystackOpExpr(
+                tokens, last_pos, op, std::bind_front(&applyFormatString, "not ilike({0}, {1})"), WildcardsPos::both, WildcardsPos::left);
             break;
 
         case KQLOperatorValue::hasprefix_cs:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "startsWith({0}, {1})", WildcardsPos::none);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "startsWith({0}, {1})"), WildcardsPos::none);
             new_expr += " or ";
             tokens.push_back(last_op);
-            new_expr += genHaystackOpExpr(tokens, last_pos, op, "like({0}, {1})", WildcardsPos::both, WildcardsPos::left);
+            new_expr += genHaystackOpExpr(
+                tokens, last_pos, op, std::bind_front(&applyFormatString, "like({0}, {1})"), WildcardsPos::both, WildcardsPos::left);
             break;
 
         case KQLOperatorValue::not_hasprefix_cs:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "not startsWith({0}, {1})", WildcardsPos::none);
+            new_expr
+                = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "not startsWith({0}, {1})"), WildcardsPos::none);
             new_expr += " and  ";
             tokens.push_back(last_op);
-            new_expr += genHaystackOpExpr(tokens, last_pos, op, "not like({0}, {1})", WildcardsPos::both, WildcardsPos::left);
+            new_expr += genHaystackOpExpr(
+                tokens, last_pos, op, std::bind_front(&applyFormatString, "not like({0}, {1})"), WildcardsPos::both, WildcardsPos::left);
             break;
 
         case KQLOperatorValue::hassuffix:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "ilike({0}, {1})", WildcardsPos::left);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "ilike({0}, {1})"), WildcardsPos::left);
             new_expr += " or ";
             tokens.push_back(last_op);
-            new_expr += genHaystackOpExpr(tokens, last_pos, op, "ilike({0}, {1})", WildcardsPos::both, WildcardsPos::right);
+            new_expr += genHaystackOpExpr(
+                tokens, last_pos, op, std::bind_front(&applyFormatString, "ilike({0}, {1})"), WildcardsPos::both, WildcardsPos::right);
             break;
 
         case KQLOperatorValue::not_hassuffix:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "not ilike({0}, {1})", WildcardsPos::left);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "not ilike({0}, {1})"), WildcardsPos::left);
             new_expr += " and ";
             tokens.push_back(last_op);
-            new_expr += genHaystackOpExpr(tokens, last_pos, op, "not ilike({0}, {1})", WildcardsPos::both, WildcardsPos::right);
+            new_expr += genHaystackOpExpr(
+                tokens, last_pos, op, std::bind_front(&applyFormatString, "not ilike({0}, {1})"), WildcardsPos::both, WildcardsPos::right);
             break;
 
         case KQLOperatorValue::hassuffix_cs:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "endsWith({0}, {1})", WildcardsPos::none);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "endsWith({0}, {1})"), WildcardsPos::none);
             new_expr += " or ";
             tokens.push_back(last_op);
-            new_expr += genHaystackOpExpr(tokens, last_pos, op, "like({0}, {1})", WildcardsPos::both, WildcardsPos::right);
+            new_expr += genHaystackOpExpr(
+                tokens, last_pos, op, std::bind_front(&applyFormatString, "like({0}, {1})"), WildcardsPos::both, WildcardsPos::right);
             break;
 
         case KQLOperatorValue::not_hassuffix_cs:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "not endsWith({0}, {1})", WildcardsPos::none);
+            new_expr
+                = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "not endsWith({0}, {1})"), WildcardsPos::none);
             new_expr += " and  ";
             tokens.push_back(last_op);
-            new_expr += genHaystackOpExpr(tokens, last_pos, op, "not like({0}, {1})", WildcardsPos::both, WildcardsPos::right);
+            new_expr += genHaystackOpExpr(
+                tokens, last_pos, op, std::bind_front(&applyFormatString, "not like({0}, {1})"), WildcardsPos::both, WildcardsPos::right);
             break;
 
         case KQLOperatorValue::in_cs:
@@ -543,23 +591,24 @@ bool KQLOperators::convert(std::vector<String> & tokens, IParser::Pos & pos)
             break;
 
         case KQLOperatorValue::matches_regex:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "match({0}, {1})", WildcardsPos::none);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "match({0}, {1})"), WildcardsPos::none);
             break;
 
         case KQLOperatorValue::startswith:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "ilike({0}, {1})", WildcardsPos::right);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "ilike({0}, {1})"), WildcardsPos::right);
             break;
 
         case KQLOperatorValue::not_startswith:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "not ilike({0}, {1})", WildcardsPos::right);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "not ilike({0}, {1})"), WildcardsPos::right);
             break;
 
         case KQLOperatorValue::startswith_cs:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "startsWith({0}, {1})", WildcardsPos::none);
+            new_expr = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "startsWith({0}, {1})"), WildcardsPos::none);
             break;
 
         case KQLOperatorValue::not_startswith_cs:
-            new_expr = genHaystackOpExpr(tokens, pos, op, "not startsWith({0}, {1})", WildcardsPos::none);
+            new_expr
+                = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "not startsWith({0}, {1})"), WildcardsPos::none);
             break;
 
         default:
