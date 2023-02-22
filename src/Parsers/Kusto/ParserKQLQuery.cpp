@@ -30,7 +30,7 @@
 #include <Parsers/ParserTablesInSelectQuery.h>
 #include <Parsers/Kusto/ParserKQLTopNested.h>
 #include <Parsers/Kusto/ParserKQLRange.h>
-
+#include <Parsers/Kusto/ParserKQLProjectAway.h>
 #include <format>
 
 namespace DB
@@ -63,6 +63,7 @@ std::unordered_map<std::string, ParserKQLQuery::KQLOperatorDataFlowState> kql_pa
     {"join", {"join", true, true, false, 3}},
     {"top-nested", {"top-nested", true, true, true, 5}},
     {"range", {"range", false, true, false, 3}},
+    {"project-away", {"project-away", true, true, true, 5}},
 };
 
 bool ParserKQLBase::parseByString(const String expr, ASTPtr & node, const uint32_t max_depth)
@@ -404,6 +405,8 @@ std::unique_ptr<ParserKQLBase> ParserKQLQuery::getOperator(String & op_name)
         return std::make_unique<ParserKQLTopNested>();
     else if (op_name == "range")
         return std::make_unique<ParserKQLRange>();
+    else if (op_name == "project-away")
+        return std::make_unique<ParserKQLProjectAway>();
     else
         return nullptr;
 }
