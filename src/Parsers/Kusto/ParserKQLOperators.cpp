@@ -10,6 +10,7 @@
 
 namespace DB::ErrorCodes
 {
+extern const int LOGICAL_ERROR;
 extern const int SYNTAX_ERROR;
 }
 
