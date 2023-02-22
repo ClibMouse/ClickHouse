@@ -200,6 +200,7 @@ if (BUILD_STANDALONE_KEEPER)
             loggers_no_text_log
             clickhouse_common_io
             clickhouse_parsers # Otherwise compression will not built. FIXME.
+            dmbs # Required by clickhouse_parsers
 
         ${LINK_RESOURCE_LIB_STANDALONE_KEEPER}
     )
