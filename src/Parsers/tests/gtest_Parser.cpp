@@ -468,31 +468,31 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery, ParserKQLTest,
         },
         {
             "Customers | where Education has 'School'",
-            "SELECT *\nFROM Customers\nWHERE ifNull(hasTokenCaseInsensitiveOrNull(Education, 'School'), Education = 'School')"
+            "SELECT *\nFROM Customers\nWHERE ifNull(hasTokenCaseInsensitiveOrNull(Education, 'School'), hasTokenCaseInsensitive(Education, 'School') AND (positionCaseInsensitive(Education, 'School') > 0))"
         },
         {
             "Customers | where Education !has 'School'",
-            "SELECT *\nFROM Customers\nWHERE NOT ifNull(hasTokenCaseInsensitiveOrNull(Education, 'School'), Education = 'School')"
+            "SELECT *\nFROM Customers\nWHERE NOT ifNull(hasTokenCaseInsensitiveOrNull(Education, 'School'), hasTokenCaseInsensitive(Education, 'School') AND (positionCaseInsensitive(Education, 'School') > 0))"
         },
         {
             "Customers | where Education has_cs 'School'",
-            "SELECT *\nFROM Customers\nWHERE ifNull(hasTokenOrNull(Education, 'School'), Education = 'School')"
+            "SELECT *\nFROM Customers\nWHERE ifNull(hasTokenOrNull(Education, 'School'), hasToken(Education, 'School') AND (position(Education, 'School') > 0))"
         },
         {
             "Customers | where Education !has_cs 'School'",
-            "SELECT *\nFROM Customers\nWHERE NOT ifNull(hasTokenOrNull(Education, 'School'), Education = 'School')"
+            "SELECT *\nFROM Customers\nWHERE NOT ifNull(hasTokenOrNull(Education, 'School'), hasToken(Education, 'School') AND (position(Education, 'School') > 0))"
         },
         {
             "Customers|where Occupation has_any ('Skilled','abcd')",
-            "SELECT *\nFROM Customers\nWHERE ifNull(hasTokenCaseInsensitiveOrNull(Occupation, 'Skilled'), Occupation = 'Skilled') OR ifNull(hasTokenCaseInsensitiveOrNull(Occupation, 'abcd'), Occupation = 'abcd')"
+            "SELECT *\nFROM Customers\nWHERE ifNull(hasTokenCaseInsensitiveOrNull(Occupation, 'Skilled'), hasTokenCaseInsensitive(Occupation, 'Skilled') AND (positionCaseInsensitive(Occupation, 'Skilled') > 0)) OR ifNull(hasTokenCaseInsensitiveOrNull(Occupation, 'abcd'), hasTokenCaseInsensitive(Occupation, 'abcd') AND (positionCaseInsensitive(Occupation, 'abcd') > 0))"
         },
         {
             "Customers|where Occupation has_all ('Skilled','abcd')",
-            "SELECT *\nFROM Customers\nWHERE ifNull(hasTokenCaseInsensitiveOrNull(Occupation, 'Skilled'), Occupation = 'Skilled') AND ifNull(hasTokenCaseInsensitiveOrNull(Occupation, 'abcd'), Occupation = 'abcd')"
+            "SELECT *\nFROM Customers\nWHERE ifNull(hasTokenCaseInsensitiveOrNull(Occupation, 'Skilled'), hasTokenCaseInsensitive(Occupation, 'Skilled') AND (positionCaseInsensitive(Occupation, 'Skilled') > 0)) AND ifNull(hasTokenCaseInsensitiveOrNull(Occupation, 'abcd'), hasTokenCaseInsensitive(Occupation, 'abcd') AND (positionCaseInsensitive(Occupation, 'abcd') > 0))"
         },
         {
             "Customers|where Occupation has_all (strcat('Skill','ed'),'Manual')",
-            "SELECT *\nFROM Customers\nWHERE ifNull(hasTokenCaseInsensitiveOrNull(Occupation, concat(ifNull(kql_tostring('Skill'), ''), ifNull(kql_tostring('ed'), ''), '')), Occupation = concat(ifNull(kql_tostring('Skill'), ''), ifNull(kql_tostring('ed'), ''), '')) AND ifNull(hasTokenCaseInsensitiveOrNull(Occupation, 'Manual'), Occupation = 'Manual')"
+            "SELECT *\nFROM Customers\nWHERE ifNull(hasTokenCaseInsensitiveOrNull(Occupation, concat(ifNull(kql_tostring('Skill'), ''), ifNull(kql_tostring('ed'), ''), '')), hasTokenCaseInsensitive(Occupation, 'concat') AND hasTokenCaseInsensitive(Occupation, 'ifNull') AND hasTokenCaseInsensitive(Occupation, 'kql') AND hasTokenCaseInsensitive(Occupation, 'tostring') AND hasTokenCaseInsensitive(Occupation, 'Skill') AND hasTokenCaseInsensitive(Occupation, 'ifNull') AND hasTokenCaseInsensitive(Occupation, 'kql') AND hasTokenCaseInsensitive(Occupation, 'tostring') AND hasTokenCaseInsensitive(Occupation, 'ed') AND (positionCaseInsensitive(Occupation, concat(ifNull(kql_tostring('Skill'), ''), ifNull(kql_tostring('ed'), ''), '')) > 0)) AND ifNull(hasTokenCaseInsensitiveOrNull(Occupation, 'Manual'), hasTokenCaseInsensitive(Occupation, 'Manual') AND (positionCaseInsensitive(Occupation, 'Manual') > 0))"
         },
         {
             "Customers | where Occupation == strcat('Pro','fessional') | take 1",
