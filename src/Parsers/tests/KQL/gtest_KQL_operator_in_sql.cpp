@@ -33,11 +33,11 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_operator_in_sql, ParserKQLTest,
         },
         {
             "select * from kql(Customers | where FirstName !has 'Peter');",
-            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE NOT ifNull(hasTokenCaseInsensitiveOrNull(FirstName, 'Peter'), FirstName = 'Peter')\n)"
+            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE NOT ifNull(hasTokenCaseInsensitiveOrNull(FirstName, 'Peter'), hasTokenCaseInsensitive(FirstName, 'Peter') AND (positionCaseInsensitive(FirstName, 'Peter') > 0))\n)"
         },
         {
             "select * from kql(Customers | where FirstName !has_cs 'peter');",
-            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE NOT ifNull(hasTokenOrNull(FirstName, 'peter'), FirstName = 'peter')\n)"
+            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE NOT ifNull(hasTokenOrNull(FirstName, 'peter'), hasToken(FirstName, 'peter') AND (position(FirstName, 'peter') > 0))\n)"
         },
         {
             "select * from kql($$Customers | where FirstName !hasprefix 'Peter'$$);",
