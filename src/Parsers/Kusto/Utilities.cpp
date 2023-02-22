@@ -24,6 +24,32 @@ String extractTokenWithoutQuotes(IParser::Pos & pos)
     return {pos->begin + offset, pos->end - offset};
 }
 
+String WildcardToRegex(const String & wildcard)
+{
+    String regex;
+    for (char c : wildcard)
+    {
+        if (c == '*')
+        {
+            regex += ".*";
+        }
+        else if (c == '?')
+        {
+            regex += ".";
+        }
+        else if (c == '.' || c == '+' || c == '(' || c == ')' || c == '[' || c == ']' || c == '\\' || c == '^' || c == '$')
+        {
+            regex += "\\";
+            regex += c;
+        }
+        else
+        {
+            regex += c;
+        }
+    }
+    return regex;
+}
+
 bool isValidKQLPos(IParser::Pos & pos)
 {
     return (pos.isValid() ||
