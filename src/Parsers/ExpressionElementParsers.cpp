@@ -124,7 +124,7 @@ bool ParserSubquery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
             result_node = std::move(select_node);
         }
         else if (ASTPtr explain_node; explain.parse(pos, explain_node, expected))
-        {            
+        {
             const auto & explain_query = explain_node->as<const ASTExplainQuery &>();
 
             if (explain_query.getTableFunction() || explain_query.getTableOverride())
