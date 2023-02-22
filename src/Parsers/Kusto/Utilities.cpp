@@ -23,4 +23,31 @@ String extractTokenWithoutQuotes(IParser::Pos & pos)
     const auto offset = static_cast<int>(pos->type == TokenType::QuotedIdentifier || pos->type == TokenType::StringLiteral);
     return {pos->begin + offset, pos->end - offset};
 }
+
+String WildcardToRegex(const String & wildcard)
+{
+    String regex;
+    for (char c : wildcard)
+    {
+        if (c == '*')
+        {
+            regex += ".*";
+        }
+        else if (c == '?')
+        {
+            regex += ".";
+        }
+        else if (c == '.' || c == '+' || c == '(' || c == ')' || c == '[' || c == ']' || c == '\\' || c == '^' || c == '$')
+        {
+            regex += "\\";
+            regex += c;
+        }
+        else
+        {
+            regex += c;
+        }
+    }
+    return regex;
+}
+
 }
