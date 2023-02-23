@@ -67,15 +67,17 @@ int mainEntryClickHouseKeeper(int argc, char ** argv)
     }
 }
 
-#ifdef CLICKHOUSE_PROGRAM_STANDALONE_BUILD
+// this will need to be uncommented once dbms is no longer a dependency of standalone clickhouse-keeper
+//
+// #ifdef CLICKHOUSE_PROGRAM_STANDALONE_BUILD
 
-// Weak symbols don't work correctly on Darwin
-// so we have a stub implementation to avoid linker errors
-void collectCrashLog(
-    Int32, UInt64, const String &, const StackTrace &)
-{}
+// // Weak symbols don't work correctly on Darwin
+// // so we have a stub implementation to avoid linker errors
+// void collectCrashLog(
+//     Int32, UInt64, const String &, const StackTrace &)
+// {}
 
-#endif
+// #endif
 
 namespace DB
 {
