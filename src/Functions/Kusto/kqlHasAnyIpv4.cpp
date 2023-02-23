@@ -90,7 +90,7 @@ public:
                     auto arg = arguments[j].column->getDataAt(i).toString();
 
                     ColumnPtr column_ip = DataTypeString().createColumnConst(1, toField(String(arg)));
-                    const ColumnsWithTypeAndName isipv4string_args = {ColumnWithTypeAndName(column_ip, std::make_shared<DataTypeString>(), "ip")};
+                    const ColumnsWithTypeAndName is_ipv4_string_args = {ColumnWithTypeAndName(column_ip, std::make_shared<DataTypeString>(), "ip")};
 
                     auto isipv4 = isipv4string(isipv4string_args);
                     if (isipv4->getUInt(0) == 1)
