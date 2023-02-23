@@ -46,7 +46,8 @@ if (BUILD_STANDALONE_KEEPER)
         ${CMAKE_CURRENT_SOURCE_DIR}/../../src/Coordination/WriteBufferFromNuraftBuffer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../../src/Coordination/ZooKeeperDataReader.cpp
 
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../src/Core/SettingsFields.cpp
+        # this will need to be uncommented once dbms is no longer a dependency of standalone clickhouse-keeper
+        # ${CMAKE_CURRENT_SOURCE_DIR}/../../src/Core/SettingsFields.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../../src/Core/BaseSettings.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../../src/Core/ServerSettings.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../../src/Core/Field.cpp
@@ -199,8 +200,7 @@ if (BUILD_STANDALONE_KEEPER)
             clickhouse_common_config_no_zookeeper_log
             loggers_no_text_log
             clickhouse_common_io
-            clickhouse_parsers # Otherwise compression will not built. FIXME.
-            dmbs # Required by clickhouse_parsers
+            clickhouse_parsers dbms # Otherwise compression will not built. FIXME.
 
         ${LINK_RESOURCE_LIB_STANDALONE_KEEPER}
     )
