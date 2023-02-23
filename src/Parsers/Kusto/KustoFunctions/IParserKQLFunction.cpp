@@ -395,10 +395,10 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
 String IParserKQLFunction::escapeSingleQuotes(const String & input)
 {
     String output;
-    for (auto & ch: input)
+    for (const auto & ch : input)
     {
         if (ch == '\'')
-            output += '\'';
+            output += ch;
         output += ch;
     }
     return output;
