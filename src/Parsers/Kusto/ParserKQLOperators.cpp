@@ -356,7 +356,7 @@ std::string genHaystackOpExpr(
     if (!tokens.empty() && (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier))
         new_expr = translate(
             tokens.back(),
-            "'" + left_wildcards + left_space + std::string(token_pos->begin + 1, token_pos->end - 1) + right_space + right_wildcards
+            "'" + left_wildcards + left_space + DB::IParserKQLFunction::escapeSingleQuotes(String(token_pos->begin + 1, token_pos->end - 1)) + right_space + right_wildcards
                 + "'");
     else if (!tokens.empty() && token_pos->type == DB::TokenType::BareWord)
     {
