@@ -22,14 +22,23 @@ print has_any_ipv4('X', 2); -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
 print has_ipv4_prefix('X', 2); -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
 print has_any_ipv4_prefix('X', 2); -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
 
+print "-- #1 --";
 IP_STRING | extend has_ipv4(haystack, needle);
+print "-- #2 --";
 IP_STRING | extend has_any_ipv4(haystack, needle);
+print "-- #3 --";
 IP_STRING | extend has_any_ipv4(haystack, needle, '1.2.3.4');
+print "-- #4 --";
 IP_STRING | extend has_any_ipv4(haystack, 'X', needle);
+print "-- #5 --";
 IP_STRING | extend has_ipv4_prefix(haystack, needle);
+print "-- #6 --";
 IP_STRING | extend has_ipv4_prefix(haystack, substring(needle, 0, strlen(needle)-1)); 
+print "-- #7 --";
 IP_STRING | extend has_ipv4_prefix(haystack, substring(needle, 0, strlen(needle)-2));
+print "-- #8 --";
 IP_ARRAY | extend has_any_ipv4(haystack, dynamic(needle));
+print "-- #9 --";
 IP_ARRAY | extend has_any_ipv4_prefix(haystack, dynamic(needle));
 set dialect='kusto_auto';
 DROP TABLE IP_STRING;
