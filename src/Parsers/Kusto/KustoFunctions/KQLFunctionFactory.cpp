@@ -163,6 +163,7 @@ enum class KQLFunction : uint16_t
     take_anyif,
     variance,
     varianceif,
+    variancep,
     count_distinct,
     count_distinctif,
 
@@ -410,6 +411,7 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"take_anyif", KQLFunction::take_anyif},
     {"variance", KQLFunction::variance},
     {"varianceif", KQLFunction::varianceif},
+    {"variancep", KQLFunction::variancep},
     {"count_distinct", KQLFunction::count_distinct},
     {"count_distinctif", KQLFunction::count_distinctif},
 
@@ -941,6 +943,9 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::varianceif:
             return std::make_unique<VarianceIf>();
+        
+        case KQLFunction::variancep:
+            return std::make_unique<VarianceP>();
 
         case KQLFunction::count_distinct:
             return std::make_unique<CountDistinct>();

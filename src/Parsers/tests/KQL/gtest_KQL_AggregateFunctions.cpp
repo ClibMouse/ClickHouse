@@ -109,5 +109,17 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Aggregate, ParserKQLTest,
         {	
             "Customers | summarize by FirstName, LastName, Age",
             "SELECT\n    FirstName,\n    LastName,\n    Age\nFROM Customers\nGROUP BY\n    FirstName,\n    LastName,\n    Age"
+        },
+        {
+            "Customers | summarize variance(Age)",
+            "SELECT varSamp(Age) AS variance_Age\nFROM Customers"
+        },
+        {
+            "Customers | summarize variancep(Age)",
+            "SELECT varPop(Age) AS Columns1\nFROM Customers"
+        },
+        {
+            "Customers | summarize varianceif(Age, Age < 30)",
+            "SELECT varSampIf(Age, Age < 30) AS varianceif_Age\nFROM Customers"
         }
 })));
