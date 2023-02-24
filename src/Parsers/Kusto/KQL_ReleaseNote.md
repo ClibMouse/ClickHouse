@@ -52,6 +52,10 @@
     - Check functional test `tests/queries/0_stateless/02366_kql_test_subquery.sql` for details.
 
 - KQL - has operator fails to return result when needle has separator character
+- strcat_delim fails when encountered with escaped double quotes (2159)
+- summarize throw exception if Aggregation is missing (2113)
+- todecimal() doesn't work with column arguments (1413)
+- extract_json value cast to boolean causes exception (1490)
 - [isempty() and isnotempty() not accepting non-quoted strings]
 ## Functions
 - [abs()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/abs-function)
