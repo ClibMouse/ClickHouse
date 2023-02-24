@@ -85,7 +85,8 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
          "take_any",
          "take_anyif",
          "variance",
-         "varianceif"});
+         "varianceif",
+         "variancep"});
 
     auto apply_aliais = [&](Pos & begin_pos, Pos & end_pos, bool is_groupby)
     {

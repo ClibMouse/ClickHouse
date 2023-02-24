@@ -116,7 +116,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Aggregate, ParserKQLTest,
         },
         {
             "Customers | summarize variancep(Age)",
-            "SELECT varPop(Age) AS Columns1\nFROM Customers"
+            "SELECT varPop(Age) AS variancep_Age\nFROM Customers"
         },
         {
             "Customers | summarize varianceif(Age, Age < 30)",
