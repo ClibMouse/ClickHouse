@@ -1,0 +1,29 @@
+1-- remove one column
+Diaz	Skilled Manual	Bachelors	28
+
+2-- remove two columns
+Skilled Manual	Bachelors	28
+
+3-- remove columns by one wildcard
+Skilled Manual	Bachelors	28
+
+4-- remove columns by two wildcards
+28
+
+5-- remove columns by one wildcard, one regular column
+Skilled Manual	Bachelors
+
+6-- remove columns by one wildcard, two regular column
+Skilled Manual
+
+7-- remove columns by two wildcard, two regular column
+Skilled Manual
+
+8-- remove one column from previous piple result
+Diaz	Skilled Manual	Bachelors	28
+
+9-- remove one column from summized piple result
+Theodore	28
+
+10-- remove columns after extend
+Skilled Manual	Bachelors	28	Theodore Diaz
