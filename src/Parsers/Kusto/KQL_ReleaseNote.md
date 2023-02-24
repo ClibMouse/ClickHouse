@@ -1,5 +1,32 @@
 ## KQL implemented features  
 # February XX, 2023
+## Operator
+
+- [project-away](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/projectawayoperator)
+    ```
+    print '1-- remove one column';
+    Customers | project-away FirstName;
+    print '2-- remove two columns';
+    Customers | project-away FirstName, LastName;
+    print '3-- remove columns by one wildcard';
+    Customers | project-away *Name;
+    print '4-- remove columns by two wildcards';
+    Customers | project-away *Name, *tion;
+    print '5-- remove columns by one wildcard, one regular column';
+    Customers | project-away *Name, Age;
+    print '6-- remove columns by one wildcard, two regular column';
+    Customers | project-away *Name, Age, Education;
+    print '7-- remove columns by two wildcard, two regular column';
+    Customers | project-away *irstName, Age, *astName, Education;
+    print '8-- remove one column from previous piple result';
+    Customers | where Age< 30 | limit 2 | project-away FirstName;
+    print '9-- remove one column from summized piple result';
+    Customers|summarize sum(Age), avg(Age) by FirstName | project-away sum_Age;
+    print '10-- remove columns after extend';
+    Customers|extend FullName = strcat(FirstName,' ',LastName) | project-away FirstName, LastName;  
+    ```
+
+
 ## Bugfixes
 - Fixed count operator issue (2112):
     ```
