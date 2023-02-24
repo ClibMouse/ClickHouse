@@ -500,16 +500,25 @@ bool TakeAnyIf::convertImpl(String & out, IParser::Pos & pos)
 
 bool Variance::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    return directMapping(out, pos, "varSamp");
 }
 
 bool VarianceIf::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const String expr = getArgument(fn_name, pos);
+    const String predicate = getArgument(fn_name, pos);
+    out = std::format("varSampIf({}, {})", expr, predicate);
+
+    return true;
+}
+
+bool VarianceP::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "varPop");
 }
 
 bool CountDistinct::convertImpl(String & out, IParser::Pos & pos)
