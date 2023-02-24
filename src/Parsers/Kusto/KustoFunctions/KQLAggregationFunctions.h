@@ -263,6 +263,13 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class VarianceP : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "variancep()"; }
+    bool convertImpl(String &out,IParser::Pos &pos) override;
+};
+
 class CountDistinct : public IParserKQLFunction
 {
 protected:
