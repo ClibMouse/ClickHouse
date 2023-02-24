@@ -60,7 +60,12 @@
 - [sqrt()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sqrtfunction)
    `print sqrt(256)`
 - [tan()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/tanfunction)
-
+- [variance()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/variance-aggfunction)
+   `Customers | summarize variance(Age);`
+- [variancep()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/variancep-aggfunction)
+   `Customers | summarize variancep(Age);`
+- [varianceif()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/varianceif-aggfunction)
+   `Customers | summarize varianceif(Age, Age < 30)`
 # January XX, 2023
 ## Functions
 - [range()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/rangefunction)  
