@@ -124,6 +124,10 @@ print '-- take_anyif --';
 Customers | summarize take_anyif(FirstName, LastName has 'Diaz');
 Customers | summarize take_anyif(FirstName, LastName has 'Diaz'), dcount(FirstName);
 
+print '-- variance/variancep/varianceif --';
+Customers | summarize variance(Age);
+Customers | summarize variancep(Age);
+Customers | summarize varianceif(Age, Age < 30)
 -- TODO:
 -- arg_max()
 -- arg_min()
