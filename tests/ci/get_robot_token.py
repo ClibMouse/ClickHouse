@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 
 import boto3  # type: ignore
-import hvac  # type: ignore
+import hvac  # type: ignore # pylint: disable=import-error
 from env_helper import VAULT_URL, VAULT_TOKEN, VAULT_PATH, VAULT_MOUNT_POINT
 from github import Github
 from github.AuthenticatedUser import AuthenticatedUser
