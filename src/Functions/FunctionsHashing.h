@@ -19,10 +19,10 @@
 #    include <blake3.h>
 #endif
 
-#include <Common/SipHash.h>
-#include <Common/typeid_cast.h>
-#include <Common/safe_cast.h>
 #include <Common/HashTable/Hash.h>
+#include <Common/SipHash.h>
+#include <Common/safe_cast.h>
+#include <Common/typeid_cast.h>
 
 #if USE_SSL
 #    include <openssl/md4.h>
@@ -30,31 +30,31 @@
 #    include <openssl/sha.h>
 #endif
 
-#include <Poco/ByteOrder.h>
-#include <DataTypes/DataTypesNumber.h>
-#include <DataTypes/DataTypesDecimal.h>
-#include <DataTypes/DataTypeString.h>
-#include <DataTypes/DataTypeDate.h>
-#include <DataTypes/DataTypeDateTime.h>
-#include <DataTypes/DataTypeArray.h>
-#include <DataTypes/DataTypeFixedString.h>
-#include <DataTypes/DataTypeEnum.h>
-#include <DataTypes/DataTypeTuple.h>
-#include <DataTypes/DataTypeMap.h>
-#include <Columns/ColumnsNumber.h>
-#include <Columns/ColumnString.h>
+#include <Columns/ColumnArray.h>
 #include <Columns/ColumnConst.h>
 #include <Columns/ColumnFixedString.h>
-#include <Columns/ColumnArray.h>
-#include <Columns/ColumnTuple.h>
 #include <Columns/ColumnMap.h>
-#include <Functions/IFunction.h>
+#include <Columns/ColumnString.h>
+#include <Columns/ColumnTuple.h>
+#include <Columns/ColumnsNumber.h>
+#include <DataTypes/DataTypeArray.h>
+#include <DataTypes/DataTypeDate.h>
+#include <DataTypes/DataTypeDateTime.h>
+#include <DataTypes/DataTypeEnum.h>
+#include <DataTypes/DataTypeFixedString.h>
+#include <DataTypes/DataTypeMap.h>
+#include <DataTypes/DataTypeString.h>
+#include <DataTypes/DataTypeTuple.h>
+#include <DataTypes/DataTypesDecimal.h>
+#include <DataTypes/DataTypesNumber.h>
 #include <Functions/FunctionHelpers.h>
+#include <Functions/IFunction.h>
 #include <Functions/PerformanceAdaptors.h>
-#include <Common/TargetSpecific.h>
 #include <base/IPv4andIPv6.h>
-#include <base/range.h>
 #include <base/bit_cast.h>
+#include <base/range.h>
+#include <Poco/ByteOrder.h>
+#include <Common/TargetSpecific.h>
 
 
 namespace DB
@@ -109,13 +109,10 @@ struct IntHash64Impl
 {
     using ReturnType = UInt64;
 
-    static UInt64 apply(UInt64 x)
-    {
-        return intHash64(x ^ 0x4CF2D2BAAE6DA887ULL);
-    }
+    static UInt64 apply(UInt64 x) { return intHash64(x ^ 0x4CF2D2BAAE6DA887ULL); }
 };
 
-template<typename T, typename HashFunction>
+template <typename T, typename HashFunction>
 T combineHashesFunc(T t1, T t2)
 {
     T hashes[] = {t1, t2};
@@ -142,7 +139,8 @@ struct HalfMD5Impl
         MD5_Update(&ctx, reinterpret_cast<const unsigned char *>(begin), size);
         MD5_Final(buf.char_data, &ctx);
 
-        return Poco::ByteOrder::flipBytes(static_cast<Poco::UInt64>(buf.uint64_data));        /// Compatibility with existing code. Cast need for old poco AND macos where UInt64 != uint64_t
+        return Poco::ByteOrder::flipBytes(static_cast<Poco::UInt64>(
+            buf.uint64_data)); /// Compatibility with existing code. Cast need for old poco AND macos where UInt64 != uint64_t
     }
 
     static UInt64 combineHashes(UInt64 h1, UInt64 h2)
@@ -160,7 +158,10 @@ struct HalfMD5Impl
 struct MD4Impl
 {
     static constexpr auto name = "MD4";
-    enum { length = MD4_DIGEST_LENGTH };
+    enum
+    {
+        length = MD4_DIGEST_LENGTH
+    };
 
     static void apply(const char * begin, const size_t size, unsigned char * out_char_data)
     {
@@ -174,7 +175,10 @@ struct MD4Impl
 struct MD5Impl
 {
     static constexpr auto name = "MD5";
-    enum { length = MD5_DIGEST_LENGTH };
+    enum
+    {
+        length = MD5_DIGEST_LENGTH
+    };
 
     static void apply(const char * begin, const size_t size, unsigned char * out_char_data)
     {
@@ -188,7 +192,10 @@ struct MD5Impl
 struct SHA1Impl
 {
     static constexpr auto name = "SHA1";
-    enum { length = SHA_DIGEST_LENGTH };
+    enum
+    {
+        length = SHA_DIGEST_LENGTH
+    };
 
     static void apply(const char * begin, const size_t size, unsigned char * out_char_data)
     {
@@ -202,7 +209,10 @@ struct SHA1Impl
 struct SHA224Impl
 {
     static constexpr auto name = "SHA224";
-    enum { length = SHA224_DIGEST_LENGTH };
+    enum
+    {
+        length = SHA224_DIGEST_LENGTH
+    };
 
     static void apply(const char * begin, const size_t size, unsigned char * out_char_data)
     {
@@ -216,7 +226,10 @@ struct SHA224Impl
 struct SHA256Impl
 {
     static constexpr auto name = "SHA256";
-    enum { length = SHA256_DIGEST_LENGTH };
+    enum
+    {
+        length = SHA256_DIGEST_LENGTH
+    };
 
     static void apply(const char * begin, const size_t size, unsigned char * out_char_data)
     {
@@ -230,7 +243,10 @@ struct SHA256Impl
 struct SHA384Impl
 {
     static constexpr auto name = "SHA384";
-    enum { length = SHA384_DIGEST_LENGTH };
+    enum
+    {
+        length = SHA384_DIGEST_LENGTH
+    };
 
     static void apply(const char * begin, const size_t size, unsigned char * out_char_data)
     {
@@ -244,7 +260,10 @@ struct SHA384Impl
 struct SHA512Impl
 {
     static constexpr auto name = "SHA512";
-    enum { length = 64 };
+    enum
+    {
+        length = 64
+    };
 
     static void apply(const char * begin, const size_t size, unsigned char * out_char_data)
     {
@@ -261,15 +280,9 @@ struct SipHash64Impl
     static constexpr auto name = "sipHash64";
     using ReturnType = UInt64;
 
-    static UInt64 apply(const char * begin, size_t size)
-    {
-        return sipHash64(begin, size);
-    }
+    static UInt64 apply(const char * begin, size_t size) { return sipHash64(begin, size); }
 
-    static UInt64 combineHashes(UInt64 h1, UInt64 h2)
-    {
-        return combineHashesFunc<UInt64, SipHash64Impl>(h1, h2);
-    }
+    static UInt64 combineHashes(UInt64 h1, UInt64 h2) { return combineHashesFunc<UInt64, SipHash64Impl>(h1, h2); }
 
     static constexpr bool use_int_hash_for_pods = false;
 };
@@ -280,15 +293,9 @@ struct SipHash128Impl
 
     using ReturnType = UInt128;
 
-    static UInt128 combineHashes(UInt128 h1, UInt128 h2)
-    {
-        return combineHashesFunc<UInt128, SipHash128Impl>(h1, h2);
-    }
+    static UInt128 combineHashes(UInt128 h1, UInt128 h2) { return combineHashesFunc<UInt128, SipHash128Impl>(h1, h2); }
 
-    static UInt128 apply(const char * data, const size_t size)
-    {
-        return sipHash128(data, size);
-    }
+    static UInt128 apply(const char * data, const size_t size) { return sipHash128(data, size); }
 
     static constexpr bool use_int_hash_for_pods = false;
 };
@@ -306,15 +313,9 @@ struct MurmurHash2Impl32
 
     using ReturnType = UInt32;
 
-    static UInt32 apply(const char * data, const size_t size)
-    {
-        return MurmurHash2(data, size, 0);
-    }
+    static UInt32 apply(const char * data, const size_t size) { return MurmurHash2(data, size, 0); }
 
-    static UInt32 combineHashes(UInt32 h1, UInt32 h2)
-    {
-        return IntHash32Impl::apply(h1) ^ h2;
-    }
+    static UInt32 combineHashes(UInt32 h1, UInt32 h2) { return IntHash32Impl::apply(h1) ^ h2; }
 
     static constexpr bool use_int_hash_for_pods = false;
 };
@@ -324,15 +325,9 @@ struct MurmurHash2Impl64
     static constexpr auto name = "murmurHash2_64";
     using ReturnType = UInt64;
 
-    static UInt64 apply(const char * data, const size_t size)
-    {
-        return MurmurHash64A(data, size, 0);
-    }
+    static UInt64 apply(const char * data, const size_t size) { return MurmurHash64A(data, size, 0); }
 
-    static UInt64 combineHashes(UInt64 h1, UInt64 h2)
-    {
-        return IntHash64Impl::apply(h1) ^ h2;
-    }
+    static UInt64 combineHashes(UInt64 h1, UInt64 h2) { return IntHash64Impl::apply(h1) ^ h2; }
 
     static constexpr bool use_int_hash_for_pods = false;
 };
@@ -343,15 +338,9 @@ struct GccMurmurHashImpl
     static constexpr auto name = "gccMurmurHash";
     using ReturnType = UInt64;
 
-    static UInt64 apply(const char * data, const size_t size)
-    {
-        return MurmurHash64A(data, size, 0xc70f6907UL);
-    }
+    static UInt64 apply(const char * data, const size_t size) { return MurmurHash64A(data, size, 0xc70f6907UL); }
 
-    static UInt64 combineHashes(UInt64 h1, UInt64 h2)
-    {
-        return IntHash64Impl::apply(h1) ^ h2;
-    }
+    static UInt64 combineHashes(UInt64 h1, UInt64 h2) { return IntHash64Impl::apply(h1) ^ h2; }
 
     static constexpr bool use_int_hash_for_pods = false;
 };
@@ -372,10 +361,7 @@ struct MurmurHash3Impl32
         return h;
     }
 
-    static UInt32 combineHashes(UInt32 h1, UInt32 h2)
-    {
-        return IntHash32Impl::apply(h1) ^ h2;
-    }
+    static UInt32 combineHashes(UInt32 h1, UInt32 h2) { return IntHash32Impl::apply(h1) ^ h2; }
 
     static constexpr bool use_int_hash_for_pods = false;
 };
@@ -396,10 +382,7 @@ struct MurmurHash3Impl64
         return h[0] ^ h[1];
     }
 
-    static UInt64 combineHashes(UInt64 h1, UInt64 h2)
-    {
-        return IntHash64Impl::apply(h1) ^ h2;
-    }
+    static UInt64 combineHashes(UInt64 h1, UInt64 h2) { return IntHash64Impl::apply(h1) ^ h2; }
 
     static constexpr bool use_int_hash_for_pods = false;
 };
@@ -417,10 +400,7 @@ struct MurmurHash3Impl128
         return *reinterpret_cast<UInt128 *>(bytes);
     }
 
-    static UInt128 combineHashes(UInt128 h1, UInt128 h2)
-    {
-        return combineHashesFunc<UInt128, MurmurHash3Impl128>(h1, h2);
-    }
+    static UInt128 combineHashes(UInt128 h1, UInt128 h2) { return combineHashesFunc<UInt128, MurmurHash3Impl128>(h1, h2); }
 
     static constexpr bool use_int_hash_for_pods = false;
 };
@@ -434,22 +414,22 @@ struct JavaHashImpl
 
     static ReturnType apply(int64_t x)
     {
-        return static_cast<ReturnType>(
-            static_cast<uint32_t>(x) ^ static_cast<uint32_t>(static_cast<uint64_t>(x) >> 32));
+        return static_cast<ReturnType>(static_cast<uint32_t>(x) ^ static_cast<uint32_t>(static_cast<uint64_t>(x) >> 32));
     }
 
-    template <class T, typename std::enable_if<std::is_same_v<T, int8_t>
-                                                   || std::is_same_v<T, int16_t>
-                                                   || std::is_same_v<T, int32_t>, T>::type * = nullptr>
+    template <
+        class T,
+        typename std::enable_if<std::is_same_v<T, int8_t> || std::is_same_v<T, int16_t> || std::is_same_v<T, int32_t>, T>::type * = nullptr>
     static ReturnType apply(T x)
     {
         return x;
     }
 
-    template <typename T, typename std::enable_if<!std::is_same_v<T, int8_t>
-                                                      && !std::is_same_v<T, int16_t>
-                                                      && !std::is_same_v<T, int32_t>
-                                                      && !std::is_same_v<T, int64_t>, T>::type * = nullptr>
+    template <
+        typename T,
+        typename std::enable_if<
+            !std::is_same_v<T, int8_t> && !std::is_same_v<T, int16_t> && !std::is_same_v<T, int32_t> && !std::is_same_v<T, int64_t>,
+            T>::type * = nullptr>
     static ReturnType apply(T x)
     {
         if (std::is_unsigned_v<T>)
@@ -626,6 +606,37 @@ struct ImplXxHash64
     static constexpr bool use_int_hash_for_pods = false;
 };
 
+struct ImplXxHash64KQL
+{
+    static constexpr auto name = "xxHash64KQL";
+    using ReturnType = Int64;
+    using uint128_t = CityHash_v1_0_2::uint128;
+
+    static ReturnType apply(const char * s, const size_t len) { return XXH_INLINE_XXH64(s, len, 0); }
+
+    template <class T, typename std::enable_if<std::is_same_v<T, Int64> || std::is_unsigned_v<T>, T>::type * = nullptr>
+
+    static ReturnType apply(T x)
+    {
+        if (std::is_unsigned_v<T>)
+            throw Exception(ErrorCodes::NOT_IMPLEMENTED, "Unsigned types are not supported");
+
+        const size_t size = sizeof(T);
+        const char * data = reinterpret_cast<const char *>(&x);
+        return apply(data, size);
+    }
+
+    /*
+       With current implementation with more than 1 arguments it will give the results
+       non-reproducible from outside of CH. (see comment on ImplXxHash32).
+     */
+    static Int32 combineHashes(Int64, Int64)
+    {
+        throw Exception(ErrorCodes::NOT_IMPLEMENTED, "xxHash64KQL is not combineable for multiple arguments");
+    }
+    static constexpr bool use_int_hash_for_pods = false;
+};
+
 struct ImplXXH3
 {
     static constexpr auto name = "xxh3";
@@ -646,25 +657,28 @@ struct ImplXXH3
 struct ImplBLAKE3
 {
     static constexpr auto name = "BLAKE3";
-    enum { length = 32 };
+    enum
+    {
+        length = 32
+    };
 
-    #if !USE_BLAKE3
-    [[noreturn]] static void apply(const char * begin, const size_t size, unsigned char* out_char_data)
+#if !USE_BLAKE3
+    [[noreturn]] static void apply(const char * begin, const size_t size, unsigned char * out_char_data)
     {
         UNUSED(begin);
         UNUSED(size);
         UNUSED(out_char_data);
         throw Exception(ErrorCodes::SUPPORT_IS_DISABLED, "BLAKE3 is not available. Rust code or BLAKE3 itself may be disabled.");
     }
-    #else
-    static void apply(const char * begin, const size_t size, unsigned char* out_char_data)
+#else
+    static void apply(const char * begin, const size_t size, unsigned char * out_char_data)
     {
-        #if defined(MEMORY_SANITIZER)
-            auto err_msg = blake3_apply_shim_msan_compat(begin, safe_cast<uint32_t>(size), out_char_data);
-            __msan_unpoison(out_char_data, length);
-        #else
-            auto err_msg = blake3_apply_shim(begin, safe_cast<uint32_t>(size), out_char_data);
-        #endif
+#    if defined(MEMORY_SANITIZER)
+        auto err_msg = blake3_apply_shim_msan_compat(begin, safe_cast<uint32_t>(size), out_char_data);
+        __msan_unpoison(out_char_data, length);
+#    else
+        auto err_msg = blake3_apply_shim(begin, safe_cast<uint32_t>(size), out_char_data);
+#    endif
         if (err_msg != nullptr)
         {
             auto err_st = std::string(err_msg);
@@ -672,7 +686,7 @@ struct ImplBLAKE3
             throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Function returned error message: {}", err_st);
         }
     }
-    #endif
+#endif
 };
 
 template <typename Impl>
@@ -682,18 +696,15 @@ public:
     static constexpr auto name = Impl::name;
     static FunctionPtr create(ContextPtr) { return std::make_shared<FunctionStringHashFixedString>(); }
 
-    String getName() const override
-    {
-        return name;
-    }
+    String getName() const override { return name; }
 
     size_t getNumberOfArguments() const override { return 1; }
 
     DataTypePtr getReturnTypeImpl(const DataTypes & arguments) const override
     {
         if (!isStringOrFixedString(arguments[0]) && !isIPv6(arguments[0]))
-            throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type {} of argument of function {}",
-                arguments[0]->getName(), getName());
+            throw Exception(
+                ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type {} of argument of function {}", arguments[0]->getName(), getName());
 
         return std::make_shared<DataTypeFixedString>(Impl::length);
     }
@@ -727,8 +738,7 @@ public:
 
             return col_to;
         }
-        else if (
-            const ColumnFixedString * col_from_fix = checkAndGetColumn<ColumnFixedString>(arguments[0].column.get()))
+        else if (const ColumnFixedString * col_from_fix = checkAndGetColumn<ColumnFixedString>(arguments[0].column.get()))
         {
             auto col_to = ColumnFixedString::create(Impl::length);
             const typename ColumnFixedString::Chars & data = col_from_fix->getChars();
@@ -743,8 +753,7 @@ public:
             }
             return col_to;
         }
-        else if (
-            const ColumnIPv6 * col_from_ip = checkAndGetColumn<ColumnIPv6>(arguments[0].column.get()))
+        else if (const ColumnIPv6 * col_from_ip = checkAndGetColumn<ColumnIPv6>(arguments[0].column.get()))
         {
             auto col_to = ColumnFixedString::create(Impl::length);
             const typename ColumnIPv6::Container & data = col_from_ip->getData();
@@ -760,8 +769,11 @@ public:
             return col_to;
         }
         else
-            throw Exception(ErrorCodes::ILLEGAL_COLUMN, "Illegal column {} of first argument of function {}",
-                    arguments[0].column->getName(), getName());
+            throw Exception(
+                ErrorCodes::ILLEGAL_COLUMN,
+                "Illegal column {} of first argument of function {}",
+                arguments[0].column->getName(),
+                getName());
     }
 };
 
@@ -869,15 +881,12 @@ class FunctionIntHash : public TargetSpecific::Default::FunctionIntHash<Impl, Na
 public:
     explicit FunctionIntHash(ContextPtr context) : selector(context)
     {
-        selector.registerImplementation<TargetArch::Default,
-            TargetSpecific::Default::FunctionIntHash<Impl, Name>>();
+        selector.registerImplementation<TargetArch::Default, TargetSpecific::Default::FunctionIntHash<Impl, Name>>();
 
-    #if USE_MULTITARGET_CODE
-        selector.registerImplementation<TargetArch::AVX2,
-            TargetSpecific::AVX2::FunctionIntHash<Impl, Name>>();
-        selector.registerImplementation<TargetArch::AVX512F,
-            TargetSpecific::AVX512F::FunctionIntHash<Impl, Name>>();
-    #endif
+#if USE_MULTITARGET_CODE
+        selector.registerImplementation<TargetArch::AVX2, TargetSpecific::AVX2::FunctionIntHash<Impl, Name>>();
+        selector.registerImplementation<TargetArch::AVX512F, TargetSpecific::AVX512F::FunctionIntHash<Impl, Name>>();
+#endif
     }
 
     ColumnPtr executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, size_t input_rows_count) const override
@@ -885,10 +894,7 @@ public:
         return selector.selectAndExecute(arguments, result_type, input_rows_count);
     }
 
-    static FunctionPtr create(ContextPtr context)
-    {
-        return std::make_shared<FunctionIntHash>(context);
-    }
+    static FunctionPtr create(ContextPtr context) { return std::make_shared<FunctionIntHash>(context); }
 
 private:
     ImplementationSelector<IFunction> selector;
@@ -929,7 +935,9 @@ private:
                 {
                     if (std::is_same_v<Impl, JavaHashImpl>)
                         h = JavaHashImpl::apply(vec_from[i]);
-                    else
+		    else if (std::is_same_v<Impl, ImplXxHash64KQL>)
+                        h = ImplXxHash64KQL::apply(static_cast<Int64>(vec_from[i]));
+		    else
                         h = Impl::apply(reinterpret_cast<const char *>(&vec_from[i]), sizeof(vec_from[i]));
                 }
 
@@ -1271,15 +1279,12 @@ class FunctionAnyHash : public TargetSpecific::Default::FunctionAnyHash<Impl>
 public:
     explicit FunctionAnyHash(ContextPtr context) : selector(context)
     {
-        selector.registerImplementation<TargetArch::Default,
-            TargetSpecific::Default::FunctionAnyHash<Impl>>();
+        selector.registerImplementation<TargetArch::Default, TargetSpecific::Default::FunctionAnyHash<Impl>>();
 
-    #if USE_MULTITARGET_CODE
-        selector.registerImplementation<TargetArch::AVX2,
-            TargetSpecific::AVX2::FunctionAnyHash<Impl>>();
-        selector.registerImplementation<TargetArch::AVX512F,
-            TargetSpecific::AVX512F::FunctionAnyHash<Impl>>();
-    #endif
+#if USE_MULTITARGET_CODE
+        selector.registerImplementation<TargetArch::AVX2, TargetSpecific::AVX2::FunctionAnyHash<Impl>>();
+        selector.registerImplementation<TargetArch::AVX512F, TargetSpecific::AVX512F::FunctionAnyHash<Impl>>();
+#endif
     }
 
     ColumnPtr executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, size_t input_rows_count) const override
@@ -1287,10 +1292,7 @@ public:
         return selector.selectAndExecute(arguments, result_type, input_rows_count);
     }
 
-    static FunctionPtr create(ContextPtr context)
-    {
-        return std::make_shared<FunctionAnyHash>(context);
-    }
+    static FunctionPtr create(ContextPtr context) { return std::make_shared<FunctionAnyHash>(context); }
 
 private:
     ImplementationSelector<IFunction> selector;
@@ -1386,18 +1388,24 @@ public:
     {
         const auto arg_count = arguments.size();
         if (arg_count != 1 && arg_count != 2)
-            throw Exception(ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "Number of arguments for function {} doesn't match: "
-                "passed {}, should be 1 or 2.", getName(), arg_count);
+            throw Exception(
+                ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH,
+                "Number of arguments for function {} doesn't match: "
+                "passed {}, should be 1 or 2.",
+                getName(),
+                arg_count);
 
         const auto * first_arg = arguments.front().get();
         if (!WhichDataType(first_arg).isString())
-            throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type {} of argument of function {}", first_arg->getName(), getName());
+            throw Exception(
+                ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type {} of argument of function {}", first_arg->getName(), getName());
 
         if (arg_count == 2)
         {
             const auto & second_arg = arguments.back();
             if (!isInteger(second_arg))
-                throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type {} of argument of function {}", second_arg->getName(), getName());
+                throw Exception(
+                    ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type {} of argument of function {}", second_arg->getName(), getName());
         }
 
         return std::make_shared<DataTypeUInt64>();
@@ -1435,9 +1443,7 @@ private:
             ColumnString::Offset current_offset = 0;
             for (size_t i = 0; i < size; ++i)
             {
-                out[i] = URLHashImpl::apply(
-                    reinterpret_cast<const char *>(&chars[current_offset]),
-                    offsets[i] - current_offset - 1);
+                out[i] = URLHashImpl::apply(reinterpret_cast<const char *>(&chars[current_offset]), offsets[i] - current_offset - 1);
 
                 current_offset = offsets[i];
             }
@@ -1445,8 +1451,8 @@ private:
             return col_to;
         }
         else
-            throw Exception(ErrorCodes::ILLEGAL_COLUMN, "Illegal column {} of argument of function {}",
-                arguments[0].column->getName(), getName());
+            throw Exception(
+                ErrorCodes::ILLEGAL_COLUMN, "Illegal column {} of argument of function {}", arguments[0].column->getName(), getName());
     }
 
     ColumnPtr executeTwoArgs(const ColumnsWithTypeAndName & arguments) const
@@ -1471,9 +1477,7 @@ private:
             for (size_t i = 0; i < size; ++i)
             {
                 out[i] = URLHierarchyHashImpl::apply(
-                    level,
-                    reinterpret_cast<const char *>(&chars[current_offset]),
-                    offsets[i] - current_offset - 1);
+                    level, reinterpret_cast<const char *>(&chars[current_offset]), offsets[i] - current_offset - 1);
 
                 current_offset = offsets[i];
             }
@@ -1481,8 +1485,8 @@ private:
             return col_to;
         }
         else
-            throw Exception(ErrorCodes::ILLEGAL_COLUMN, "Illegal column {} of argument of function {}",
-                arguments[0].column->getName(), getName());
+            throw Exception(
+                ErrorCodes::ILLEGAL_COLUMN, "Illegal column {} of argument of function {}", arguments[0].column->getName(), getName());
     }
 };
 
@@ -1491,10 +1495,7 @@ struct ImplWyHash64
     static constexpr auto name = "wyHash64";
     using ReturnType = UInt64;
 
-    static UInt64 apply(const char * s, const size_t len)
-    {
-        return wyhash(s, len, 0, _wyp);
-    }
+    static UInt64 apply(const char * s, const size_t len) { return wyhash(s, len, 0, _wyp); }
     static UInt64 combineHashes(UInt64 h1, UInt64 h2)
     {
         union
@@ -1510,8 +1511,14 @@ struct ImplWyHash64
     static constexpr bool use_int_hash_for_pods = false;
 };
 
-struct NameIntHash32 { static constexpr auto name = "intHash32"; };
-struct NameIntHash64 { static constexpr auto name = "intHash64"; };
+struct NameIntHash32
+{
+    static constexpr auto name = "intHash32";
+};
+struct NameIntHash64
+{
+    static constexpr auto name = "intHash64";
+};
 
 using FunctionSipHash64 = FunctionAnyHash<SipHash64Impl>;
 using FunctionIntHash32 = FunctionIntHash<IntHash32Impl, NameIntHash32>;
@@ -1545,6 +1552,7 @@ using FunctionHiveHash = FunctionAnyHash<HiveHashImpl>;
 
 using FunctionXxHash32 = FunctionAnyHash<ImplXxHash32>;
 using FunctionXxHash64 = FunctionAnyHash<ImplXxHash64>;
+using FunctionXxHash64KQL = FunctionAnyHash<ImplXxHash64KQL>;
 using FunctionXXH3 = FunctionAnyHash<ImplXXH3>;
 
 using FunctionWyHash64 = FunctionAnyHash<ImplWyHash64>;
