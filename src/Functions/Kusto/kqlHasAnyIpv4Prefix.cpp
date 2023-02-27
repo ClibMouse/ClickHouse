@@ -18,7 +18,14 @@ namespace ErrorCodes
     extern const int BAD_ARGUMENTS;
     extern const int NUMBER_OF_ARGUMENTS_DOESNT_MATCH;
 }
-template <typename Name, bool is_any>
+
+enum ArgumentPolicy
+{
+    AP_Single,
+    AP_Variadic
+};
+
+template <typename Name, ArgumentPolicy ap>
 class FunctionKqlHasIpv4PrefixGeneric : public IFunction
 {
 public:
@@ -29,8 +36,8 @@ public:
     ~FunctionKqlHasIpv4PrefixGeneric() override = default;
 
     String getName() const override { return name; }
-    size_t getNumberOfArguments() const override { return is_any ? 0 : 2; }
-    bool isVariadic() const override { return is_any ? true : false; }
+    size_t getNumberOfArguments() const override { return ap == AP_Variadic ? 0 : 2; }
+    bool isVariadic() const override { return ap == AP_Variadic ? true : false; }
 
     bool isSuitableForShortCircuitArgumentsExecution(const DataTypesWithConstInfo & /*arguments*/) const override { return false; }
 
@@ -55,7 +62,7 @@ public:
 
         if (isStringOrFixedString(arguments.at(1).type))
         {
-            if constexpr (is_any)
+            if constexpr (ap == AP_Variadic)
             {
                 const auto are_arguments_valid = std::ranges::all_of(arguments | std::views::drop(2), [](const auto & argument) { return isStringOrFixedString(argument.type); });
                 if (!are_arguments_valid)
@@ -63,7 +70,7 @@ public:
             }
         }
 
-        else if (!is_any || !isArray(arguments.at(1).type))
+        else if (ap == AP_Single || !isArray(arguments.at(1).type))
         {
             throw Exception(ErrorCodes::BAD_ARGUMENTS, "Illegal type of argument of function {}", getName());
         }
@@ -75,7 +82,8 @@ public:
         const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const size_t input_rows_count) const override
     {
         const auto args_length = arguments.size();
-        auto result_column = ColumnUInt8::create();
+        auto result = ColumnUInt8::create();
+        auto & result_column = result->getData();
 
         for (size_t i = 0; i < input_rows_count; i++)
         {
@@ -84,9 +92,9 @@ public:
 
             if (isStringOrFixedString(arguments.at(1).type))
             {
-                for (size_t j = 1; j < args_length; j++)
+                for (size_t j = 1; j < args_length; ++j)
                 {
-                    auto arg = arguments[j].column->getDataAt(i).toString();
+                    const auto arg = arguments[j].column->getDataAt(i).toString();
 
                     if (arg.empty())
                     {
@@ -106,11 +114,11 @@ public:
                 arguments[1].column->get(i, array0);
                 const auto len0 = array0.get<Array>().size();
 
-                for (size_t j = 0; j < len0; j++)
+                for (size_t j = 0; j < len0; ++j)
                 {
                     if (array0.get<Array>().at(j).getType() == Field::Types::String)
                     {
-                        auto ip_prefix = toString(array0.get<Array>().at(j));
+                        const auto ip_prefix = toString(array0.get<Array>().at(j));
 
                         if (ip_prefix.empty())
                         {
@@ -128,17 +136,17 @@ public:
             if (!ips.empty())
             {
                 std::string source = arguments[0].column->getDataAt(i).toString();
-                std::regex ip_finder("([^[:alnum:]]|^)([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})([^[:alnum:]]|$)");
+                const std::regex ip_finder("([^[:alnum:]]|^)([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})([^[:alnum:]]|$)");
                 std::smatch matches;
 
                 while (std::regex_search(source, matches, ip_finder))
                 {
-                    for (size_t j = 0; j < matches.size(); j++)
+                    for (size_t j = 0; j < matches.size(); ++j)
                     {
-                        ColumnPtr column_ip = DataTypeString().createColumnConst(1, toField(String(matches[j])));
+                        const ColumnPtr column_ip = DataTypeString().createColumnConst(1, toField(String(matches[j])));
                         const ColumnsWithTypeAndName isipv4string_args = {ColumnWithTypeAndName(column_ip, std::make_shared<DataTypeString>(), "ip")};
 
-                        auto isipv4 = FunctionFactory::instance()
+                        const auto isipv4 = FunctionFactory::instance()
                             .get("isIPv4String", context)
                             ->build(isipv4string_args)
                             ->execute(isipv4string_args, result_type, 1);
@@ -154,10 +162,10 @@ public:
                     source = matches.suffix().str();
                 }
             }
-            result_column->insertValue(UInt8(res));
+            result_column.push_back(UInt8(res));
         }
 
-        return result_column;
+        return result;
     }
 
 private:
@@ -174,8 +182,8 @@ struct NameKqlHasIpv4Prefix
     static constexpr auto name = "kql_has_ipv4_prefix";
 };
 
-using FunctionKqlHasAnyIpv4Prefix = FunctionKqlHasIpv4PrefixGeneric<NameKqlHasAnyIpv4Prefix, true>;
-using FunctionKqlHasIpv4Prefix    = FunctionKqlHasIpv4PrefixGeneric<NameKqlHasIpv4Prefix, false>;
+using FunctionKqlHasAnyIpv4Prefix = FunctionKqlHasIpv4PrefixGeneric<NameKqlHasAnyIpv4Prefix, AP_Variadic>;
+using FunctionKqlHasIpv4Prefix    = FunctionKqlHasIpv4PrefixGeneric<NameKqlHasIpv4Prefix, AP_Single>;
 
 REGISTER_FUNCTION(KqlHasIpv4PrefixGeneric)
 {
