@@ -2,7 +2,7 @@
 
 #include <Parsers/Kusto/ParserKQLQuery.h>
 
-INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_TestSubquery, ParserKQLTest,
+INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Distinct, ParserTest,
     ::testing::Combine(
         ::testing::Values(std::make_shared<DB::ParserKQLQuery>()),
         ::testing::ValuesIn(std::initializer_list<ParserTestCase>{
@@ -44,11 +44,11 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_TestSubquery, ParserKQLTest,
         },
         {
             "Customers | where FirstName in ((Customers | project FirstName  | where FirstName !has 'Peter'));",
-            "SELECT *\nFROM Customers\nWHERE FirstName IN (\n    SELECT FirstName\n    FROM Customers\n    WHERE NOT hasTokenCaseInsensitive(FirstName, 'Peter')\n)"
+            "SELECT *\nFROM Customers\nWHERE FirstName IN (\n    SELECT FirstName\n    FROM Customers\n    WHERE NOT ifNull(hasTokenCaseInsensitiveOrNull(FirstName, 'Peter'), hasTokenCaseInsensitive(FirstName, 'Peter') AND (positionCaseInsensitive(FirstName, 'Peter') > 0))\n)"
         },
         {
             "Customers | where FirstName in ((Customers | project FirstName  | where FirstName !has_cs 'Peter'));",
-            "SELECT *\nFROM Customers\nWHERE FirstName IN (\n    SELECT FirstName\n    FROM Customers\n    WHERE NOT hasToken(FirstName, 'Peter')\n)"
+            "SELECT *\nFROM Customers\nWHERE FirstName IN (\n    SELECT FirstName\n    FROM Customers\n    WHERE NOT ifNull(hasTokenOrNull(FirstName, 'Peter'), hasToken(FirstName, 'Peter') AND (position(FirstName, 'Peter') > 0))\n)"
         },
         {
             "Customers | where FirstName in ((Customers | project FirstName  | where FirstName !hasprefix 'Peter'));",
