@@ -1086,7 +1086,7 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::iif:
             return std::make_unique<Iif>();
-        
+
         case KQLFunction::lookup:
             return std::make_unique<Lookup>();
 
