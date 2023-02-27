@@ -38,4 +38,11 @@ protected:
     bool convertImpl(String &out,IParser::Pos &pos) override;
 };
 
+class Lookup : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "lookup()"; }
+    bool convertImpl(String &out,IParser::Pos &pos) override;
+};
+
 }
