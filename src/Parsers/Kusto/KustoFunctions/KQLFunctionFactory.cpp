@@ -215,6 +215,7 @@ enum class KQLFunction : uint16_t
     kase,
     iff,
     iif,
+    lookup,
 
     datatype_bool,
     datatype_datetime,
@@ -463,6 +464,7 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"case", KQLFunction::kase},
     {"iff", KQLFunction::iff},
     {"iif", KQLFunction::iif},
+    {"lookup", KQLFunction::lookup},
 
     {"bool", KQLFunction::datatype_bool},
     {"boolean", KQLFunction::datatype_bool},
@@ -1091,6 +1093,9 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::iif:
             return std::make_unique<Iif>();
+        
+        case KQLFunction::lookup:
+            return std::make_unique<Lookup>();
 
         case KQLFunction::datatype_bool:
             return std::make_unique<DatatypeBool>();
