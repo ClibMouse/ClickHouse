@@ -943,7 +943,7 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::varianceif:
             return std::make_unique<VarianceIf>();
-        
+
         case KQLFunction::variancep:
             return std::make_unique<VarianceP>();
 
@@ -952,7 +952,6 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::count_distinctif:
             return std::make_unique<CountDistinctIf>();
-
 
         case KQLFunction::series_fir:
             return std::make_unique<SeriesFir>();

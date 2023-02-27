@@ -1,9 +1,13 @@
 ## KQL implemented features  
 # February XX, 2023
 ## Bugfixes
+- Fixed count operator issue (2112):
+    ```
+    Customers|project FirstName|where FirstName != 'Peter'|sort by FirstName asc nulls first|count
+    ```
 - Fixed KQL sub-query issues:  
     - Multiple columns in sub-query.  
-      Multiple columns in sub-query wors in KQL ADX but only the first column is effective, while not working in ClickHouse. this fixed issue. e.g.
+      Multiple columns in sub-query works in KQL ADX but only the first column is effective, while not working in ClickHouse. this fixed issue. e.g.
       ```
       Customers | where FirstName in ((Customers|project FirstName, LastName))
       ```
