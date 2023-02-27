@@ -1,6 +1,25 @@
 ## KQL implemented features  
 # February XX, 2023
 ## Bugfixes
+- Fixed KQL sub-query issues:  
+    - Multiple columns in sub-query.  
+      Multiple columns in sub-query wors in KQL ADX but only the first column is effective, while not working in ClickHouse. this fixed issue. e.g.
+      ```
+      Customers | where FirstName in ((Customers|project FirstName, LastName))
+      ```
+      limitation: the  `select *` noit work in sub-querym because there's individula column.  
+    - Negative operators in sub-query  
+      fixed the issue for negative operators not work in KQL sub-query. e.g
+      ```
+      Customers | where FirstName in ((Customers|project FirstName, LastName|where FirstName !has 'Peter'))
+      ``` 
+    - Case-insensitive compare in sub-query
+      fixed the case-insensitive compare issuse for multiple pipe in sub-query. e.g
+      ```
+      Customers | where FirstName in~ ((Customers|where FirstName !has 'Peter'|project FirstName, LastName))
+      ```
+    - Check functional test `tests/queries/0_stateless/02366_kql_test_subquery.sql` for details.
+
 - KQL - has operator fails to return result when needle has separator character
 - [isempty() and isnotempty() not accepting non-quoted strings]
 ## Functions
