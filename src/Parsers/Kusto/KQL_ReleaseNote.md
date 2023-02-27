@@ -120,6 +120,9 @@
    `Customers | summarize variancep(Age);`
 - [varianceif()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/varianceif-aggfunction)
    `Customers | summarize varianceif(Age, Age < 30)`
+- [lookup()](Not a KQL function, it's an IBM specific suggested implementation)
+   `print lookup('dictionary_table', 'value', '1')`
+   `print lookup('dictionary_table', 'value', '100', 'default')`
 # January XX, 2023
 ## Functions
 - [range()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/rangefunction)  
