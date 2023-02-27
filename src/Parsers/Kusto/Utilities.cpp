@@ -24,7 +24,7 @@ String extractTokenWithoutQuotes(IParser::Pos & pos)
     return {pos->begin + offset, pos->end - offset};
 }
 
-String WildcardToRegex(const String & wildcard)
+String wildcardToRegex(const String & wildcard)
 {
     String regex;
     for (char c : wildcard)

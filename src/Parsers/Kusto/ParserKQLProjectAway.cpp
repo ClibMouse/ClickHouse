@@ -23,7 +23,7 @@ bool ParserKQLProjectAway::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expe
     auto append_columns = [&regular_columns, &wildcard_columns](Pos & begin, Pos & end)
     {
         const auto column = String(begin->begin, end->end);
-        const auto regex_column = WildcardToRegex(column);
+        const auto regex_column = wildcardToRegex(column);
         if (regex_column == column)
             regular_columns.push_back(column);
         else
