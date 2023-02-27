@@ -1,9 +1,12 @@
 #include "ParserKQLOperators.h"
+#include <Interpreters/ITokenExtractor.h>
+#include <Parsers/ASTFunction.h>
+#include <Parsers/ASTIdentifier.h>
+#include <Parsers/ASTSelectQuery.h>
+#include <Parsers/CommonParsers.h>
+#include <Parsers/formatAST.h>
 #include "KustoFunctions/IParserKQLFunction.h"
 #include "ParserKQLStatement.h"
-
-#include <Interpreters/ITokenExtractor.h>
-#include <Parsers/CommonParsers.h>
 
 #include <format>
 #include <unordered_map>
@@ -101,6 +104,36 @@ const std::unordered_map<String, KQLOperatorValue> KQLOperator = {
     {"startswith_cs", KQLOperatorValue::startswith_cs},
     {"!startswith_cs", KQLOperatorValue::not_startswith_cs},
 };
+
+void rebuildSubqueryForInOperator(DB::ASTPtr & node, bool useLowerCase)
+{
+    //A subquery for in operator in kql can have multiple columns, but only takes the first column.
+    //A subquery for in operator in ClickHouse can not have multiple columns
+    //So only take the first column if there are multiple columns.
+    // * in select not woring for subquery
+
+    const auto selectColumns = node->children[0]->children[0]->as<DB::ASTSelectQuery>()->select();
+    while (selectColumns->children.size() > 1)
+        selectColumns->children.pop_back();
+
+    if (useLowerCase)
+    {
+        auto args = std::make_shared<DB::ASTExpressionList>();
+        args->children.push_back(selectColumns->children[0]);
+        auto func_lower = std::make_shared<DB::ASTFunction>();
+        func_lower->name = "lower";
+        func_lower->children.push_back(selectColumns->children[0]);
+        func_lower->arguments = args;
+        if (selectColumns->children[0]->as<DB::ASTIdentifier>())
+            func_lower->alias = std::move(selectColumns->children[0]->as<DB::ASTIdentifier>()->alias);
+        else if (selectColumns->children[0]->as<DB::ASTFunction>())
+            func_lower->alias = std::move(selectColumns->children[0]->as<DB::ASTFunction>()->alias);
+
+        auto funcs = std::make_shared<DB::ASTExpressionList>();
+        funcs->children.push_back(func_lower);
+        selectColumns->children[0] = std::move(funcs);
+    }
+}
 
 std::string applyFormatString(const std::string_view format_string, const std::string & haystack, const std::string & needle)
 {
@@ -211,46 +244,30 @@ String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
     if (!s_lparen.ignore(token_pos, expected))
         throw DB::Exception("Syntax error near " + kql_op, DB::ErrorCodes::SYNTAX_ERROR);
 
-    for (const auto & s : tokens)
-        new_expr += "lower(" + s + ")" + " ";
+    if (tokens.empty())
+        throw DB::Exception("Syntax error near " + kql_op, DB::ErrorCodes::SYNTAX_ERROR);
 
+    new_expr = "lower(" + tokens.back() + ") ";
+    tokens.pop_back();
     auto pos = token_pos;
     if (kqlfun_p.parse(pos, select, expected))
     {
-        new_expr += ch_op + " kql";
-        auto tmp_pos = token_pos;
-        auto keep_pos = token_pos;
-        int pipe = 0;
-        bool desired_column_lowerd = false;
-        while (tmp_pos != pos)
-        {
-            ++tmp_pos;
-            if (tmp_pos->type == DB::TokenType::PipeMark)
-                pipe += 1;
-            if (pipe == 2 && !desired_column_lowerd)
-            {
-                new_expr = new_expr + " tolower(" + DB::String(keep_pos->begin, keep_pos->end) + ")";
-                desired_column_lowerd = true;
-            }
-            else
-                new_expr = new_expr + " " + DB::String(keep_pos->begin, keep_pos->end);
-            ++keep_pos;
-        }
-
-        if (pos->type != DB::TokenType::ClosingRoundBracket)
-            throw DB::Exception("Syntax error near " + kql_op, DB::ErrorCodes::SYNTAX_ERROR);
-
+        rebuildSubqueryForInOperator(select, true);
+        new_expr += ch_op + " (" + serializeAST(*select) + ")";
         token_pos = pos;
-        tokens.pop_back();
         return new_expr;
     }
+
     --token_pos;
     --token_pos;
 
     new_expr += ch_op + "(";
+    bool has_dynamic = false;
     while (!token_pos->isEnd() && token_pos->type != DB::TokenType::PipeMark && token_pos->type != DB::TokenType::Semicolon)
     {
         auto tmp_arg = DB::String(token_pos->begin, token_pos->end);
+        if (tmp_arg == "dynamic")
+            has_dynamic = true;
         if (token_pos->type != DB::TokenType::Comma && token_pos->type != DB::TokenType::ClosingRoundBracket
             && token_pos->type != DB::TokenType::OpeningRoundBracket && token_pos->type != DB::TokenType::OpeningSquareBracket
             && token_pos->type != DB::TokenType::ClosingSquareBracket && tmp_arg != "~" && tmp_arg != "dynamic")
@@ -261,10 +278,9 @@ String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
         else if (token_pos->type == DB::TokenType::Comma)
             new_expr += ", ";
     }
-    ++token_pos;
+    if (has_dynamic)
+        ++token_pos;
     new_expr += ")";
-
-    tokens.pop_back();
     return new_expr;
 }
 
@@ -283,17 +299,8 @@ std::string genInOpExpr(DB::IParser::Pos & token_pos, const std::string & kql_op
     auto pos = token_pos;
     if (kqlfun_p.parse(pos, select, expected))
     {
-        auto new_expr = ch_op + " kql";
-        auto tmp_pos = token_pos;
-        while (tmp_pos != pos)
-        {
-            new_expr = new_expr + " " + std::string(tmp_pos->begin, tmp_pos->end);
-            ++tmp_pos;
-        }
-
-        if (pos->type != DB::TokenType::ClosingRoundBracket)
-            throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", kql_op);
-
+        rebuildSubqueryForInOperator(select, false);
+        auto new_expr = ch_op + " (" + serializeAST(*select) + ")";
         token_pos = pos;
         return new_expr;
     }
@@ -356,8 +363,8 @@ std::string genHaystackOpExpr(
     if (!tokens.empty() && (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier))
         new_expr = translate(
             tokens.back(),
-            "'" + left_wildcards + left_space + DB::IParserKQLFunction::escapeSingleQuotes(String(token_pos->begin + 1, token_pos->end - 1)) + right_space + right_wildcards
-                + "'");
+            "'" + left_wildcards + left_space + DB::IParserKQLFunction::escapeSingleQuotes(String(token_pos->begin + 1, token_pos->end - 1))
+                + right_space + right_wildcards + "'");
     else if (!tokens.empty() && token_pos->type == DB::TokenType::BareWord)
     {
         auto tmp_arg = DB::IParserKQLFunction::getExpression(token_pos);
