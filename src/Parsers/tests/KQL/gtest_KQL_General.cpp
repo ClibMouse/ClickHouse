@@ -57,5 +57,13 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_General, ParserTest,
         {
             "print bin(datetime(1970-05-11 13:45:07.456345672), 1microseconds)",
             "SELECT kql_bin(kql_datetime('1970-05-11 13:45:07.456345672'), toIntervalNanosecond(1000))"
+        },
+        {
+            "print lookup('dictionary_table', 'value', '1')",
+            "SELECT dictGet('dictionary_table', 'value', '1')"
+        },
+        {
+            "print lookup('dictionary_table', 'value', '100', 'default')",
+            "SELECT dictGetOrDefault('dictionary_table', 'value', '100', 'default')"
         }
 })));
