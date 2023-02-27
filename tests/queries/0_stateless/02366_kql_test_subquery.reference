@@ -1,0 +1,84 @@
+--  test negetivate operator in kql subuquery --
+-- #1 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+-- #2 --
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #3 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #4 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #5 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #6 --
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #7 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Peter	Cox	Management abcd defg	Bachelors	33
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #8 --
+Peter	Cox	Management abcd defg	Bachelors	33
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #9 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+-- #10 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+-- #11 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #12 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+-- #13 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+-- #14 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #15 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+-- #16 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+-- #17 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #18 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+-- #19 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+-- #20 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Peter	Cox	Management abcd defg	Bachelors	33
+
+--  test case-insensitive in operator kql subuquery --
+-- #21 --
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #22 --
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #23 --
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #24 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+-- #25 --
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #26 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+-- #27 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+-- #28 --
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #29 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+-- #30 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+
+--  test multi columns in operator kql subuquery --
+-- #32 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #33 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+-- #34 --
+Peter	Cox	Management abcd defg	Bachelors	33
+-- #35 --
+Peter	Cox	Management abcd defg	Bachelors	33
