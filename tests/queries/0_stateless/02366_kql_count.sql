@@ -16,3 +16,4 @@ Customers | count;
 Customers | where Age< 30 | count;
 Customers | where Age< 30 | limit 2 | count;
 Customers | where Age< 30 | limit 2 | count | project Count;
+Customers |project FirstName|where FirstName != 'Peter'|sort by FirstName asc nulls first|count;
