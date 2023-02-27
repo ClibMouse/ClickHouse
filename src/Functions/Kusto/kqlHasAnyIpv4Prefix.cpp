@@ -41,7 +41,7 @@ public:
         auto result = ColumnUInt8::create();
         auto & result_column = result->getData();
 
-        for (size_t i = 0; i < input_rows_count; i++)
+        for (size_t i = 0; i < input_rows_count; ++i)
         {
             bool res = false;
             std::vector<std::string> ips;
