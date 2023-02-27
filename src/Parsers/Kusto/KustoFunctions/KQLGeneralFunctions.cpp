@@ -43,7 +43,7 @@ bool Lookup::convertImpl(String & out, IParser::Pos & pos)
     temp_pos = pos;
     ++temp_pos;
     ++temp_pos;
-    
+
     String arg;
 
     while (!temp_pos->isEnd() && temp_pos->type != TokenType::PipeMark && temp_pos->type != TokenType::Semicolon)
