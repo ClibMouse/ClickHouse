@@ -45,12 +45,10 @@ bool Lookup::convertImpl(String & out, IParser::Pos & pos)
     ++temp_pos;
     
     String arg;
-    std::vector<String> arg_vec;
 
     while (!temp_pos->isEnd() && temp_pos->type != TokenType::PipeMark && temp_pos->type != TokenType::Semicolon)
     {
         arg = getConvertedArgument(fn_name, temp_pos);
-        arg_vec.push_back(arg);
         num_of_args++;
         ++temp_pos;
     }
