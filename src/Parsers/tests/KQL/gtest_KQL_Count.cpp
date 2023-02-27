@@ -12,7 +12,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Count, ParserTest,
         },
         {
             "Customers | where Age< 30 | count",
-            "SELECT count() AS Count\nFROM Customers\nWHERE Age < 30"
+            "SELECT count() AS Count\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE Age < 30\n)"
         },
         {
             "Customers | where Age< 30 | limit 2| count",
@@ -21,5 +21,9 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Count, ParserTest,
         {
             "Customers | where Age< 30 | limit 2 | count | project Count",
             "SELECT Count\nFROM\n(\n    SELECT count() AS Count\n    FROM\n    (\n        SELECT *\n        FROM Customers\n        WHERE Age < 30\n        LIMIT 2\n    )\n)"
+        },
+        {
+            "Customers|project FirstName|where FirstName != 'Peter'|sort by FirstName asc nulls first|count",
+            "SELECT count() AS Count\nFROM\n(\n    SELECT FirstName\n    FROM Customers\n    WHERE FirstName != 'Peter'\n    ORDER BY FirstName ASC NULLS FIRST\n)"
         }
 })));

@@ -56,7 +56,7 @@ std::unordered_map<std::string, ParserKQLQuery::KQLOperatorDataFlowState> kql_pa
     {"summarize", {"summarize", true, true, false, 3}},
     {"make-series", {"make-series", true, true, false, 5}},
     {"mv-expand", {"mv-expand", true, true, false, 5}},
-    {"count", {"count", false, true, false, 3}},
+    {"count", {"count", true, true, false, 3}},
     {"top", {"top", false, true, true, 3}},
     {"top-hitters", {"top-hitters", true, true, true, 5}},
     {"lookup", {"lookup", true, true, false, 3}},
