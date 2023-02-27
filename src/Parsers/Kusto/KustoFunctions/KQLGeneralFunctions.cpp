@@ -35,7 +35,7 @@ bool Iif::convertImpl(String & out, IParser::Pos & pos)
 bool Lookup::convertImpl(String & out, IParser::Pos & pos)
 {
     auto temp_pos = pos;
-    String fn_name = getKQLFunctionName(temp_pos);
+    const String fn_name = getKQLFunctionName(temp_pos);
 
     if (fn_name.empty())
         return false;
@@ -49,7 +49,7 @@ bool Lookup::convertImpl(String & out, IParser::Pos & pos)
     while (!temp_pos->isEnd() && temp_pos->type != TokenType::PipeMark && temp_pos->type != TokenType::Semicolon)
     {
         arg = getConvertedArgument(fn_name, temp_pos);
-        num_of_args++;
+        ++num_of_args;
         ++temp_pos;
     }
     if (num_of_args == 3)
