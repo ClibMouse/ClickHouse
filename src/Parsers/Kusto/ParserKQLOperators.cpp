@@ -107,10 +107,10 @@ const std::unordered_map<String, KQLOperatorValue> KQLOperator = {
 
 void rebuildSubqueryForInOperator(DB::ASTPtr & node, bool useLowerCase)
 {
-    //A subquery for in operator in kql can have multiple columns, but only takes the first column.
-    //A subquery for in operator in ClickHouse can not have multiple columns
+    //A sub-query for in operator in kql can have multiple columns, but only takes the first column.
+    //A sub-query for in operator in ClickHouse can not have multiple columns
     //So only take the first column if there are multiple columns.
-    // * in select not woring for subquery
+    //select * not working for subquery. (a tabular statement without project)
 
     const auto selectColumns = node->children[0]->children[0]->as<DB::ASTSelectQuery>()->select();
     while (selectColumns->children.size() > 1)
