@@ -35,8 +35,10 @@ public:
     {
         if (arguments.empty())
             throw Exception(
-                "Function " + getName() + " needs at least one argument; passed " + toString(arguments.size()) + ".",
-                ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH);
+                ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH,
+                "Function {} needs at least one argument; passed {}.",
+                getName(),
+                arguments.size());
 
         auto array_count = arguments.size();
 
@@ -49,9 +51,12 @@ public:
             const DataTypeArray * array_type = checkAndGetDataType<DataTypeArray>(arguments[index].type.get());
             if (!array_type)
                 throw Exception(
-                    "Argument " + toString(index + 1) + " of function " + getName() + " must be array. Found "
-                        + arguments[0].type->getName() + " instead.",
-                    ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT);
+                    ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT,
+                    "Argument {} of function {} must be array. Found {} instead.",
+                    index + 1,
+                    getName(),
+                    arguments[0].type->getName());
+
             nested_types.emplace_back(array_type->getNestedType());
         }
 
@@ -93,11 +98,11 @@ public:
 
             if (!column_array)
                 throw Exception(
-                    "Argument " + toString(i + 1) + " of function " + getName()
-                        + " must be array."
-                          " Found column "
-                        + holder->getName() + " instead.",
-                    ErrorCodes::ILLEGAL_COLUMN);
+                    ErrorCodes::ILLEGAL_COLUMN,
+                    "Argument {} of function {} must be array. Found column {} instead.",
+                    i + 1,
+                    getName(),
+                    holder->getName());
 
             nested_types.emplace_back(makeNullable(array_type->getNestedType()));
             if (i == 0)
