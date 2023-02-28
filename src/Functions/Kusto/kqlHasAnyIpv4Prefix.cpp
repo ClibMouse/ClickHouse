@@ -1,3 +1,4 @@
+#include <cstring>
 #include <ranges>
 #include <regex>
 #include <Columns/ColumnArray.h>
@@ -20,7 +21,16 @@ static std::vector<std::string> extractIpsFromArguments(const DB::ColumnsWithTyp
             arguments | std::views::drop(1)
                 | std::views::transform([&row](const DB::ColumnWithTypeAndName & arg) { return arg.column->getDataAt(row).toString(); }),
             std::back_inserter(ips),
-            [](const std::string & arg) { return std::count(arg.begin(), arg.end(), '.') == 3 || arg.back() == '.'; });
+            [](const std::string & arg)
+            {
+                const auto n = std::ranges::count(arg, '.');
+                if (n == 3 && arg.back() != '.')
+                    return true;
+                else if (n <= 3 && arg.back() == '.')
+                    return true;
+                else
+                    return false;
+            });
     }
 
     else if (isArray(arguments.at(1).type))
@@ -86,21 +96,22 @@ public:
             {
                 for (size_t j = 0; j < matches.size(); ++j)
                 {
-                    const ColumnsWithTypeAndName is_ipv4_string_args
-                        = {createConstColumnWithTypeAndName<DataTypeString>(matches[j].str(), "ip")};
+                    const auto match_as_str = matches[j].str();
 
-                    const auto is_ipv4
-                        = FunctionFactory::instance()
-                              .get("isIPv4String", context)
-                              ->build(is_ipv4_string_args)
-                              ->execute(is_ipv4_string_args, result_type, 1);
+                    const ColumnsWithTypeAndName is_ipv4_string_args
+                        = {createConstColumnWithTypeAndName<DataTypeString>(match_as_str, "ip")};
+
+                    const auto is_ipv4 = FunctionFactory::instance()
+                                             .get("isIPv4String", context)
+                                             ->build(is_ipv4_string_args)
+                                             ->execute(is_ipv4_string_args, result_type, 1);
 
                     if (is_ipv4->getUInt(0) == 1)
                     {
-                        res = std::any_of(
-                            ips.begin(),
-                            ips.end(),
-                            [j, matches](const std::string & str) -> bool { return str == matches[j].str().substr(0, str.size()); });
+                        res = std::ranges::any_of(
+                            ips,
+                            [&match_as_str](const std::string & str) -> bool
+                            { return std::memcmp(str.c_str(), match_as_str.c_str(), std::min(str.size(), match_as_str.size())) == 0; });
                     }
                 }
                 source = matches.suffix().str();
