@@ -53,7 +53,7 @@ bool ParserKQLProjectAway::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expe
     append_columns(begin_pos, pos);
 
     if (wildcard_columns.empty() && regular_columns.empty())
-        throw Exception("Syntax error: Missing projected away expressions", ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error: Missing projected away expressions");
 
     if (!regular_columns.empty())
     {
