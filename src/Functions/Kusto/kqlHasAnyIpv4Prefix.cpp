@@ -24,12 +24,7 @@ static std::vector<std::string> extractIpsFromArguments(const DB::ColumnsWithTyp
             [](const std::string & arg)
             {
                 const auto n = std::ranges::count(arg, '.');
-                if (n == 3 && arg.back() != '.')
-                    return true;
-                else if (n <= 3 && arg.back() == '.')
-                    return true;
-                else
-                    return false;
+                return n == 3 || (arg.back() == '.' && n <= 2);
             });
     }
 
@@ -46,7 +41,7 @@ static std::vector<std::string> extractIpsFromArguments(const DB::ColumnsWithTyp
                 const auto value_as_string = toString(value);
 
                 const auto n = std::ranges::count(value_as_string, '.');
-                if ((n == 3 && value_as_string.back() != '.') || (n <= 3 && value_as_string.back() == '.'))
+                if (n == 3 || (value_as_string.back() == '.' && n <= 2))
                 {
                     ips.push_back(value_as_string);
                 }
