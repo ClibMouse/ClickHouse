@@ -247,7 +247,7 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
         auto columms_start_pos = start_pos;
         auto it_pos = start_pos;
         if (String(it_pos->begin, it_pos->end) == "=")
-            throw Exception("Invalid equal symbol (=)", ErrorCodes::SYNTAX_ERROR);
+            throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid equal symbol (=)");
 
         while (it_pos < end_pos)
         {
@@ -257,7 +257,7 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
                 if (String(it_pos->begin, it_pos->end) != "~")
                 {
                     if (has_alias)
-                        throw Exception("Invalid equal symbol (=)", ErrorCodes::SYNTAX_ERROR);
+                        throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid equal symbol (=)");
                     has_alias = true;
                 }
                 --it_pos;
@@ -298,7 +298,7 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
             {
                 String new_column_str;
                 if (start_pos->type != TokenType::BareWord)
-                    throw Exception(String(start_pos->begin, start_pos->end) + " is not a valid alias", ErrorCodes::SYNTAX_ERROR);
+                    throw Exception(ErrorCodes::SYNTAX_ERROR, "{} is not a valid alias", std::string_view(start_pos->begin, start_pos->end));
 
                 if (function_name == "array_sort_asc" || function_name == "array_sort_desc")
                     new_column_str = std::format("{0}[1] AS {1}", column_str, String(start_pos->begin, start_pos->end));
@@ -312,10 +312,10 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
                 String whole_alias(start_pos->begin, equal_pos->end);
 
                 if (function_name != "array_sort_asc" && function_name != "array_sort_desc")
-                    throw Exception(whole_alias + " is not a valid alias", ErrorCodes::SYNTAX_ERROR);
+                    throw Exception(ErrorCodes::SYNTAX_ERROR, "{} is not a valid alias", whole_alias);
 
                 if (start_pos->type != TokenType::OpeningRoundBracket && equal_pos->type != TokenType::ClosingRoundBracket)
-                    throw Exception(whole_alias + " is not a valid alias for " + function_name, ErrorCodes::SYNTAX_ERROR);
+                    throw Exception(ErrorCodes::SYNTAX_ERROR, "{} is not a valid alias for {}", whole_alias, function_name);
 
                 String alias_inside;
                 bool comma_meet = false;
@@ -327,13 +327,13 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
                     {
                         alias_inside.clear();
                         if (comma_meet)
-                            throw Exception(whole_alias + " has invalid alias for " + function_name, ErrorCodes::SYNTAX_ERROR);
+                            throw Exception(ErrorCodes::SYNTAX_ERROR, "{} has invalid alias for {}", whole_alias, function_name);
                         comma_meet = true;
                     }
                     else
                     {
                         if (!alias_inside.empty() || start_pos->type != TokenType::BareWord)
-                            throw Exception(whole_alias + " has invalid alias for " + function_name, ErrorCodes::SYNTAX_ERROR);
+                            throw Exception(ErrorCodes::SYNTAX_ERROR, "{} has invalid alias for {}", whole_alias, function_name);
 
                         alias_inside = String(start_pos->begin, start_pos->end);
                         auto new_column_str = std::format("{0}[{1}] AS {2}", column_str, index, alias_inside);

@@ -122,7 +122,7 @@ String IParserKQLFunction::getArgument(const String & function_name, DB::IParser
     if (auto optional_argument = getOptionalArgument(function_name, pos, argument_state))
         return std::move(*optional_argument);
 
-    throw Exception(std::format("Required argument was not provided in {}", function_name), ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH);
+    throw Exception(ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "Required argument was not provided in {}", function_name);
 }
 
 std::vector<std::string> IParserKQLFunction::getArguments(
@@ -152,7 +152,7 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
         return {};
 
     if (pos->isEnd() || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
-        throw Exception("Need more argument(s) in function: " + fn_name, ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH);
+        throw Exception(ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "Need more argument(s) in function: {}", fn_name);
 
     std::vector<String> tokens;
     while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
@@ -312,7 +312,7 @@ String IParserKQLFunction::kqlCallToExpression(
 void IParserKQLFunction::validateEndOfFunction(const String & fn_name, IParser::Pos & pos)
 {
     if (pos->type != TokenType::ClosingRoundBracket)
-        throw Exception("Too many arguments in function: " + fn_name, ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH);
+        throw Exception(ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "Too many arguments in function: {}", fn_name);
 }
 
 String IParserKQLFunction::getExpression(IParser::Pos & pos)
@@ -334,7 +334,7 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
                 if (pos->type == TokenType::OpeningRoundBracket)
                 {
                     if (Poco::toLower(arg) != "and" && Poco::toLower(arg) != "or")
-                        throw Exception(arg + " is not a supported kusto function", ErrorCodes::UNKNOWN_FUNCTION);
+                        throw Exception(ErrorCodes::UNKNOWN_FUNCTION, "{} is not a supported kusto function", arg);
                 }
                 --pos;
             }
