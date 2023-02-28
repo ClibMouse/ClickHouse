@@ -28,7 +28,7 @@ bool ParserKQLLookup::updatePipeLine(OperationsPos & operations, String & query)
     Pos pos = operations.back().second;
 
     if (pos->isEnd() || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
-        throw Exception("Syntax error near lookup operator", ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near lookup operator");
 
     Pos start_pos = operations.front().second;
     Pos end_pos = pos;
@@ -46,14 +46,14 @@ bool ParserKQLLookup::updatePipeLine(OperationsPos & operations, String & query)
     if (s_kind.ignore(pos))
     {
         if (!equals.ignore(pos))
-            throw Exception("Invalid kind for lookup operator", ErrorCodes::SYNTAX_ERROR);
+            throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid kind for lookup operator");
 
         if (ParserKeyword("leftouter").ignore(pos))
             join_kind = "kind=leftouter";
         else if (ParserKeyword("inner").ignore(pos))
             join_kind = "kind=inner";
         else
-            throw Exception("Invalid value of kind for lookup operator", ErrorCodes::SYNTAX_ERROR);
+            throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid value of kind for lookup operator");
     }
     Pos right_table_start_pos = pos;
 
@@ -72,7 +72,7 @@ bool ParserKQLLookup::updatePipeLine(OperationsPos & operations, String & query)
 
     String right_expr = (right_table_start_pos <= end_pos) ? String(right_table_start_pos->begin, end_pos->end) : "";
     if (right_expr.empty())
-        throw Exception("lookup operator need right table", ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "lookup operator need right table");
 
     query = std::format("{} join {} {} ", prev_query, join_kind, right_expr);
 
