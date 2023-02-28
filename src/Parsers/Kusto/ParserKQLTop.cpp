@@ -21,7 +21,7 @@ bool ParserKQLTop::updatePipeLine (OperationsPos & operations, String & query)
     Pos pos = operations.back().second;
 
     if (pos->isEnd() || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
-        throw Exception("Syntax error near top operator", ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near top operator");
 
     Pos start_pos = operations.front().second;
     Pos end_pos = pos;
@@ -48,7 +48,7 @@ bool ParserKQLTop::updatePipeLine (OperationsPos & operations, String & query)
     }
     sort_expr = (start_pos <= end_pos) ? String(start_pos->begin, end_pos->end) : "";
     if (limit_expr.empty() || sort_expr.empty())
-        throw Exception("top operator need a by clause", ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "top operator need a by clause");
 
     query = std::format("{} sort by {} | take {}", prev_query, sort_expr, limit_expr);
 
