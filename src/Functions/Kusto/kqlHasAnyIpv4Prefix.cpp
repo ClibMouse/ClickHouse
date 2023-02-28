@@ -44,7 +44,9 @@ static std::vector<std::string> extractIpsFromArguments(const DB::ColumnsWithTyp
             if (const auto & value = array0.get<DB::Array>().at(j); value.getType() == DB::Field::Types::String)
             {
                 const auto value_as_string = toString(value);
-                if (std::count(value_as_string.begin(), value_as_string.end(), '.') == 3 || value_as_string.back() == '.')
+
+                const auto n = std::ranges::count(value_as_string, '.');
+                if ((n == 3 && value_as_string.back() != '.') || (n <= 3 && value_as_string.back() == '.'))
                 {
                     ips.push_back(value_as_string);
                 }
