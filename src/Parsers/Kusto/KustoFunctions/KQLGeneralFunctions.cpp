@@ -57,7 +57,7 @@ bool Lookup::convertImpl(String & out, IParser::Pos & pos)
     else if (num_of_args == 4)
         return directMapping(out, pos, "dictGetOrDefault");
     else
-        throw Exception("number of arguments do not match in function: " + fn_name, ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "number of arguments do not match in function: {}", fn_name);
 }
 
 }

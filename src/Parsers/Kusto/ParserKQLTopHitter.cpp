@@ -21,7 +21,7 @@ bool ParserKQLTopHitters::updatePipeLine (OperationsPos & operations, String & q
     Pos pos = operations.back().second;
 
     if (pos->isEnd() || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
-        throw Exception("Syntax error near top-hitters operator", ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near top-hitters operator");
 
     Pos start_pos = operations.front().second;
     Pos end_pos = pos;
@@ -64,7 +64,7 @@ bool ParserKQLTopHitters::updatePipeLine (OperationsPos & operations, String & q
         summing_expression = (start_pos <= end_pos) ? String(start_pos->begin, end_pos->end) : "";
 
     if (number_of_values.empty() || value_expression.empty())
-        throw Exception("top-hitter operator need a ValueExpression", ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "top-hitter operator need a ValueExpression");
 
     if (summing_expression.empty())
         query = std::format("{0} summarize approximate_count_{1} = count() by {1} | sort by approximate_count_{1} desc | take {2} ", prev_query, value_expression, number_of_values);

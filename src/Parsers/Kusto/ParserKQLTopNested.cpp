@@ -325,15 +325,15 @@ bool ParserKQLTopNested ::parseSingleTopNestedClause(Pos & begin_pos, Pos & last
     }
 
     if (!has_of)
-        throw Exception("Missing 'of' keyword for top-nested operator", ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "Missing 'of' keyword for top-nested operator");
 
     if (!has_by)
-        throw Exception("Missing 'by' keyword for top-nested operator", ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "Missing 'by' keyword for top-nested operator");
 
     get_name_value(start_pos, pos, arg.agg_alias, arg.agg_expr);
 
     if (arg.agg_expr.empty())
-        throw Exception("Missing aggregation expression for top-nested operator", ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "Missing aggregation expression for top-nested operator");
 
     if (arg.expr_alias.empty())
     {   --expr_end_pos;
@@ -351,14 +351,14 @@ bool ParserKQLTopNested ::parseSingleTopNestedClause(Pos & begin_pos, Pos & last
     if (last_pos->type != TokenType::BareWord)
     {
         if (last_pos->type != TokenType::Number && last_pos->type != TokenType::ClosingRoundBracket)
-            throw Exception("Incorrect aggregation expression : " + arg.expr, ErrorCodes::SYNTAX_ERROR);
+            throw Exception(ErrorCodes::SYNTAX_ERROR, "Incorrect aggregation expression: {}", arg.expr);
         arg.order = "DESC";
     }
     else
     {
         const auto sort_direct = String(last_pos->begin, last_pos->end);
         if (sort_direct != "desc" && sort_direct != "asc")
-            throw Exception("Unknown direction of sorting : " + sort_direct, ErrorCodes::UNKNOWN_DIRECTION_OF_SORTING);
+            throw Exception(ErrorCodes::UNKNOWN_DIRECTION_OF_SORTING, "Unknown direction of sorting: {}", sort_direct);
 
         std::size_t found = arg.agg_expr.find(sort_direct);
         arg.agg_expr = arg.agg_expr.substr(0, found);

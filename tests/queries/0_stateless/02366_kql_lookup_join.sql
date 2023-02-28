@@ -13,12 +13,26 @@ INSERT INTO DimTable VALUES  ('Bill',  'Clinton', 'billc');
 INSERT INTO DimTable VALUES  ('Steve', 'Ballmer', 'steveb');
 INSERT INTO DimTable VALUES  ('Tim',   'Cook',    'timc');
 
+-- datatable (Key:string, Value1:long) [
+--     'a', 1,
+--     'b', 2,
+--     'b', 3,
+--     'c', 4
+-- ]
+
 DROP TABLE IF EXISTS X;
 CREATE TABLE X (Key String, Value1 Int64) ENGINE = Memory;
 INSERT INTO X VALUES  ('a',1);
 INSERT INTO X VALUES  ('b',2);
 INSERT INTO X VALUES  ('b',3);
 INSERT INTO X VALUES  ('c',4);
+
+-- datatable (Key:string, Value2:long) [
+--     'b', 10,
+--     'c', 20,
+--     'c', 30,
+--     'd', 40
+-- ]
 
 DROP TABLE IF EXISTS Y;
 CREATE TABLE Y  (Key String, Value2 Int64) ENGINE = Memory;
@@ -57,6 +71,8 @@ X | order by Key, Value1 | join kind=leftanti ( Y |  order by Key, Value2 )  on 
 print '-- Right anti-join --';
 X | order by Key, Value1 | join kind=rightanti ( Y |  order by Key, Value2 )  on Key | order by Key, Value1, Value2;
 print '-- Left semi-join --';
-X | order by Key, Value1 | join kind=leftsemi ( Y |  order by Key, Value2 )  on Key | order by Key, Value1, Value2;
+-- projecting at the end shouldn't be necessary, since Value2 shouldn't make it into the result set in the first place as per KQL specification
+X | order by Key, Value1 | join kind=leftsemi ( Y |  order by Key, Value2 )  on Key | order by Key, Value1, Value2 | project Key, Value1;
 print '-- Right semi-join --';
-X | order by Key, Value1 | join kind=rightsemi ( Y |  order by Key, Value2 )  on Key | order by Key, Value1, Value2;
+-- projecting at the end shouldn't be necessary, since Value1 shouldn't make it into the result set in the first place as per KQL specification
+X | order by Key, Value1 | join kind=rightsemi ( Y |  order by Key, Value2 )  on Key | order by Key, Value1, Value2 | project Key, Value2;

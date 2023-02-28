@@ -95,8 +95,8 @@ bool ParserKQLMVExpand::parseColumnArrayExprs(ColumnArrayExprs & column_array_ex
                 return false;
             to_type = String(pos->begin, pos->end);
 
-            if (type_cast.find(to_type) == type_cast.end())
-                 throw Exception(to_type + " is not a supported kusto data type for mv-expand", ErrorCodes::UNKNOWN_TYPE);
+            if (!type_cast.contains(to_type))
+                 throw Exception(ErrorCodes::UNKNOWN_TYPE, "{} is not a supported kusto data type for mv-expand", to_type);
 
             ++pos;
             if (!close_bracket.ignore(pos, expected))

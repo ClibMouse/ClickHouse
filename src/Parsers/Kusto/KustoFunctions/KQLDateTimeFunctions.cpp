@@ -132,7 +132,7 @@ bool DatetimePart::convertImpl(String & out, IParser::Pos & pos)
     else if (part == "SECOND")
         format = "%S";
     else
-        throw Exception("Unexpected argument " + part + " for " + fn_name, ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "Unexpected argument {} for {}", part, fn_name);
 
     out = std::format("formatDateTime({}, '{}')", date, format);
     return true;
@@ -226,7 +226,7 @@ bool FormatDateTime::convertImpl(String & out, IParser::Pos & pos)
             if (c == ' ' || c == '-' || c == '_' || c == '[' || c == ']' || c == '/' || c == ',' || c == '.' || c == ':')
                 formatspecifier = formatspecifier + c;
             else
-                throw Exception("Invalid format delimiter in function:" + fn_name, ErrorCodes::SYNTAX_ERROR);
+                throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid format delimiter in function: {}", fn_name);
             ++i;
         }
         else
@@ -257,7 +257,7 @@ bool FormatDateTime::convertImpl(String & out, IParser::Pos & pos)
             else if (arg.starts_with('f') || arg.starts_with('F'))
                 decimal = arg.size();
             else
-                throw Exception("Format specifier " + arg + " in function:" + fn_name + "is not supported", ErrorCodes::SYNTAX_ERROR);
+                throw Exception(ErrorCodes::SYNTAX_ERROR, "Format specifier {} in function: {} is not supported", arg, fn_name);
             res.pop_back();
             i = i + arg.size();
         }

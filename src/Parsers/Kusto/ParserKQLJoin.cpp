@@ -62,11 +62,11 @@ bool ParserKQLJoin ::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
     if (s_kind.ignore(pos))
     {
         if (!equals.ignore(pos))
-            throw Exception("Invalid kind for join operator", ErrorCodes::SYNTAX_ERROR);
+            throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid kind for join operator");
 
         String join_word(pos->begin, pos->end);
         if (join_type.find(join_word) == join_type.end())
-            throw Exception("Invalid value of kind for join operator", ErrorCodes::SYNTAX_ERROR);
+            throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid value of kind for join operator");
 
         join_kind = join_type[join_word];
         kql_join_kind = join_word;
@@ -161,7 +161,7 @@ bool ParserKQLJoin ::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
         --temp_pos;
 
         if (temp_pos < attributes_start_pos || !parse_attribute(attributes_start_pos, temp_pos))
-            throw Exception("Attributes error for join or lookup operator", ErrorCodes::SYNTAX_ERROR);
+            throw Exception(ErrorCodes::SYNTAX_ERROR, "Attributes error for join or lookup operator");
         attributes_start_pos = pos;
         ++attributes_start_pos;
     };
@@ -195,7 +195,7 @@ bool ParserKQLJoin ::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
     update_attributes();
 
     if (keyword_on_pos <= right_table_start_pos)
-        throw Exception("Missing right table or 'on' for join or lookup operator", ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "Missing right table or 'on' for join or lookup operator");
 
     --keyword_on_pos;
     if (right_table_start_pos == keyword_on_pos)
@@ -207,7 +207,7 @@ bool ParserKQLJoin ::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
     ++keyword_on_pos;
     --pos;
     if (pos < keyword_on_pos)
-        throw Exception("Missing attributes for join or lookup operator", ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "Missing attributes for join or lookup operator");
 
     String query_join;
     if (join_kind == default_join)

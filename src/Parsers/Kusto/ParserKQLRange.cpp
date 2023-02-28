@@ -24,7 +24,7 @@ bool ParserKQLRange::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expected*/
             end_pos = pos;
             --end_pos;
             if (end_pos < start_pos)
-                throw Exception("Missing column name for range operator", ErrorCodes::SYNTAX_ERROR);
+                throw Exception(ErrorCodes::SYNTAX_ERROR, "Missing column name for range operator");
 
             column_name = String(start_pos->begin, end_pos->end);
             start_pos = pos;
@@ -33,11 +33,11 @@ bool ParserKQLRange::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expected*/
         if (String(pos->begin, pos->end) == "to")
         {
             if (column_name.empty())
-                throw Exception("Missing `from` for range operator", ErrorCodes::SYNTAX_ERROR);
+                throw Exception(ErrorCodes::SYNTAX_ERROR, "Missing `from` for range operator");
             end_pos = pos;
             --end_pos;
             if (end_pos < start_pos)
-                throw Exception("Missing start expression for range operator", ErrorCodes::SYNTAX_ERROR);
+                throw Exception(ErrorCodes::SYNTAX_ERROR, "Missing start expression for range operator");
             start = String(start_pos->begin, end_pos->end);
             start_pos = pos;
             ++start_pos;
@@ -45,14 +45,14 @@ bool ParserKQLRange::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expected*/
         if (String(pos->begin, pos->end) == "step")
         {
             if (column_name.empty())
-                throw Exception("Missing `from` for range operator", ErrorCodes::SYNTAX_ERROR);
+                throw Exception(ErrorCodes::SYNTAX_ERROR, "Missing `from` for range operator");
             if (start.empty())
-                throw Exception("Missing 'to' for range operator", ErrorCodes::SYNTAX_ERROR);
+                throw Exception(ErrorCodes::SYNTAX_ERROR, "Missing 'to' for range operator");
 
             end_pos = pos;
             --end_pos;
             if (end_pos < start_pos)
-                throw Exception("Missing stop expression for range operator", ErrorCodes::SYNTAX_ERROR);
+                throw Exception(ErrorCodes::SYNTAX_ERROR, "Missing stop expression for range operator");
 
             stop = String(start_pos->begin, end_pos->end);
             start_pos = pos;
@@ -62,12 +62,12 @@ bool ParserKQLRange::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expected*/
     }
 
     if (column_name.empty() || start.empty() || stop.empty())
-        throw Exception("Missing required expression for range operator", ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "Missing required expression for range operator");
 
     end_pos = pos;
     --end_pos;
     if (end_pos < start_pos)
-        throw Exception("Missing step expression for range operator", ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "Missing step expression for range operator");
 
     step = String(start_pos->begin, end_pos->end);
 
