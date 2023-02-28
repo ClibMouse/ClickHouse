@@ -93,7 +93,7 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
         if (String(begin_pos->begin, begin_pos->end) == "by")
             return;
         if (end_pos->end <= begin_pos->begin)
-            throw Exception("Syntax error near keyword \"" + String(begin_pos->begin, begin_pos->end) + "\"", ErrorCodes::SYNTAX_ERROR);
+            throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near keyword \"{}\"", std::string_view(begin_pos->begin, begin_pos->end));
         auto expr = String(begin_pos->begin, end_pos->end);
         auto equal_pos = begin_pos;
         ++equal_pos;

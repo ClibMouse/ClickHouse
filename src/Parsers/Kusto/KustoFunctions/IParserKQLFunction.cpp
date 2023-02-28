@@ -145,26 +145,6 @@ std::vector<std::string> IParserKQLFunction::getArguments(
     return arguments;
 }
 
-std::vector<std::string> IParserKQLFunction::getArguments(
-    const String & function_name, DB::IParser::Pos & pos, const ArgumentState argument_state, const Interval & argument_count_interval)
-{
-    std::vector<std::string> arguments;
-    while (auto argument = getOptionalArgument(function_name, pos, argument_state))
-    {
-        arguments.push_back(std::move(*argument));
-    }
-    if (!argument_count_interval.IsWithinBounds(static_cast<int>(arguments.size())))
-        throw Exception(
-            ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH,
-            "{}: between {} and {} arguments are expected, but {} were provided",
-            function_name,
-            argument_count_interval.Min(),
-            argument_count_interval.Max(),
-            arguments.size());
-
-    return arguments;
-}
-
 String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser::Pos & pos)
 {
     int32_t round_bracket_count = 0, square_bracket_count = 0;

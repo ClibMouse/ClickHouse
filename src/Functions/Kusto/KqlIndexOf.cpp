@@ -35,15 +35,16 @@ public:
     {
         if (arguments.size() < 2 || 5 < arguments.size())
             throw Exception(
-                "Number of arguments for function " + getName() + " doesn't match: passed " + toString(arguments.size())
-                    + ", should be 2 to 5.",
-                ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH);
+                ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH,
+                "Number of arguments for function {} doesn't match: passed {}, should be 2 to 5.",
+                getName(),
+                arguments.size());
 
         if (arguments.size() >= 3)
         {
             for (size_t i = 3; i < arguments.size(); ++i)
                 if (!isInteger(arguments.at(i).type))
-                    throw Exception("Illegal type of argument of function " + getName(), ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT);
+                    throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type of argument of function {}", getName());
         }
 
         return std::make_shared<DataTypeNullable>(std::make_shared<DataTypeInt64>());

@@ -242,10 +242,10 @@ String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
 
     ++token_pos;
     if (!s_lparen.ignore(token_pos, expected))
-        throw DB::Exception("Syntax error near " + kql_op, DB::ErrorCodes::SYNTAX_ERROR);
+        throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", kql_op);
 
     if (tokens.empty())
-        throw DB::Exception("Syntax error near " + kql_op, DB::ErrorCodes::SYNTAX_ERROR);
+        throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", kql_op);
 
     new_expr = "lower(" + tokens.back() + ") ";
     tokens.pop_back();
@@ -393,7 +393,7 @@ bool KQLOperators::convert(std::vector<String> & tokens, IParser::Pos & pos)
     {
         ++pos;
         if (pos->isEnd() || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
-            throw Exception("Invalid negative operator", ErrorCodes::SYNTAX_ERROR);
+            throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid negative operator");
         op = "!" + String(pos->begin, pos->end);
     }
     else if (token == "matches")
@@ -440,7 +440,7 @@ bool KQLOperators::convert(std::vector<String> & tokens, IParser::Pos & pos)
     }
 
     if (tokens.empty())
-        throw Exception("Syntax error near " + op, ErrorCodes::SYNTAX_ERROR);
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near {}", op);
 
     auto last_op = tokens.back();
     auto last_pos = pos;

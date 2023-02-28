@@ -57,8 +57,8 @@ DataTypePtr FunctionKqlArrayIif::getReturnTypeImpl(const DataTypes & arguments) 
 {
     const auto * array_type0 = typeid_cast<const DataTypeArray *>(arguments[0].get());
     if (!array_type0)
-        throw Exception("First argument for function " + getName() + " must be an array but it has type "
-                        + arguments[0]->getName() + ".", ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT);
+        throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "First argument for function {} must be an array but it has type {}", getName(),
+                        arguments[0]->getName());
 
     DataTypePtr nested_type1, nested_type2;
 
@@ -75,8 +75,7 @@ DataTypePtr FunctionKqlArrayIif::getReturnTypeImpl(const DataTypes & arguments) 
         nested_type2 = makeNullable(array_type2->getNestedType());
 
     if (nested_type1->getName() != nested_type2->getName())
-        throw Exception("Last two arguments for function " + getName() + " must have same nested data type "
-                        + ".", ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT);
+        throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Last two arguments for function {} must have same nested data type", getName());
 
     DataTypes types = {nested_type1, nested_type2};
 

@@ -296,8 +296,7 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
             {
                 String new_column_str;
                 if (start_pos->type != TokenType::BareWord)
-                    throw Exception(
-                        ErrorCodes::SYNTAX_ERROR, "{} is not a valid alias", std::string_view(start_pos->begin, start_pos->end));
+                    throw Exception(ErrorCodes::SYNTAX_ERROR, "{} is not a valid alias", std::string_view(start_pos->begin, start_pos->end));
 
                 if (function_name == "array_sort_asc" || function_name == "array_sort_desc")
                     new_column_str = std::format("{0}[1] AS {1}", column_str, String(start_pos->begin, start_pos->end));
