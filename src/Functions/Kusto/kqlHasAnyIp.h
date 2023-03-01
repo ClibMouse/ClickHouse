@@ -1,3 +1,5 @@
+#pragmna once
+
 #include <Columns/ColumnString.h>
 #include <Columns/ColumnArray.h>
 #include <Columns/ColumnDecimal.h>
