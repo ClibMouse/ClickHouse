@@ -1,4 +1,4 @@
-#pragmna once
+#pragma once
 
 #include <Columns/ColumnString.h>
 #include <Columns/ColumnArray.h>
