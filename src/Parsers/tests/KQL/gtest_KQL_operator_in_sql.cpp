@@ -106,5 +106,17 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_operator_in_sql, ParserTest,
         {
             "select * from kql(Customers | where FirstName !~ 'nEyMaR' and LastName =~ 'naRA')",
             "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE (lower(FirstName) != lower('nEyMaR')) AND (lower(LastName) = lower('naRA'))\n)"
+        },
+        {
+            "select * from kql(TableWithVariousDataTypes | project Height | where Height between (5.2 .. 6.6));",
+            "SELECT *\nFROM\n(\n    SELECT Height\n    FROM TableWithVariousDataTypes\n    WHERE (Height >= 5.2) AND (Height <= 6.6)\n)"
+        },
+        {
+            "select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate !between (datetime('2020-01-01') .. 2d));",
+            "SELECT *\nFROM\n(\n    SELECT JoinDate\n    FROM TableWithVariousDataTypes\n    WHERE (JoinDate < kql_datetime('2020-01-01')) OR (JoinDate > (kql_datetime('2020-01-01') + toIntervalNanosecond(172800000000000)))\n)"
+        },
+        {
+            "select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate between (datetime('2020-06-30') .. datetime('2025-06-30')));",
+            "SELECT *\nFROM\n(\n    SELECT JoinDate\n    FROM TableWithVariousDataTypes\n    WHERE (JoinDate >= kql_datetime('2020-06-30')) AND (JoinDate <= kql_datetime('2025-06-30'))\n)"
         }
 })));

@@ -46,3 +46,6 @@ Customers | extend t = iif(Age <= 10, "smaller", "bigger");
 print '-- lookup';
 print lookup('dictionary_table', 'value', '1');
 print lookup('dictionary_table', 'value', '100', 'default');
+print '-- not';
+print not(1);
+print not(false);

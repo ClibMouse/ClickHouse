@@ -65,5 +65,9 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_General, ParserTest,
         {
             "print lookup('dictionary_table', 'value', '100', 'default')",
             "SELECT dictGetOrDefault('dictionary_table', 'value', '100', 'default')"
+        },
+        {
+            "print not(false)",
+            "SELECT NOT false"
         }
 })));

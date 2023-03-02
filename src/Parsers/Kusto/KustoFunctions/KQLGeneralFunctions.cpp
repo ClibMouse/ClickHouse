@@ -60,4 +60,8 @@ bool Lookup::convertImpl(String & out, IParser::Pos & pos)
         throw Exception(ErrorCodes::SYNTAX_ERROR, "number of arguments do not match in function: {}", fn_name);
 }
 
+bool Not::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "not");
+}
 }

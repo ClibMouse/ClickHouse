@@ -7,6 +7,7 @@
 #include <Parsers/formatAST.h>
 #include "KustoFunctions/IParserKQLFunction.h"
 #include "ParserKQLStatement.h"
+#include "ParserKQLQuery.h"
 
 #include <format>
 #include <unordered_map>
@@ -30,6 +31,8 @@ enum class WildcardsPos : uint8_t
 enum class KQLOperatorValue : uint16_t
 {
     none,
+    between,
+    not_between,
     contains,
     not_contains,
     contains_cs,
@@ -68,6 +71,8 @@ enum class KQLOperatorValue : uint16_t
 };
 
 const std::unordered_map<String, KQLOperatorValue> KQLOperator = {
+    {"between", KQLOperatorValue::between},
+    {"!between", KQLOperatorValue::not_between},
     {"contains", KQLOperatorValue::contains},
     {"!contains", KQLOperatorValue::not_contains},
     {"contains_cs", KQLOperatorValue::contains_cs},
@@ -228,6 +233,62 @@ String genEqOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
     tokens.pop_back();
 
     return new_expr;
+}
+
+String genBetweenOpExpr(DB::IParser::Pos & token_pos, const DB::String & ch_op)
+{
+    DB::String tmp_arg(token_pos->begin, token_pos->end);
+    DB::String new_expr;
+    new_expr += ch_op + " ";
+    ++token_pos;
+
+    bool dot_validated = false;
+    String expr;
+    String prev;
+    String expr_keep;
+
+    while (!token_pos->isEnd() && token_pos->type != DB::TokenType::PipeMark && token_pos->type != DB::TokenType::Semicolon)
+    {
+        if (token_pos->type == DB::TokenType::OpeningRoundBracket)
+            ++token_pos;
+        else if (String(token_pos->begin, token_pos->end) == ".")
+        {
+            if (prev == ".")
+            {
+                if (!dot_validated)
+                {
+                    new_expr += " AND ";
+                    dot_validated = true;
+                }
+                else
+                    throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error, number of consecutive dots exceed 2!");
+            }
+            else if (dot_validated)
+                new_expr += ".";
+            
+            prev = ".";
+            ++token_pos;
+        }
+        else
+        {
+            expr = DB::IParserKQLFunction::getExpression(token_pos);
+            if ((expr.size() > 12) && (expr.substr(0, 12) == "kql_datetime"))
+                expr_keep = expr;
+
+            if ((expr.size() > 20) && (expr.substr(0, 20) == "toIntervalNanosecond"))
+                expr = expr_keep + " + " + expr;
+
+            prev = expr;
+            if (expr != ")")
+                new_expr += expr;
+            ++token_pos;
+        }
+    }
+
+    if (!dot_validated)
+        throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error, no dots or number of consecutive dots mismatch!");
+
+    return new_expr + ")";
 }
 
 String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos, const DB::String & kql_op, const DB::String & ch_op)
@@ -406,10 +467,6 @@ bool KQLOperators::convert(std::vector<String> & tokens, IParser::Pos & pos)
             else
                 --pos;
         }
-    }
-    else
-    {
-        op = token;
     }
 
     ++pos;
@@ -617,6 +674,14 @@ bool KQLOperators::convert(std::vector<String> & tokens, IParser::Pos & pos)
         case KQLOperatorValue::not_startswith_cs:
             new_expr
                 = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "not startsWith({0}, {1})"), WildcardsPos::none);
+            break;
+
+        case KQLOperatorValue::between:
+            new_expr = genBetweenOpExpr(pos, "between");
+            break;
+
+        case KQLOperatorValue::not_between:
+            new_expr = genBetweenOpExpr(pos, "not between");
             break;
 
         default:
