@@ -1,15 +1,15 @@
 #pragma once
 
-#include <Columns/ColumnString.h>
+#include <ranges>
 #include <Columns/ColumnArray.h>
 #include <Columns/ColumnDecimal.h>
-#include <DataTypes/DataTypesNumber.h>
+#include <Columns/ColumnString.h>
 #include <DataTypes/DataTypeString.h>
+#include <DataTypes/DataTypesNumber.h>
 #include <Functions/FunctionFactory.h>
 #include <Functions/FunctionHelpers.h>
 #include <Functions/IFunction.h>
 #include <Functions/Kusto/KqlFunctionBase.h>
-#include <ranges>
 
 namespace DB
 {
