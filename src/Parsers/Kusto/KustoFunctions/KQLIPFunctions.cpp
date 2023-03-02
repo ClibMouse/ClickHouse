@@ -284,4 +284,25 @@ bool FormatIpv4Mask::convertImpl(String & out, IParser::Pos & pos)
         kqlCallToExpression("ipv4_netmask_suffix", {"tostring(" + ip_address + ")"}, pos.max_depth));
     return true;
 }
+
+bool HasIpv4::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "kql_has_ipv4");
 }
+
+bool HasAnyIpv4::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "kql_has_any_ipv4");
+}
+
+bool HasIpv4Prefix::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "kql_has_ipv4_prefix");
+}
+
+bool HasAnyIpv4Prefix::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "kql_has_any_ipv4_prefix");
+}
+}
+

@@ -123,4 +123,32 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class HasIpv4 : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "has_ipv4()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class HasAnyIpv4 : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "has_any_ipv4()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class HasIpv4Prefix : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "has_ipv4_prefix()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class HasAnyIpv4Prefix : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "has_any_ipv4_prefix()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
 }
+
