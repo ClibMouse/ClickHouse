@@ -20,9 +20,10 @@ static std::vector<std::string> extractIpsFromArguments(
     if (DB::isStringOrFixedString(arguments.at(1).type))
     {
         std::ranges::copy_if(
-            arguments | std::views::drop(1) | std::views::transform( [&row](const DB::ColumnWithTypeAndName & arg) { return arg.column->getDataAt(row).toString(); }),
+            arguments | std::views::drop(1)
+                | std::views::transform([&row](const DB::ColumnWithTypeAndName & arg) { return arg.column->getDataAt(row).toString(); }),
             std::back_inserter(ips),
-            [& is_ipv4_string](const std::string & arg)
+            [&is_ipv4_string](const std::string & arg)
             {
                 const DB::ColumnsWithTypeAndName is_ipv4_string_args
                     = {DB::createConstColumnWithTypeAndName<DB::DataTypeString>(arg, "ip")};
