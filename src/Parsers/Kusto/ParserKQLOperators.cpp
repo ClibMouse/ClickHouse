@@ -265,7 +265,7 @@ String genBetweenOpExpr(DB::IParser::Pos & token_pos, const DB::String & ch_op)
             }
             else if (dot_validated)
                 new_expr += ".";
-            
+
             prev = ".";
             ++token_pos;
         }

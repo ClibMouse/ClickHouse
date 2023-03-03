@@ -1,7 +1,17 @@
 ## KQL implemented features  
 # February XX, 2023
 ## Operator
-
+- [between, !between](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/betweenoperator)
+    ```
+    select * from kql(TableWithVariousDataTypes | project Age | where Age between (10 .. 12));
+    select * from kql(TableWithVariousDataTypes | project Age | where Age !between (10 .. 30));
+    select * from kql(TableWithVariousDataTypes | project Height | where Height between (5.2 .. 6.6));
+    select * from kql(TableWithVariousDataTypes | project Height | where Height !between (5.3 .. 7.6));
+    select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate between (datetime('2020-01-01') .2d));
+    select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate !between (datetime('2020-01-01') .. 2d));
+    select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate between (datetime('2020-06-30') .. datetime('2025-06-30')));
+    select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate !between (datetime('2020-06-30') .. datetime('2025-06-30')));
+    ```
 - [project-away](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/projectawayoperator)
     ```
     print '1-- remove one column';
@@ -25,7 +35,6 @@
     print '10-- remove columns after extend';
     Customers|extend FullName = strcat(FirstName,' ',LastName) | project-away FirstName, LastName;  
     ```
-
 
 ## Bugfixes
 - Fixed count operator issue (2112):
@@ -124,6 +133,9 @@
 Supports simple keys only. Do not suppoer RANGE_HASHED keys.)
    `print lookup('dictionary_table', 'value', '1')`
    `print lookup('dictionary_table', 'value', '100', 'default')`
+- [not()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/notfunction)
+   `print not(1)`
+   `print not(false)`
 # January XX, 2023
 ## Functions
 - [range()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/rangefunction)  
