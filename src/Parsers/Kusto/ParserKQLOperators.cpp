@@ -279,16 +279,17 @@ String genBetweenOpExpr(DB::IParser::Pos & token_pos, const DB::String & ch_op)
                 expr = expr_keep + " + " + expr;
 
             prev = expr;
-            if (expr != ")")
-                new_expr += expr;
+            new_expr += expr;
             ++token_pos;
         }
+        if (token_pos->type == DB::TokenType::ClosingRoundBracket)
+            break;
     }
 
     if (!dot_validated)
         throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error, no dots or number of consecutive dots mismatch!");
 
-    return new_expr + ")";
+    return new_expr;
 }
 
 String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos, const DB::String & kql_op, const DB::String & ch_op)

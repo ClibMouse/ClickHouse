@@ -103,6 +103,8 @@ select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate 
 select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate !between (datetime('2020-01-01') .. 2d));
 select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate between (datetime('2020-06-30') .. datetime('2025-06-30')));
 select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate !between (datetime('2020-06-30') .. datetime('2025-06-30')));
+select * from kql(TableWithVariousDataTypes | project Age | where Age between (10 .. 12) or Age > 30);
+select * from kql(TableWithVariousDataTypes | project Age | where Age between (10 .. 12) or Age between (30 .. 50));
 DROP TABLE IF EXISTS Customers;
 drop table if exists StormEventsLite;
 DROP TABLE IF EXISTS TableWithVariousDataTypes;
