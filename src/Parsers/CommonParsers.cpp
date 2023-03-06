@@ -38,4 +38,26 @@ bool ParserKeyword::parseImpl(Pos & pos, [[maybe_unused]] ASTPtr & node, Expecte
     return true;
 }
 
+bool ParserSequence::parseImpl(Pos & pos, [[maybe_unused]] ASTPtr & node, Expected & expected)
+{
+    expected.add(pos, sequence.c_str());
+
+    Tokens keyword_tokens(sequence.c_str(), sequence.c_str() + sequence.length());
+    Pos keyword_tokens_pos(keyword_tokens, pos.max_depth);
+
+    while (!keyword_tokens_pos->isEnd() && !pos->isEnd() && keyword_tokens_pos->type == pos->type)
+    {
+        const auto keyword_token_length = keyword_tokens_pos->end - keyword_tokens_pos->begin;
+
+        if (const auto pos_token_length = pos->end - pos->begin;
+            keyword_token_length != pos_token_length || strncasecmp(keyword_tokens_pos->begin, pos->begin, keyword_token_length) != 0)
+            break;
+
+        ++keyword_tokens_pos;
+        ++pos;
+    }
+
+    return keyword_tokens_pos->isEnd();
+}
+
 }

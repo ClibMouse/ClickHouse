@@ -25,6 +25,9 @@ namespace ErrorCodes
 
 bool ParserKQLJoin ::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
+    if (!ParserKeyword("join").ignore(pos, expected))
+        return false;
+
     ASTPtr sub_query_node;
     String str_right_table;
     String str_attributes;

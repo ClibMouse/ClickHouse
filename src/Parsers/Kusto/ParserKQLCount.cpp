@@ -10,6 +10,9 @@ namespace ErrorCodes
 
 bool ParserKQLCount::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
+    if (!ParserKeyword("count").ignore(pos, expected))
+        return false;
+
     if (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
         throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near count operator");
 

@@ -23,25 +23,18 @@ namespace ErrorCodes
     extern const int SYNTAX_ERROR;
 }
 
-bool ParserKQLLookup::updatePipeLine(OperationsPos & operations, String & query)
+bool ParserKQLLookup::updatePipeLine(Pos pos, String & query)
 {
-    Pos pos = operations.back().second;
+    if (!ParserKeyword("lookup").ignore(pos))
+        return false;
 
     if (pos->isEnd() || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
-        throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near lookup operator");
-
-    Pos start_pos = operations.front().second;
-    Pos end_pos = pos;
-    --end_pos;
-    --end_pos;
-
-    String prev_query(start_pos->begin, end_pos->end);
+        return false;
 
     String join_kind = "kind=leftouter";
     ParserKeyword s_kind("kind");
     ParserToken equals(TokenType::Equals);
-    start_pos = pos;
-    end_pos = pos;
+    auto end_pos = pos;
 
     if (s_kind.ignore(pos))
     {
@@ -74,7 +67,7 @@ bool ParserKQLLookup::updatePipeLine(OperationsPos & operations, String & query)
     if (right_expr.empty())
         throw Exception(ErrorCodes::SYNTAX_ERROR, "lookup operator need right table");
 
-    query = std::format("{} join {} {} ", prev_query, join_kind, right_expr);
+    query = std::format("join {} {} ", join_kind, right_expr);
 
     return true;
 }

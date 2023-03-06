@@ -27,6 +27,20 @@ protected:
     bool parseImpl(Pos & pos, ASTPtr & node, Expected & expected) override;
 };
 
+class ParserSequence : public IParserBase
+{
+public:
+    explicit ParserSequence(std::string sequence_) : sequence(std::move(sequence_)) { }
+
+    const char * getName() const override { return sequence.c_str(); }
+
+protected:
+    bool parseImpl(Pos & pos, ASTPtr & node, Expected & expected) override;
+
+private:
+    std::string sequence;
+    Tokens tokens{sequence.c_str(), sequence.c_str() + sequence.length()};
+};
 
 class ParserToken : public IParserBase
 {

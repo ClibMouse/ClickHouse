@@ -8,6 +8,9 @@ namespace DB
 
 bool ParserKQLLimit::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
+    if (!ParserKeyword("limit").ignore(pos, expected) && !ParserKeyword("take").ignore(pos, expected))
+        return false;
+
     ASTPtr limit_length;
 
     auto expr = getExprFromToken(pos);
