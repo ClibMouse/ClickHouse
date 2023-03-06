@@ -29,12 +29,14 @@ protected:
     friend class ReadFromSystemOneBlock;
 
 public:
-    explicit IStorageSystemOneBlock(const StorageID & table_id_, ColumnsDescription columns_description) : IStorage(table_id_)
+    explicit IStorageSystemOneBlock(StorageID table_id_, ColumnsDescription columns_description) : IStorage(std::move(table_id_))
     {
         StorageInMemoryMetadata storage_metadata;
         storage_metadata.setColumns(std::move(columns_description));
         setInMemoryMetadata(storage_metadata);
     }
+
+    ~IStorageSystemOneBlock() override = default;
 
     void read(
         QueryPlan & query_plan,

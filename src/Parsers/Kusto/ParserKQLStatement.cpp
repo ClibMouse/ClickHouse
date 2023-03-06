@@ -1,12 +1,13 @@
+#include "Utilities.h"
+
+#include <Parsers/IParserBase.h>
+#include <Parsers/ParserSetQuery.h>
 #include <Parsers/ASTExpressionList.h>
 #include <Parsers/ASTSelectWithUnionQuery.h>
-#include <Parsers/CommonParsers.h>
-#include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/KustoFunctions/KQLFunctionFactory.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLStatement.h>
 #include <Parsers/Kusto/Utilities.h>
-#include <Parsers/ParserSetQuery.h>
+#include <Parsers/CommonParsers.h>
 
 namespace DB
 {
@@ -39,7 +40,6 @@ bool ParserKQLWithUnionQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & exp
 {
     // will support union next phase
     ASTPtr kql_query;
-
     if (!ParserKQLQuery().parse(pos, kql_query, expected))
         return false;
 
@@ -49,14 +49,7 @@ bool ParserKQLWithUnionQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & exp
         return true;
     }
 
-    auto list_node = std::make_shared<ASTExpressionList>();
-    list_node->children.push_back(kql_query);
-
-    auto select_with_union_query = std::make_shared<ASTSelectWithUnionQuery>();
-    node = select_with_union_query;
-    select_with_union_query->list_of_selects = list_node;
-    select_with_union_query->children.push_back(select_with_union_query->list_of_selects);
-
+    node = wrapInSelectWithUnion(kql_query);
     return true;
 }
 
