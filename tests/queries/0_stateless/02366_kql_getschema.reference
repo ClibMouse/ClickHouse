@@ -1,0 +1,34 @@
+-- #1 --
+a	0	Array(String)	Array(String)
+s	1	String	String
+i	2	Int64	Int64
+-- #2 --
+a	0	Array(String)	Array(String)
+s	1	String	String
+i	2	Int64	Int64
+x	3	UInt64	UInt64
+-- #3 --
+a	Array(String)
+s	String
+-- #4 --
+ColumnName	0	String	String
+ColumnOrdinal	1	Int32	Int32
+DataType	2	String	String
+ColumnType	3	String	String
+-- #5 --
+a	0	Array(String)	dynamic
+s	1	String	string
+i	2	Int64	long
+-- #6 --
+a	0	Array(String)	dynamic
+s	1	String	string
+i	2	Int64	long
+x	3	UInt64	long
+-- #7 --
+a	dynamic
+s	string
+-- #8 --
+ColumnName	0	String	string
+ColumnOrdinal	1	Int32	int
+DataType	2	String	string
+ColumnType	3	String	string
