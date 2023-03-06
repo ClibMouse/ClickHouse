@@ -31,12 +31,14 @@ protected:
     virtual void fillData(MutableColumns & res_columns, ContextPtr context, const SelectQueryInfo & query_info) const = 0;
 
 public:
-    explicit IStorageSystemOneBlock(const StorageID & table_id_) : IStorage(table_id_)
+    explicit IStorageSystemOneBlock(StorageID table_id_) : IStorage(std::move(table_id_))
     {
         StorageInMemoryMetadata storage_metadata;
         storage_metadata.setColumns(ColumnsDescription(Self::getNamesAndTypes(), Self::getNamesAndAliases()));
         setInMemoryMetadata(storage_metadata);
     }
+
+    ~IStorageSystemOneBlock() override = default;
 
     Pipe read(
         const Names & column_names,
