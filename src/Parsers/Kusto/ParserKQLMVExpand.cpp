@@ -278,7 +278,10 @@ bool ParserKQLMVExpand::genQuery(KQLMVExpand & kql_mv_expand, ASTPtr & select_no
 }
 
 bool ParserKQLMVExpand::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
-{
+{    
+    if (!ParserSequence("mv-expand").ignore(pos, expected))
+        return false;
+
     ASTPtr setting;
     ASTPtr select_expression_list;
     auto begin = pos;

@@ -10,6 +10,9 @@ namespace DB
 
 bool ParserKQLFilter::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
+    if (!ParserKeyword("filter").ignore(pos, expected) && !ParserKeyword("where").ignore(pos, expected))
+        return false;
+
     String expr = getExprFromToken(pos);
     ASTPtr where_expression;
 

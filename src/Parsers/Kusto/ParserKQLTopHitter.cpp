@@ -16,25 +16,17 @@ bool ParserKQLTopHitters::parseImpl(Pos & /*pos*/, ASTPtr & /*node*/, Expected &
     return true;
 }
 
-bool ParserKQLTopHitters::updatePipeLine (OperationsPos & operations, String & query)
+bool ParserKQLTopHitters::updatePipeLine(Pos pos, String & query)
 {
-    Pos pos = operations.back().second;
+    if (!ParserSequence("top-hitters").ignore(pos))
+        return false;
 
     if (pos->isEnd() || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
         throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near top-hitters operator");
 
-    Pos start_pos = operations.front().second;
-    Pos end_pos = pos;
-    --end_pos;
-    --end_pos;
-    --end_pos;
-    --end_pos;
-
-    String prev_query(start_pos->begin, end_pos->end);
-
     String number_of_values, value_expression, summing_expression;
-    start_pos = pos;
-    end_pos = pos;
+    auto start_pos = pos;
+    auto end_pos = pos;
     while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
     {
         if (String(pos->begin, pos->end) == "of")
@@ -67,9 +59,9 @@ bool ParserKQLTopHitters::updatePipeLine (OperationsPos & operations, String & q
         throw Exception(ErrorCodes::SYNTAX_ERROR, "top-hitter operator need a ValueExpression");
 
     if (summing_expression.empty())
-        query = std::format("{0} summarize approximate_count_{1} = count() by {1} | sort by approximate_count_{1} desc | take {2} ", prev_query, value_expression, number_of_values);
+        query = std::format("summarize approximate_count_{0} = count() by {0} | sort by approximate_count_{0} desc | take {1} ", value_expression, number_of_values);
     else
-        query = std::format("{0} summarize approximate_sum_{1} = sum({1}) by {2} | sort by approximate_sum_{1} desc | take {3}", prev_query, summing_expression, value_expression, number_of_values);
+        query = std::format("summarize approximate_sum_{0} = sum({0}) by {1} | sort by approximate_sum_{0} desc | take {2}", summing_expression, value_expression, number_of_values);
 
     return true;
 }

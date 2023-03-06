@@ -32,6 +32,9 @@ namespace ErrorCodes
 
 bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
+    if (!ParserKeyword("summarize").ignore(pos, expected))
+        return false;
+
     ASTPtr select_expression_list;
     ASTPtr group_expression_list;
 

@@ -405,6 +405,9 @@ bool ParserKQLTopNested ::parseTopNestedClause(Pos & pos, TopNestedClauses & top
 
 bool ParserKQLTopNested ::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
+    if (!ParserSequence("top-nested").ignore(pos))
+        return false;
+
     TopNestedClauses top_nested_clauses;
 
     parseTopNestedClause(pos, top_nested_clauses);

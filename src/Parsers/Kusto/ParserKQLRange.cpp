@@ -11,8 +11,11 @@ namespace ErrorCodes
     extern const int SYNTAX_ERROR;
 }
 
-bool ParserKQLRange::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expected*/)
+bool ParserKQLRange::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
+    if (!ParserKeyword("range").ignore(pos, expected))
+        return false;
+
     ASTPtr select_node;
     String column_name, start, stop, step;
     auto start_pos = pos;

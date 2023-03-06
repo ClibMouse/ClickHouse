@@ -13,27 +13,26 @@ public:
     static String getExprFromToken(Pos & pos);
     static String getExprFromToken(const String & text, const uint32_t max_depth);
     static String getExprFromPipe(Pos & pos);
-    static bool setSubQuerySource(ASTPtr & select_query, ASTPtr & source, const bool dest_is_subquery, const bool src_is_subquery, const String alias = "", const int32_t table_index = 0);
+    static bool setSubQuerySource(
+        const ASTPtr & select_query,
+        const ASTPtr & source,
+        const bool dest_is_subquery,
+        const bool src_is_subquery,
+        const String & alias = "",
+        const int32_t table_index = 0);
     static bool parseSQLQueryByString(ParserPtr && parser, String & query, ASTPtr & select_node, int32_t max_depth);
-    bool parseByString(const String expr, ASTPtr & node, const uint32_t max_depth);
-    virtual bool updatePipeLine (OperationsPos & /*operations*/, String & /*query*/) {return false;}
+    bool parseByString(const String & expr, ASTPtr & node, const uint32_t max_depth);
+    virtual bool updatePipeLine([[maybe_unused]] Pos pos, [[maybe_unused]] String & query) { return false; }
 };
 
 class ParserKQLQuery : public IParserBase
 {
 public:
-    struct KQLOperatorDataFlowState
-    {
-        String operator_name;
-        bool need_input;
-        bool gen_output;
-        bool need_reinterpret;
-        int8_t backspace_steps; // how many steps to last token of previous pipe
-    };
     static bool getOperations(Pos & pos, Expected & expected, OperationsPos & operation_pos);
+
 protected:
-    static std::unique_ptr<ParserKQLBase> getOperator(String &op_name);
-    static bool pre_process(String & source, Pos & pos);
+    static std::unique_ptr<ParserKQLBase> getOperator(std::string_view op_name);
+    static bool preProcess(String & source, Pos & pos);
     const char * getName() const override { return "KQL query"; }
     bool parseImpl(Pos & pos, ASTPtr & node, Expected & expected) override;
     static bool executeImpl(Pos & pos, ASTPtr & node, Expected & expected);
@@ -49,7 +48,8 @@ protected:
 class ParserSimpleCHSubquery : public ParserKQLBase
 {
 public:
-    ParserSimpleCHSubquery(ASTPtr parent_select_node_ = nullptr) {parent_select_node = parent_select_node_;}
+    explicit ParserSimpleCHSubquery(ASTPtr parent_select_node_ = nullptr) : parent_select_node(parent_select_node_) { }
+
 protected:
     const char * getName() const override { return "Simple ClickHouse subquery"; }
     bool parseImpl(Pos & pos, ASTPtr & node, Expected & expected) override;

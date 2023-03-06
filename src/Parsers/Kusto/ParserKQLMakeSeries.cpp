@@ -357,6 +357,9 @@ bool ParserKQLMakeSeries :: makeSeries(KQLMakeSeries & kql_make_series, ASTPtr &
 
 bool ParserKQLMakeSeries :: parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
+    if (!ParserSequence("make-series").ignore(pos, expected))
+        return false;
+
     auto begin = pos;
     ParserKeyword s_on("on");
     ParserKeyword s_by("by");

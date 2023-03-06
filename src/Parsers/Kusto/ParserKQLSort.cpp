@@ -10,6 +10,9 @@ namespace DB
 
 bool ParserKQLSort::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
+    if (!ParserKeyword("order by").ignore(pos, expected) && !ParserKeyword("sort by").ignore(pos, expected))
+        return false;
+
     bool has_dir = false;
     std::vector <bool> has_directions;
     ParserOrderByExpressionList order_list;

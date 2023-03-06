@@ -6,6 +6,9 @@ namespace DB
 
 bool ParserKQLDistinct::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
+    if (!ParserKeyword("distinct").ignore(pos, expected))
+        return false;
+
     ASTPtr select_expression_list;
     String expr;
 
