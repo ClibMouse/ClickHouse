@@ -32,7 +32,7 @@ public:
     };
     static bool getOperations(Pos & pos, Expected & expected, OperationsPos & operation_pos);
 protected:
-    static std::unique_ptr<ParserKQLBase> getOperator(String &op_name);
+    static std::unique_ptr<ParserKQLBase> getOperator(std::string_view op_name);
     static bool pre_process(String & source, Pos & pos);
     const char * getName() const override { return "KQL query"; }
     bool parseImpl(Pos & pos, ASTPtr & node, Expected & expected) override;

@@ -200,8 +200,8 @@ void QueryNormalizer::visitChildren(IAST * node, Data & data)
     {
         if (func_node->tryGetQueryArgument())
         {
-            if (func_node->name != "view")
-                throw Exception(ErrorCodes::BAD_ARGUMENTS, "Query argument can only be used in the `view` TableFunction");
+            if (func_node->name != "getschema" && func_node->name != "view")
+                throw Exception(ErrorCodes::BAD_ARGUMENTS, "Query argument can only be used in the `getschema` and `view` table functions");
             /// Don't go into query argument.
             return;
         }

@@ -105,6 +105,8 @@ public:
     IStorage(const IStorage &) = delete;
     IStorage & operator=(const IStorage &) = delete;
 
+    ~IStorage() override = default;
+
     /// The main name of the table type (for example, StorageMergeTree).
     virtual std::string getName() const = 0;
 

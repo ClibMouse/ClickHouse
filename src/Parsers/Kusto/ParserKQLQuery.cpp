@@ -1,3 +1,5 @@
+#include "Utilities.h"
+
 #include <Parsers/ASTIdentifier.h>
 #include <Parsers/ASTLiteral.h>
 #include <Parsers/ASTSelectQuery.h>
@@ -11,6 +13,7 @@
 #include <Parsers/Kusto/ParserKQLDistinct.h>
 #include <Parsers/Kusto/ParserKQLExtend.h>
 #include <Parsers/Kusto/ParserKQLFilter.h>
+#include <Parsers/Kusto/ParserKQLGetSchema.h>
 #include <Parsers/Kusto/ParserKQLJoin.h>
 #include <Parsers/Kusto/ParserKQLLimit.h>
 #include <Parsers/Kusto/ParserKQLLookup.h>
@@ -41,7 +44,7 @@ namespace ErrorCodes
     extern const int SYNTAX_ERROR;
 }
 
-std::unordered_map<std::string, ParserKQLQuery::KQLOperatorDataFlowState> kql_parser = {
+const std::unordered_map<std::string, ParserKQLQuery::KQLOperatorDataFlowState> kql_parser{
     {"filter", {"filter", false, false, false, 3}},
     {"where", {"filter", false, false, false, 3}},
     {"limit", {"limit", false, true, false, 3}},
@@ -64,7 +67,7 @@ std::unordered_map<std::string, ParserKQLQuery::KQLOperatorDataFlowState> kql_pa
     {"top-nested", {"top-nested", true, true, true, 5}},
     {"range", {"range", false, true, false, 3}},
     {"project-away", {"project-away", true, true, true, 5}},
-};
+    {"getschema", {"getschema", false, false, false, 3}}};
 
 bool ParserKQLBase::parseByString(const String expr, ASTPtr & node, const uint32_t max_depth)
 {
@@ -366,7 +369,7 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
     return res;
 }
 
-std::unique_ptr<ParserKQLBase> ParserKQLQuery::getOperator(String & op_name)
+std::unique_ptr<ParserKQLBase> ParserKQLQuery::getOperator(const std::string_view op_name)
 {
     if (op_name == "filter" || op_name == "where")
         return std::make_unique<ParserKQLFilter>();
@@ -376,6 +379,8 @@ std::unique_ptr<ParserKQLBase> ParserKQLQuery::getOperator(String & op_name)
         return std::make_unique<ParserKQLProject>();
     else if (op_name == "distinct")
         return std::make_unique<ParserKQLDistinct>();
+    else if (op_name == "getschema")
+        return std::make_unique<ParserKQLGetSchema>();
     else if (op_name == "extend")
         return std::make_unique<ParserKQLExtend>();
     else if (op_name == "sort by" || op_name == "order by")
@@ -406,8 +411,8 @@ std::unique_ptr<ParserKQLBase> ParserKQLQuery::getOperator(String & op_name)
         return std::make_unique<ParserKQLRange>();
     else if (op_name == "project-away")
         return std::make_unique<ParserKQLProjectAway>();
-    else
-        return nullptr;
+
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "No such KQL operator exists: {}", op_name);
 }
 
 bool ParserKQLQuery::getOperations(Pos & pos, Expected & expected, OperationsPos & operation_pos)
@@ -534,19 +539,15 @@ bool ParserKQLQuery::parseImpl(Pos & original_pos, ASTPtr & node, Expected & exp
 
 bool ParserKQLQuery::executeImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
-    auto select_query = std::make_shared<ASTSelectQuery>();
-    node = select_query;
-    ASTPtr tables;
-    OperationsPos operation_pos;
+    node = std::make_shared<ASTSelectQuery>();
 
+    OperationsPos operation_pos;
     if (!getOperations(pos, expected, operation_pos))
         return false;
 
     auto kql_operator_str = operation_pos.back().first;
 
     auto kql_operator_p = getOperator(kql_operator_str);
-    if (!kql_operator_p)
-        return false;
 
     String updated_query;
     kql_operator_p->updatePipeLine(operation_pos, updated_query);
@@ -603,7 +604,7 @@ bool ParserKQLQuery::executeImpl(Pos & pos, ASTPtr & node, Expected & expected)
         auto last_pos = operation_pos.back().second;
         auto last_op = operation_pos.back().first;
 
-        auto set_main_query_clause = [&](const String & op, Pos & op_pos)
+        auto set_main_query_clause = [&](const std::string_view op, Pos & op_pos)
         {
             auto op_str = ParserKQLBase::getExprFromPipe(op_pos);
             if (op == "project")
@@ -620,16 +621,14 @@ bool ParserKQLQuery::executeImpl(Pos & pos, ASTPtr & node, Expected & expected)
 
         operation_pos.pop_back();
 
-        if (!kql_parser[last_op].need_input)
+        if (!kql_parser.at(last_op).need_input)
         {
             while (!operation_pos.empty())
             {
                 auto prev_op = operation_pos.back().first;
                 auto prev_pos = operation_pos.back().second;
 
-                if (kql_parser[prev_op].gen_output)
-                    break;
-                if (!project_clause.empty() && prev_op == "project")
+                if (kql_parser.at(prev_op).gen_output || (!project_clause.empty() && prev_op == "project"))
                     break;
 
                 set_main_query_clause(prev_op, prev_pos);
@@ -641,16 +640,17 @@ bool ParserKQLQuery::executeImpl(Pos & pos, ASTPtr & node, Expected & expected)
 
         if (!operation_pos.empty())
         {
-            for (auto i = 0; i < kql_parser[last_op].backspace_steps; ++i)
+            for (auto i = 0; i < kql_parser.at(last_op).backspace_steps; ++i)
                 --last_pos;
 
             String sub_query = std::format("({})", String(operation_pos.front().second->begin, last_pos->end));
             Tokens token_subquery(sub_query.c_str(), sub_query.c_str() + sub_query.size());
             IParser::Pos pos_subquery(token_subquery, pos.max_depth);
 
+            ASTPtr tables;
             if (!ParserKQLSubquery().parse(pos_subquery, tables, expected))
                 return false;
-            select_query->setExpression(ASTSelectQuery::Expression::TABLES, std::move(tables));
+            node->as<ASTSelectQuery>()->setExpression(ASTSelectQuery::Expression::TABLES, std::move(tables));
         }
         else
         {
@@ -661,49 +661,37 @@ bool ParserKQLQuery::executeImpl(Pos & pos, ASTPtr & node, Expected & expected)
         if (!kql_operator_p->parse(npos, node, expected))
             return false;
 
-        auto set_query_clasue = [&](String op_str, String op_calsue)
+        auto set_query_clause = [&](const String & op_str, const String & op_clause)
         {
-            auto oprator = getOperator(op_str);
-            if (oprator)
+            try
             {
-                Tokens token_clause(op_calsue.c_str(), op_calsue.c_str() + op_calsue.size());
+                auto parser = getOperator(op_str);
+                Tokens token_clause(op_clause.c_str(), op_clause.c_str() + op_clause.size());
                 IParser::Pos pos_clause(token_clause, pos.max_depth);
-                if (!oprator->parse(pos_clause, node, expected))
-                    return false;
+                return parser->parse(pos_clause, node, expected);
             }
-            return true;
+            catch (const Exception &)
+            {
+                return true;
+            }
         };
 
         if (!node->as<ASTSelectQuery>()->select())
         {
             if (project_clause.empty())
                 project_clause = "*";
-            if (!set_query_clasue("project", project_clause))
+            if (!set_query_clause("project", project_clause))
                 return false;
         }
 
-        if (!order_clause.empty())
-            if (!set_query_clasue("order by", order_clause))
-                return false;
-
-        if (!where_clause.empty())
-            if (!set_query_clasue("where", where_clause))
-                return false;
-
-        if (!limit_clause.empty())
-            if (!set_query_clasue("limit", limit_clause))
-                return false;
-        return true;
-    }
-
-    if (!node->as<ASTSelectQuery>()->select())
-    {
-        auto expr = String("*");
-        Tokens tokens(expr.c_str(), expr.c_str() + expr.size());
-        IParser::Pos new_pos(tokens, pos.max_depth);
-        if (!std::make_unique<ParserKQLProject>()->parse(new_pos, node, expected))
+        if ((!order_clause.empty() && !set_query_clause("order by", order_clause))
+            || (!where_clause.empty() && !set_query_clause("where", where_clause))
+            || (!limit_clause.empty() && !set_query_clause("limit", limit_clause)))
             return false;
     }
+
+    if (auto * select_query = node->as<ASTSelectQuery>(); !select_query->select())
+        setSelectAll(*select_query);
 
     return true;
 }

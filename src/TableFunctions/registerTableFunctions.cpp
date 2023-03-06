@@ -1,6 +1,7 @@
 #include "registerTableFunctions.h"
-#include <TableFunctions/TableFunctionFactory.h>
 
+#include "TableFunctionFactory.h"
+#include "TableFunctionGetSchema.h"
 
 namespace DB
 {
@@ -74,6 +75,7 @@ void registerTableFunctions()
 
     registerTableFunctionFormat(factory);
     registerTableFunctionExplain(factory);
+    registerTableFunctionGetSchema(factory);
 
 #if USE_AZURE_BLOB_STORAGE
     registerTableFunctionAzureBlobStorage(factory);
