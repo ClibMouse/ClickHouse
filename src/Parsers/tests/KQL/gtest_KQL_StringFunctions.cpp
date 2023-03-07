@@ -221,5 +221,17 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         {
             "print isnotempty('1.12345')",
             "SELECT notEmpty(ifNull(kql_tostring('1.12345'), ''))"
+        },
+        {
+            "print string_size('⒦⒰⒮⒯⒪')",
+            "SELECT length('⒦⒰⒮⒯⒪')"
+        },
+        {
+            "print arr = to_utf8('⒦⒰⒮⒯⒪')",
+            "SELECT arrayMap(x -> if(substring(bin(x), 1, 1) = '0', reinterpretAsInt64(reverse(UNBIN(substring(bin(x), 2, 7)))), if(substring(bin(x), 1, 3) = '110', reinterpretAsInt64(reverse(UNBIN(concat(substring(bin(x), 4, 5), substring(bin(x), 11, 6))))), if(substring(bin(x), 1, 4) = '1110', reinterpretAsInt64(reverse(UNBIN(concat(substring(bin(x), 5, 4), substring(bin(x), 11, 6), substring(bin(x), 19, 6))))), if(substring(bin(x), 1, 5) = '11110', reinterpretAsInt64(reverse(UNBIN(concat(substring(bin(x), 6, 3), substring(bin(x), 11, 6), substring(bin(x), 19, 6), substring(bin(x), 27, 6))))), -1)))), ngrams('⒦⒰⒮⒯⒪', 1)) AS arr"
+        },
+        {
+            "print g = new_guid()",
+            "SELECT generateUUIDv4() AS g"
         }
 })));

@@ -14,7 +14,12 @@
    `print has_ipv4_prefix('10:00:00 192.168.1.1 GET /index.html 404', '192.168.')`
 - [has_any_ipv4_prefix()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/has-any-ipv4-prefix-function)
    `print has_any_ipv4_prefix('10:00:00 192.168.1.1 GET /index.html 404', '127.', '192.168.1.')`
-
+- [string_size()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/stringsizefunction.md)
+   `print string_size('⒦⒰⒮⒯⒪')`
+- [to_utf8()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/toutf8function.md)
+   `print arr = to_utf8('⒦⒰⒮⒯⒪')`
+- [new_guid()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/newguidfunction.md)
+   `print g = new_guid()`
 # February XX, 2023
 ## Operator
 
