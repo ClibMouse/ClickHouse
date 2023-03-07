@@ -109,13 +109,6 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
-class MakeString : public IParserKQLFunction
-{
-protected:
-    const char * getName() const override { return "make_string()"; }
-    bool convertImpl(String &out,IParser::Pos &pos) override;
-};
-
 class NewGuid : public IParserKQLFunction
 {
 protected:
