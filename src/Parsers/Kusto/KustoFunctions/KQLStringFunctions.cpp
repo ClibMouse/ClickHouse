@@ -360,48 +360,9 @@ bool IsNull::convertImpl(String & out, IParser::Pos & pos)
     return directMapping(out, pos, "isNull");
 }
 
-bool MakeString::convertImpl(String & out, IParser::Pos & pos)
-{
-    const auto function_name = getKQLFunctionName(pos);
-    if (function_name.empty())
-        return false;
-
-    out = "char(";
-    const auto arguments = getArguments(function_name, pos, ArgumentState::Parsed);
-    for (size_t i = 0; i < arguments.size(); ++i)
-    {
-        if (arguments[i][0] != '[')
-            out += arguments[i];
-        else
-        {
-            const size_t len = arguments[i].size();
-            if (len < 3)
-                throw Exception(ErrorCodes::BAD_ARGUMENTS, "Incomplete dynamic argument in {}", function_name);
-
-            String arr_str = arguments[i].substr(1, len - 2);
-            size_t index = 0;
-            String token;
-            while ((index = arr_str.find(",")) != std::string::npos)
-            {
-                token = arr_str.substr(0, index);
-                out += token;
-                out += ',';
-                arr_str.erase(0, index + 1);
-            }
-            out += arr_str;
-        }
-        if (i < arguments.size() - 1)
-            out += ',';
-    }
-    out += ")";
-    return true;
-}
-
 bool NewGuid::convertImpl(String & out, IParser::Pos & pos)
 {
-    ++pos;
-    out = "";
-    return false;
+    return directMapping(out, pos, "generateUUIDv4");
 }
 
 bool ParseCSV::convertImpl(String & out, IParser::Pos & pos)
@@ -709,9 +670,29 @@ bool ToUpper::convertImpl(String & out, IParser::Pos & pos)
 
 bool ToUtf8::convertImpl(String & out, IParser::Pos & pos)
 {
+    String fn_name = getKQLFunctionName(pos);
+
+    if (fn_name.empty())
+        return false;
+
     ++pos;
-    out = "";
-    return false;
+    String func_arg = getConvertedArgument(fn_name, pos);
+    const String base_arg = "reinterpretAsInt64(reverse(UNBIN(";
+    const String base_arg_end = ")))";
+    const String expr0 = base_arg + "substring(bin(x),2,7)" + base_arg_end;
+    const String expr1 = base_arg + "concat(substring(bin(x),4,5), substring(bin(x),11,6))" + base_arg_end;
+    const String expr2 = base_arg + "concat(substring(bin(x),5,4), substring(bin(x),11,6), substring(bin(x),19,6))" + base_arg_end;
+    const String expr3 = base_arg + "concat(substring(bin(x),6,3), substring(bin(x),11,6), substring(bin(x),19,6), substring(bin(x),27,6))" + base_arg_end;
+
+    out = std::format("arrayMap(x -> if(substring(bin(x),1,1)=='0', {0},"
+            "if(substring(bin(x),1,3)=='110', {1},if(substring(bin(x),1,4)=='1110'"
+            ", {2},if(substring(bin(x),1,5)=='11110', {3},-1)))), ngrams({4}, 1))", 
+            expr0,
+            expr1,
+            expr2,
+            expr3,
+            func_arg);
+    return true;
 }
 
 bool Translate::convertImpl(String & out, IParser::Pos & pos)
