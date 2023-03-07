@@ -22,11 +22,11 @@ INSTANTIATE_TEST_SUITE_P(
         },
         {
             "print toint(A)",
-            "SELECT toInt32OrNull(toString(A)) / if(toTypeName(A) = 'IntervalNanosecond', 100, 1)"
+            "SELECT intDiv(toInt32OrNull(toString(A)), if(toTypeName(A) = 'IntervalNanosecond', 100, 1))"
         },
         {
             "print tolong(A)",
-            "SELECT toInt64OrNull(toString(A)) / if(toTypeName(A) = 'IntervalNanosecond', 100, 1)"
+            "SELECT intDiv(toInt64OrNull(toString(A)), if(toTypeName(A) = 'IntervalNanosecond', 100, 1))"
         },
         {
             "print toreal(A)",
