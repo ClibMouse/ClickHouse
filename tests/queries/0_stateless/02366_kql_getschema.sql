@@ -27,3 +27,21 @@ test | getschema | where DataType like '%String%' | project ColumnName, ColumnTy
 
 print '-- #8 --';
 print 1 | getschema | getschema;
+
+print '-- #9 --';
+test | project a, s | getschema;
+
+print '-- #10 --';
+test | summarize avg(i) | getschema;
+
+print '-- #11 --';
+test | take 1000 | extend x = strlen(s) | top 500 by x asc | where x > 0 or i > 0 | distinct s, i, x | top-hitters 100 of s by i | getschema;
+
+print '-- #12 --';
+test | project a, i | count | getschema;
+
+print '-- #13 --';
+test | top-nested 50 of s with others = "Others" by sum(i) | getschema;
+
+print '-- #14 --';
+range x from 0d to 365d step 1d | extend l = tolong(x) | lookup kind = inner (test) on $left.l == $right.i | mv-expand a | getschema;
