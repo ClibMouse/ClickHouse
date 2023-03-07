@@ -361,6 +361,11 @@ bool IsNull::convertImpl(String & out, IParser::Pos & pos)
     return directMapping(out, pos, "isNull");
 }
 
+bool NewGuid::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "generateUUIDv4");
+}
+
 bool ParseCSV::convertImpl(String & out, IParser::Pos & pos)
 {
     const String fn_name = getKQLFunctionName(pos);
@@ -590,6 +595,11 @@ bool StrCmp::convertImpl(String & out, IParser::Pos & pos)
     return true;
 }
 
+bool StringSize::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "length");
+}
+
 bool StrLen::convertImpl(String & out, IParser::Pos & pos)
 {
     return directMapping(out, pos, "lengthUTF8");
@@ -657,6 +667,33 @@ bool ToLower::convertImpl(String & out, IParser::Pos & pos)
 bool ToUpper::convertImpl(String & out, IParser::Pos & pos)
 {
     return directMapping(out, pos, "upper");
+}
+
+bool ToUtf8::convertImpl(String & out, IParser::Pos & pos)
+{
+    String fn_name = getKQLFunctionName(pos);
+
+    if (fn_name.empty())
+        return false;
+
+    ++pos;
+    String func_arg = getConvertedArgument(fn_name, pos);
+    const String base_arg = "reinterpretAsInt64(reverse(UNBIN(";
+    const String base_arg_end = ")))";
+    const String expr0 = base_arg + "substring(bin(x),2,7)" + base_arg_end;
+    const String expr1 = base_arg + "concat(substring(bin(x),4,5), substring(bin(x),11,6))" + base_arg_end;
+    const String expr2 = base_arg + "concat(substring(bin(x),5,4), substring(bin(x),11,6), substring(bin(x),19,6))" + base_arg_end;
+    const String expr3 = base_arg + "concat(substring(bin(x),6,3), substring(bin(x),11,6), substring(bin(x),19,6), substring(bin(x),27,6))" + base_arg_end;
+
+    out = std::format("arrayMap(x -> if(substring(bin(x),1,1)=='0', {0},"
+            "if (substring(bin(x),1,3)=='110', {1},if(substring(bin(x),1,4)=='1110'"
+            ", {2},if (substring(bin(x),1,5)=='11110', {3},-1)))), ngrams({4}, 1))",
+            expr0,
+            expr1,
+            expr2,
+            expr3,
+            func_arg);
+    return true;
 }
 
 bool Translate::convertImpl(String & out, IParser::Pos & pos)
