@@ -1,6 +1,9 @@
 ## KQL implemented features  
 # March XX, 2023
 ## Operator
+- [getschema](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/getschemaoperator)
+   `print x = 'asd' | extend strlen(x) | getschema`
+
 ## Bugfixes
 ## Functions
 - [has_ipv4()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/has-ipv4-function)
