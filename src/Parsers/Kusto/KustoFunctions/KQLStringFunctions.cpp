@@ -685,8 +685,8 @@ bool ToUtf8::convertImpl(String & out, IParser::Pos & pos)
     const String expr3 = base_arg + "concat(substring(bin(x),6,3), substring(bin(x),11,6), substring(bin(x),19,6), substring(bin(x),27,6))" + base_arg_end;
 
     out = std::format("arrayMap(x -> if(substring(bin(x),1,1)=='0', {0},"
-            "if(substring(bin(x),1,3)=='110', {1},if(substring(bin(x),1,4)=='1110'"
-            ", {2},if(substring(bin(x),1,5)=='11110', {3},-1)))), ngrams({4}, 1))", 
+            "if (substring(bin(x),1,3)=='110', {1},if(substring(bin(x),1,4)=='1110'"
+            ", {2},if (substring(bin(x),1,5)=='11110', {3},-1)))), ngrams({4}, 1))",
             expr0,
             expr1,
             expr2,
