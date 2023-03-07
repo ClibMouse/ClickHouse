@@ -14,11 +14,7 @@ bool ParserKQLGetSchema::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
         return false;
     }
 
-    auto * select_query = node->as<ASTSelectQuery>();
-    if (!select_query)
-        throw Exception(ErrorCodes::LOGICAL_ERROR, "Unexpected node: {}", node->getID());
-
-    if (!select_query->select())
+    if (auto * select_query = node->as<ASTSelectQuery>(); !select_query->select())
         setSelectAll(*select_query);
 
     auto enclosing_query = std::make_shared<ASTSelectQuery>();
