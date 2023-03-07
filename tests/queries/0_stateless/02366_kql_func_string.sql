@@ -402,8 +402,8 @@ print '-- has_any --';
 StringTest | where Text has_any ('asdf', 'qwer');
 
 print '-- string_size --';
-print string_size('Kusto');
-print string_size('⒦⒰⒮⒯⒪');
+print t = string_size('Kusto');
+print t = string_size('⒦⒰⒮⒯⒪');
 
 print '-- to_utf8 --';
 print arr = to_utf8("⒦⒰⒮⒯⒪");
