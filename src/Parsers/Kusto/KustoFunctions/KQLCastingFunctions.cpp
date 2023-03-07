@@ -44,7 +44,7 @@ bool ToInt::convertImpl(String & out, IParser::Pos & pos)
         return false;
 
     const auto param = getArgument(function_name, pos);
-    out = std::format("toInt32OrNull(toString({0})) / if(toTypeName({0}) = 'IntervalNanosecond', 100, 1)", param);
+    out = std::format("intDiv(toInt32OrNull(toString({0})), if(toTypeName({0}) = 'IntervalNanosecond', 100, 1))", param);
     return true;
 }
 
@@ -55,7 +55,7 @@ bool ToLong::convertImpl(String & out, IParser::Pos & pos)
         return false;
 
     const auto param = getArgument(function_name, pos);
-    out = std::format("toInt64OrNull(toString({0})) / if(toTypeName({0}) = 'IntervalNanosecond', 100, 1)", param);
+    out = std::format("intDiv(toInt64OrNull(toString({0})), if(toTypeName({0}) = 'IntervalNanosecond', 100, 1))", param);
     return true;
 }
 
@@ -66,7 +66,7 @@ bool ToString::convertImpl(String & out, IParser::Pos & pos)
         return false;
 
     const auto argument = getArgument(function_name, pos);
-    out = std::format("ifNull(kql_tostring({0}), '')", argument);
+    out = std::format("ifNull(kql_tostring({}), '')", argument);
     return true;
 }
 
