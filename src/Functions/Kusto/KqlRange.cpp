@@ -606,10 +606,10 @@ private:
             }
 
             if (pre_values < total_values)
-                throw Exception{
+                throw Exception(
                     ErrorCodes::ARGUMENT_OUT_OF_BOUND,
                     "A call to function {} overflows, investigate the values of arguments you are passing",
-                    getName()};
+                    getName());
 
             total_values = pre_values;
             if (total_values > total_elements)
