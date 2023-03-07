@@ -360,6 +360,50 @@ bool IsNull::convertImpl(String & out, IParser::Pos & pos)
     return directMapping(out, pos, "isNull");
 }
 
+bool MakeString::convertImpl(String & out, IParser::Pos & pos)
+{
+    const auto function_name = getKQLFunctionName(pos);
+    if (function_name.empty())
+        return false;
+
+    out = "char(";
+    const auto arguments = getArguments(function_name, pos, ArgumentState::Parsed);
+    for (size_t i = 0; i < arguments.size(); ++i)
+    {
+        if (arguments[i][0] != '[')
+            out += arguments[i];
+        else
+        {
+            const size_t len = arguments[i].size();
+            if (len < 3)
+                throw Exception(ErrorCodes::BAD_ARGUMENTS, "Incomplete dynamic argument in {}", function_name);
+
+            String arr_str = arguments[i].substr(1, len - 2);
+            size_t index = 0;
+            String token;
+            while ((index = arr_str.find(",")) != std::string::npos)
+            {
+                token = arr_str.substr(0, index);
+                out += token;
+                out += ',';
+                arr_str.erase(0, index + 1);
+            }
+            out += arr_str;
+        }
+        if (i < arguments.size() - 1)
+            out += ',';
+    }
+    out += ")";
+    return true;
+}
+
+bool NewGuid::convertImpl(String & out, IParser::Pos & pos)
+{
+    ++pos;
+    out = "";
+    return false;
+}
+
 bool ParseCSV::convertImpl(String & out, IParser::Pos & pos)
 {
     const String fn_name = getKQLFunctionName(pos);
@@ -589,6 +633,11 @@ bool StrCmp::convertImpl(String & out, IParser::Pos & pos)
     return true;
 }
 
+bool StringSize::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "length");
+}
+
 bool StrLen::convertImpl(String & out, IParser::Pos & pos)
 {
     return directMapping(out, pos, "lengthUTF8");
@@ -656,6 +705,13 @@ bool ToLower::convertImpl(String & out, IParser::Pos & pos)
 bool ToUpper::convertImpl(String & out, IParser::Pos & pos)
 {
     return directMapping(out, pos, "upper");
+}
+
+bool ToUtf8::convertImpl(String & out, IParser::Pos & pos)
+{
+    ++pos;
+    out = "";
+    return false;
 }
 
 bool Translate::convertImpl(String & out, IParser::Pos & pos)
