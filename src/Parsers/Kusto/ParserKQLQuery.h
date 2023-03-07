@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Parsers/IParserBase.h>
 #include <Parsers/ASTSelectQuery.h>
+#include <Parsers/IParserBase.h>
 
 namespace DB
 {
@@ -25,14 +25,14 @@ public:
     struct KQLOperatorDataFlowState
     {
         String operator_name;
-        bool need_input;
-        bool gen_output;
+        bool input_as_subquery;
+        bool output_as_subquery;
         bool need_reinterpret;
         int8_t backspace_steps; // how many steps to last token of previous pipe
     };
     static bool getOperations(Pos & pos, Expected & expected, OperationsPos & operation_pos);
 protected:
-    static std::unique_ptr<ParserKQLBase> getOperator(String &op_name);
+    static std::unique_ptr<ParserKQLBase> getOperator(std::string_view op_name);
     static bool pre_process(String & source, Pos & pos);
     const char * getName() const override { return "KQL query"; }
     bool parseImpl(Pos & pos, ASTPtr & node, Expected & expected) override;
