@@ -25,8 +25,8 @@ public:
     struct KQLOperatorDataFlowState
     {
         String operator_name;
-        bool need_input;
-        bool gen_output;
+        bool input_as_subquery;
+        bool output_as_subquery;
         bool need_reinterpret;
         int8_t backspace_steps; // how many steps to last token of previous pipe
     };
