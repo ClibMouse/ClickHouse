@@ -32,3 +32,22 @@ ColumnName	0	String	string
 ColumnOrdinal	1	Int32	int
 DataType	2	String	string
 ColumnType	3	String	string
+-- #9 --
+a	0	Array(String)	dynamic
+s	1	String	string
+-- #10 --
+avg_i	0	Float64	real
+-- #11 --
+s	0	String	string
+approximate_sum_i	1	Int64	long
+-- #12 --
+Count	0	UInt64	long
+-- #13 --
+s	0	String	string
+aggregated_s	1	Int64	long
+-- #14 --
+x	0	IntervalNanosecond	timespan
+l	1	Nullable(Int64)	long
+a	2	String	string
+s	3	String	string
+i	4	Int64	long
