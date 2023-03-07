@@ -66,6 +66,8 @@ enum class KQLFunction : uint16_t
     isnotempty,
     isnotnull,
     isnull,
+    make_string,
+    new_guid,
     parse_command_line,
     parse_csv,
     parse_json,
@@ -78,11 +80,13 @@ enum class KQLFunction : uint16_t
     strcat,
     strcat_delim,
     strcmp,
+    string_size,
     strlen,
     strrep,
     substring,
     tolower,
     toupper,
+    to_utf8,
     translate,
     trim,
     trim_end,
@@ -315,6 +319,8 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"isnotnull", KQLFunction::isnotnull},
     {"notnull", KQLFunction::isnotnull},
     {"isnull", KQLFunction::isnull},
+    {"make_string", KQLFunction::make_string},
+    {"new_guid", KQLFunction::new_guid},
     {"parse_command_line", KQLFunction::parse_command_line},
     {"parse_csv", KQLFunction::parse_csv},
     {"parse_json", KQLFunction::parse_json},
@@ -327,11 +333,13 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"strcat", KQLFunction::strcat},
     {"strcat_delim", KQLFunction::strcat_delim},
     {"strcmp", KQLFunction::strcmp},
+    {"string_size", KQLFunction::string_size},
     {"strlen", KQLFunction::strlen},
     {"strrep", KQLFunction::strrep},
     {"substring", KQLFunction::substring},
     {"tolower", KQLFunction::tolower},
     {"toupper", KQLFunction::toupper},
+    {"to_utf8", KQLFunction::to_utf8},
     {"translate", KQLFunction::translate},
     {"trim", KQLFunction::trim},
     {"trim_end", KQLFunction::trim_end},
@@ -666,6 +674,12 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
         case KQLFunction::isnull:
             return std::make_unique<IsNull>();
 
+        case KQLFunction::make_string:
+            return std::make_unique<MakeString>();
+
+        case KQLFunction::new_guid:
+            return std::make_unique<NewGuid>();
+
         case KQLFunction::parse_command_line:
             return std::make_unique<ParseCommandLine>();
 
@@ -702,6 +716,9 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
         case KQLFunction::strcmp:
             return std::make_unique<StrCmp>();
 
+        case KQLFunction::string_size:
+            return std::make_unique<StringSize>();
+
         case KQLFunction::strlen:
             return std::make_unique<StrLen>();
 
@@ -716,6 +733,9 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::toupper:
             return std::make_unique<ToUpper>();
+
+        case KQLFunction::to_utf8:
+            return std::make_unique<ToUtf8>();
 
         case KQLFunction::translate:
             return std::make_unique<Translate>();
