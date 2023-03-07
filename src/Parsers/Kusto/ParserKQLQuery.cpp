@@ -67,7 +67,7 @@ const std::unordered_map<std::string, ParserKQLQuery::KQLOperatorDataFlowState> 
     {"top-nested", {"top-nested", true, true, true, 5}},
     {"range", {"range", false, true, false, 3}},
     {"project-away", {"project-away", true, true, true, 5}},
-    {"getschema", {"getschema", false, false, false, 3}}};
+    {"getschema", {"getschema", true, true, false, 3}}};
 
 bool ParserKQLBase::parseByString(const String expr, ASTPtr & node, const uint32_t max_depth)
 {
@@ -621,14 +621,14 @@ bool ParserKQLQuery::executeImpl(Pos & pos, ASTPtr & node, Expected & expected)
 
         operation_pos.pop_back();
 
-        if (!kql_parser.at(last_op).need_input)
+        if (!kql_parser.at(last_op).input_as_subquery)
         {
             while (!operation_pos.empty())
             {
                 auto prev_op = operation_pos.back().first;
                 auto prev_pos = operation_pos.back().second;
 
-                if (kql_parser.at(prev_op).gen_output || (!project_clause.empty() && prev_op == "project"))
+                if (kql_parser.at(prev_op).output_as_subquery || (!project_clause.empty() && prev_op == "project"))
                     break;
 
                 set_main_query_clause(prev_op, prev_pos);
@@ -663,17 +663,10 @@ bool ParserKQLQuery::executeImpl(Pos & pos, ASTPtr & node, Expected & expected)
 
         auto set_query_clause = [&](const String & op_str, const String & op_clause)
         {
-            try
-            {
-                auto parser = getOperator(op_str);
-                Tokens token_clause(op_clause.c_str(), op_clause.c_str() + op_clause.size());
-                IParser::Pos pos_clause(token_clause, pos.max_depth);
-                return parser->parse(pos_clause, node, expected);
-            }
-            catch (const Exception &)
-            {
-                return true;
-            }
+            auto parser = getOperator(op_str);
+            Tokens token_clause(op_clause.c_str(), op_clause.c_str() + op_clause.size());
+            IParser::Pos pos_clause(token_clause, pos.max_depth);
+            return parser->parse(pos_clause, node, expected);
         };
 
         if (!node->as<ASTSelectQuery>()->select())
