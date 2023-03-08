@@ -305,7 +305,7 @@ bool IndexOf::convertImpl(String & out, IParser::Pos & pos)
         }
     }
 
-    out = std::format("kql_indexof({},{},{},{},{})", source, lookup, start_index, length, occurrence);
+    out = std::format("kql_indexof(kql_tostring({}),kql_tostring({}),{},{},{})", source, lookup, start_index, length, occurrence);
     return true;
 }
 
