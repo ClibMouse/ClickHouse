@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Parsers/IParserBase.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 
 namespace DB
