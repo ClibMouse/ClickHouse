@@ -367,10 +367,11 @@ print idx6 = indexof(1234567,5,1,4);
 print idx7 = indexof('abcdefg','cde',2,-1);
 print idx8 = indexof('abcdefgabcdefg', 'cde', 1, 10, 2);
 print idx9 = indexof('abcdefgabcdefg', 'cde', 1, -1, 3);
-print indexof('abcdefgabcdefg','cde', -1);
-print indexof('abcdefgabcdefg','cde', -4);
-print indexof('abcdefgabcdefg','cde', -5);
-print indexof('abcdefgabcdefg','cde', -105);
+print idx10 = indexof('abcdefgabcdefg','cde', -1);
+print idx11 = indexof('abcdefgabcdefg','cde', -4);
+print idx12 = indexof('abcdefgabcdefg','cde', -5);
+print idx13 = indexof('abcdefgabcdefg','cde', -105);
+print idx14 = indexof(1d, '.');
 
 print '-- has --';
 print 'svchost.exe1' has '';
