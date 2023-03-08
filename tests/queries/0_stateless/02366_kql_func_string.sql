@@ -272,6 +272,7 @@ print base64_encode_tostring('Kusto1');
 print '-- base64_decode_tostring';
 print base64_decode_tostring('');
 print base64_decode_tostring('S3VzdG8x');
+print base64_decode_tostring('S3VzdG8====');
 print '-- parse_url()';
 print parse_url('scheme://username:password@host:1234/this/is/a/path?k1=v1&k2=v2#fragment');
 print '-- parse_url()';
