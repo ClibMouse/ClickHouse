@@ -183,36 +183,40 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserTest,
             "SELECT concat(ifNull(kql_tostring(if(toInt64(length(FirstName)) <= 0, '', substr(FirstName, (((0 % toInt64(length(FirstName))) + toInt64(length(FirstName))) % toInt64(length(FirstName))) + 1, 3))), ''), ifNull(kql_tostring(' '), ''), ifNull(kql_tostring(if(toInt64(length(LastName)) <= 0, '', substr(LastName, (((2 % toInt64(length(LastName))) + toInt64(length(LastName))) % toInt64(length(LastName))) + 1))), ''), '') AS name_abbr\nFROM Customers\nORDER BY LastName DESC"
         },
         {
-            "print indexof('abcdefg','cde')",
-            "SELECT kql_indexof('abcdefg', 'cde', 0, -1, 1) AS print_0"
+            "print idx1 = indexof('abcdefg','cde')",
+            "SELECT kql_indexof(kql_tostring('abcdefg'), kql_tostring('cde'), 0, -1, 1) AS idx1"
         },
         {
-            "print indexof('abcdefg','cde',0,3)",
-            "SELECT kql_indexof('abcdefg', 'cde', 0, 3, 1) AS print_0"
+            "print idx2 = indexof('abcdefg','cde',0,3)",
+            "SELECT kql_indexof(kql_tostring('abcdefg'), kql_tostring('cde'), 0, 3, 1) AS idx2"
         },
         {
-            "print indexof('abcdefg','cde',1,2)",
-            "SELECT kql_indexof('abcdefg', 'cde', 1, 2, 1) AS print_0"
+            "print idx3 = indexof('abcdefg','cde',1,2)",
+            "SELECT kql_indexof(kql_tostring('abcdefg'), kql_tostring('cde'), 1, 2, 1) AS idx3"
         },
         {
-            "print indexof('abcdefg','cde',-5) ",
-            "SELECT kql_indexof('abcdefg', 'cde', -5, -1, 1) AS print_0"
+            "print idx5 = indexof('abcdefg','cde',-5)",
+            "SELECT kql_indexof(kql_tostring('abcdefg'), kql_tostring('cde'), -5, -1, 1) AS idx5"
         },
         {
-            "print indexof(1234567,5,1,4)   ",
-            "SELECT kql_indexof(1234567, 5, 1, 4, 1) AS print_0"
+            "print idx6 = indexof(1234567,5,1,4)",
+            "SELECT kql_indexof(kql_tostring(1234567), kql_tostring(5), 1, 4, 1) AS idx6"
         },
         {
-            "print indexof('abcdefg','cde',2,-1)",
-            "SELECT kql_indexof('abcdefg', 'cde', 2, -1, 1) AS print_0"
+            "print idx7 = indexof('abcdefg','cde',2,-1)",
+            "SELECT kql_indexof(kql_tostring('abcdefg'), kql_tostring('cde'), 2, -1, 1) AS idx7"
         },
         {
-            "print indexof('abcdefgabcdefg', 'cde', 3)",
-            "SELECT kql_indexof('abcdefgabcdefg', 'cde', 3, -1, 1) AS print_0"
+            "print idx8 = indexof('abcdefgabcdefg', 'cde', 3)",
+            "SELECT kql_indexof(kql_tostring('abcdefgabcdefg'), kql_tostring('cde'), 3, -1, 1) AS idx8"
         },
         {
-            "print indexof('abcdefgabcdefg', 'cde', 1, 13, 3) ",
-            "SELECT kql_indexof('abcdefgabcdefg', 'cde', 1, 13, 3) AS print_0"
+            "print idx9 = indexof('abcdefgabcdefg', 'cde', 1, 13, 3)",
+            "SELECT kql_indexof(kql_tostring('abcdefgabcdefg'), kql_tostring('cde'), 1, 13, 3) AS idx9"
+        },
+        {
+            "print idx10 = indexof(1d, '.')",
+            "SELECT kql_indexof(kql_tostring(toIntervalNanosecond(86400000000000)), kql_tostring('.'), 0, -1, 1) AS idx10"
         },
         {
             "print strrep(3s,2,' ')",
