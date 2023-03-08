@@ -56,7 +56,7 @@ bool Base64DecodeToArray::convertImpl(String & out, IParser::Pos & pos)
     ++pos;
     const String str = getConvertedArgument(fn_name, pos);
 
-    out = std::format("arrayMap(x -> (reinterpretAsUInt8(x)), splitByRegexp ('',base64Decode({})))", str);
+    out = std::format("IF((length({0}) % 4) != 0, [NULL], IF(length(tryBase64Decode({0})) = 0, [NULL], IF(countMatches(substring({0}, 1, length({0}) - 2), '=') > 0, [NULL], arrayMap(x -> reinterpretAsUInt8(x), splitByRegexp('', base64Decode(assumeNotNull(IF(length(tryBase64Decode({0})) = 0, '', {0}))))))))", str);
 
     return true;
 }
