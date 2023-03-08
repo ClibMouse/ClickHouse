@@ -243,6 +243,7 @@ String genBetweenOpExpr(DB::IParser::Pos & token_pos, const DB::String & ch_op)
     ++token_pos;
 
     bool dot_validated = false;
+    int num_params = 0;
     String expr;
     String prev;
     String expr_keep;
@@ -281,13 +282,17 @@ String genBetweenOpExpr(DB::IParser::Pos & token_pos, const DB::String & ch_op)
             prev = expr;
             new_expr += expr;
             ++token_pos;
+            ++num_params;
         }
         if (token_pos->type == DB::TokenType::ClosingRoundBracket)
             break;
     }
 
     if (!dot_validated)
-        throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error, no dots or number of consecutive dots mismatch!");
+        throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error, no dots or number of consecutive dots mismatch.");
+
+    if (num_params < 2)
+        throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error, number of parameters do not match.");
 
     return new_expr;
 }
