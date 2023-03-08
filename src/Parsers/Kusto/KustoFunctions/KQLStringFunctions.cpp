@@ -35,7 +35,15 @@ bool Base64EncodeFromGuid::convertImpl(String & out, IParser::Pos & pos)
 
 bool Base64DecodeToString::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "base64Decode");
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+     ++pos;
+     const String str = getConvertedArgument(fn_name, pos);
+
+     out = std::format("IF ((length({0}) % 4) != 0, NULL, IF (countMatches(substring({0}, 1, length({0}) - 2), '=') > 0, NULL, tryBase64Decode({0})))", str);
+
+     return true;
 }
 
 bool Base64DecodeToArray::convertImpl(String & out, IParser::Pos & pos)
