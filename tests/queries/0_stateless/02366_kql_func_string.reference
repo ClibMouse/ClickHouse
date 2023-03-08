@@ -301,6 +301,7 @@ S3VzdG8x
 -- base64_decode_tostring
 
 Kusto1
+\N
 -- parse_url()
 {"Scheme":"scheme","Host":"","Port":"0","Path":"/this/is/a/path","Username":"username","Password":"password","Query Parameters":{"k1":"v1","k2":"v2"},"Fragment":"fragment"}
 -- parse_url()
