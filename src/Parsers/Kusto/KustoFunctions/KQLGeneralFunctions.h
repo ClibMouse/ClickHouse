@@ -45,4 +45,11 @@ protected:
     bool convertImpl(String &out,IParser::Pos &pos) override;
 };
 
+class GetType : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "gettype()"; }
+    bool convertImpl(String &out,IParser::Pos &pos) override;
+};
+
 }
