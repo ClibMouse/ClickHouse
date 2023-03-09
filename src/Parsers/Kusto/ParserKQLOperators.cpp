@@ -273,6 +273,9 @@ String genBetweenOpExpr(DB::IParser::Pos & token_pos, const DB::String & ch_op)
         else
         {
             expr = DB::IParserKQLFunction::getExpression(token_pos);
+            if(expr_keep.size() > 0 && expr.size() < 12)
+                throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error, second parameter is not of type time or datetime while the first one is a datetime.");
+
             if ((expr.size() > 12) && (expr.substr(0, 12) == "kql_datetime"))
                 expr_keep = expr;
 
