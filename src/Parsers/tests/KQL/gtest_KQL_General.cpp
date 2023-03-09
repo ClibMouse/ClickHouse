@@ -77,5 +77,9 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_General, ParserTest,
         {
             "T |",
             "throws"
+        },
+        {
+            "print t = gettype(1)",
+            "SELECT toTypeName(1) AS t"
         }
 })));
