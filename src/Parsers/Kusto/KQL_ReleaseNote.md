@@ -24,6 +24,8 @@
    `print arr = to_utf8('⒦⒰⒮⒯⒪')`
 - [new_guid()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/newguidfunction.md)
    `print g = new_guid()`
+- [gettype()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/gettypefunction)
+   `print t = gettype(1)`
 - has_ipv6()
   `Note: Not part of Microsoft's Kusto. Functions similar to has_ipv4()`
   `print has_ipv6('09:46:00 2600:1404:6400:1695::1e89 GET /favicon.ico 404', '2600:1404:6400:1695::1e89')`
