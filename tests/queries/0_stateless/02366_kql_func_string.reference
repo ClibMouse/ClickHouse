@@ -289,8 +289,9 @@ qqqqq fffffff \'asd bcd\' "moo moo "
 -- base64_encode_fromguid()
 8jMxriJurkmwahbmqbIS6w==
 -- base64_decode_toarray()
-[]
+[NULL]
 [75,117,115,116,111]
+[NULL]
 -- base64_decode_toguid()
 10e99626-bc2b-4c75-bb3e-fe606de25700
 1
@@ -300,6 +301,7 @@ S3VzdG8x
 -- base64_decode_tostring
 
 Kusto1
+\N
 -- parse_url()
 {"Scheme":"scheme","Host":"","Port":"0","Path":"/this/is/a/path","Username":"username","Password":"password","Query Parameters":{"k1":"v1","k2":"v2"},"Fragment":"fragment"}
 -- parse_url()
@@ -392,6 +394,7 @@ Latoya	Shen	Professional	Graduate Degree	25
 -1
 9
 2
+1
 -- has --
 1
 0
@@ -430,3 +433,9 @@ asdf
 asdf.ghkj
 asdf.qwer
 qwer
+-- string_size --
+5
+15
+-- to_utf8 --
+[9382,9392,9390,9391,9386]
+[1511,1493,1505,1496,1493,32,45,32,75,117,115,116,111]

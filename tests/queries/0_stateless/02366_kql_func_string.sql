@@ -262,6 +262,7 @@ print base64_encode_fromguid("abcd1231"); -- { serverError FUNCTION_THROW_IF_VAL
 print '-- base64_decode_toarray()';
 print base64_decode_toarray('');
 print base64_decode_toarray('S3VzdG8=');
+print base64_decode_toarray('S3VzdG8===');
 print '-- base64_decode_toguid()';
 print base64_decode_toguid("JpbpECu8dUy7Pv5gbeJXAA==");
 print base64_decode_toguid(base64_encode_fromguid(guid('ae3133f2-6e22-49ae-b06a-16e6a9b212eb'))) == guid('ae3133f2-6e22-49ae-b06a-16e6a9b212eb');
@@ -271,6 +272,7 @@ print base64_encode_tostring('Kusto1');
 print '-- base64_decode_tostring';
 print base64_decode_tostring('');
 print base64_decode_tostring('S3VzdG8x');
+print base64_decode_tostring('S3VzdG8====');
 print '-- parse_url()';
 print parse_url('scheme://username:password@host:1234/this/is/a/path?k1=v1&k2=v2#fragment');
 print '-- parse_url()';
@@ -366,10 +368,11 @@ print idx6 = indexof(1234567,5,1,4);
 print idx7 = indexof('abcdefg','cde',2,-1);
 print idx8 = indexof('abcdefgabcdefg', 'cde', 1, 10, 2);
 print idx9 = indexof('abcdefgabcdefg', 'cde', 1, -1, 3);
-print indexof('abcdefgabcdefg','cde', -1);
-print indexof('abcdefgabcdefg','cde', -4);
-print indexof('abcdefgabcdefg','cde', -5);
-print indexof('abcdefgabcdefg','cde', -105);
+print idx10 = indexof('abcdefgabcdefg','cde', -1);
+print idx11 = indexof('abcdefgabcdefg','cde', -4);
+print idx12 = indexof('abcdefgabcdefg','cde', -5);
+print idx13 = indexof('abcdefgabcdefg','cde', -105);
+print idx14 = indexof(1d, '.');
 
 print '-- has --';
 print 'svchost.exe1' has '';
@@ -400,3 +403,11 @@ StringTest | where Text has_all ('asdf', 'qwer');
 
 print '-- has_any --';
 StringTest | where Text has_any ('asdf', 'qwer');
+
+print '-- string_size --';
+print t = string_size('Kusto');
+print t = string_size('⒦⒰⒮⒯⒪');
+
+print '-- to_utf8 --';
+print arr = to_utf8("⒦⒰⒮⒯⒪");
+print arr = to_utf8("קוסטו - Kusto")
