@@ -91,7 +91,12 @@ bool ParserKQLBase::parseSQLQueryByString(ParserPtr && parser, String & query, A
 };
 
 bool ParserKQLBase::setSubQuerySource(
-    ASTPtr & select_query, ASTPtr & source, const bool dest_is_subquery, const bool src_is_subquery, const String alias, const int32_t table_index)
+    ASTPtr & select_query,
+    ASTPtr & source,
+    const bool dest_is_subquery,
+    const bool src_is_subquery,
+    const String alias,
+    const int32_t table_index)
 {
     ASTPtr table_expr;
     auto apply_alias = [&]()
@@ -302,7 +307,8 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
             {
                 String new_column_str;
                 if (start_pos->type != TokenType::BareWord)
-                    throw Exception(ErrorCodes::SYNTAX_ERROR, "{} is not a valid alias", std::string_view(start_pos->begin, start_pos->end));
+                    throw Exception(
+                        ErrorCodes::SYNTAX_ERROR, "{} is not a valid alias", std::string_view(start_pos->begin, start_pos->end));
 
                 if (function_name == "array_sort_asc" || function_name == "array_sort_desc")
                     new_column_str = std::format("{0}[1] AS {1}", column_str, String(start_pos->begin, start_pos->end));
@@ -420,9 +426,7 @@ std::unique_ptr<ParserKQLBase> ParserKQLQuery::getOperator(const std::string_vie
 
 bool ParserKQLQuery::getOperations(Pos & pos, Expected & expected, OperationsPos & operation_pos)
 {
-    String table_name(pos->begin, pos->end);
-
-    if (table_name == "print" || table_name == "range")
+    if (String table_name(pos->begin, pos->end); table_name == "print" || table_name == "range")
         operation_pos.emplace_back(table_name, pos);
     else
         operation_pos.emplace_back("table", pos);
@@ -454,22 +458,20 @@ bool ParserKQLQuery::getOperations(Pos & pos, Expected & expected, OperationsPos
                     if (!isValidKQLPos(pos))
                         return false;
 
-                    ParserKeyword s_by(Keyword::BY);
-                    if (s_by.ignore(pos, expected))
+                    if (ParserKeyword(Keyword::BY).ignore(pos, expected))
                     {
                         kql_operator = "order by";
                         --pos;
                     }
                 }
-                else
+                else if (kql_operator != "getschema" && kql_operator != "count")
                 {
                     auto op_pos_begin = pos;
                     ++pos;
                     if (!isValidKQLPos(pos))
                         return false;
 
-                    ParserToken s_dash(TokenType::Minus);
-                    if (s_dash.ignore(pos, expected))
+                    if (ParserToken(TokenType::Minus).ignore(pos, expected))
                     {
                         if (!isValidKQLPos(pos))
                             return false;
@@ -478,7 +480,7 @@ bool ParserKQLQuery::getOperations(Pos & pos, Expected & expected, OperationsPos
                     else
                         --pos;
                 }
-                if (kql_parser.find(kql_operator) == kql_parser.end())
+                if (!kql_parser.contains(kql_operator))
                     return false;
                 return true;
             };
@@ -486,20 +488,19 @@ bool ParserKQLQuery::getOperations(Pos & pos, Expected & expected, OperationsPos
             if (!validate_kql_operator())
                 return false;
             ++pos;
-            if (!isValidKQLPos(pos))
+            if (!isValidKQLPos(pos) && kql_operator != "getschema" && kql_operator != "count")
                 return false;
 
-            operation_pos.push_back(std::make_pair(kql_operator, pos));
+            if ((kql_operator == "print" || kql_operator == "range") && !operation_pos.empty())
+                throw Exception(ErrorCodes::SYNTAX_ERROR, "{} must be the first operator in the query", kql_operator);
         }
         else
             ++pos;
-    }
     return true;
 }
 
 bool ParserKQLQuery::pre_process(String & source, Pos & pos)
 {
-    bool need_preprocess = false;
     auto begin = pos;
     while (!pos->isEnd() && pos->type != TokenType::Semicolon)
     {
