@@ -146,28 +146,24 @@ std::string constructHasOperatorTranslation(const KQLOperatorValue kql_op, const
         && kql_op != KQLOperatorValue::not_has_cs && kql_op != KQLOperatorValue::has_all && kql_op != KQLOperatorValue::has_any)
         throw DB::Exception(DB::ErrorCodes::LOGICAL_ERROR, "Unexpected operator: {}", magic_enum::enum_name(kql_op));
 
-    const auto tokens = std::invoke(
-        [&needle]
-        {
-            std::vector<std::string_view> result;
-            size_t pos = 0;
-            size_t start = 0;
-            size_t length = 0;
-            DB::SplitTokenExtractor token_extractor;
-            while (pos < needle.length() && token_extractor.nextInString(needle.c_str(), needle.length(), &pos, &start, &length))
-                result.emplace_back(needle.c_str() + start, length);
+    const auto tokens = std::invoke([&needle] {
+        std::vector<std::string_view> result;
+        size_t pos = 0;
+        size_t start = 0;
+        size_t length = 0;
+        DB::SplitTokenExtractor token_extractor;
+        while (pos < needle.length() && token_extractor.nextInString(needle.c_str(), needle.length(), &pos, &start, &length))
+            result.emplace_back(needle.c_str() + start, length);
 
-            return result;
-        });
+        return result;
+    });
 
     const auto is_case_sensitive = kql_op == KQLOperatorValue::has_cs || kql_op == KQLOperatorValue::not_has_cs;
     const auto has_token_suffix = is_case_sensitive ? "" : "CaseInsensitive";
-    const auto has_all_tokens = std::accumulate(
-        tokens.cbegin(),
-        tokens.cend(),
-        std::string(),
-        [&has_token_suffix, &haystack](auto acc, const auto & token)
-        { return std::move(acc) + std::format("hasToken{}({}, '{}') and ", has_token_suffix, haystack, token); });
+    const auto has_all_tokens
+        = std::accumulate(tokens.cbegin(), tokens.cend(), std::string(), [&has_token_suffix, &haystack](auto acc, const auto & token) {
+              return std::move(acc) + std::format("hasToken{}({}, '{}') and ", has_token_suffix, haystack, token);
+          });
 
     const auto is_negation = kql_op == KQLOperatorValue::not_has || kql_op == KQLOperatorValue::not_has_cs;
     return std::format(
@@ -221,10 +217,25 @@ String genEqOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
         return tmp_arg;
 
     DB::String new_expr;
-    new_expr += "lower(" + tokens.back() + ")";
-    new_expr += ch_op;
+    new_expr += "lower(" + tokens.back() + ")" + " ";
+    new_expr += ch_op + " ";
     ++token_pos;
-    new_expr += " lower(" + DB::String(token_pos->begin, token_pos->end) + ")" + " ";
+
+    while (!token_pos->isEnd() && token_pos->type != DB::TokenType::PipeMark && token_pos->type != DB::TokenType::Semicolon)
+    {
+        if (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier)
+            new_expr = new_expr + "lower('" + DB::IParserKQLFunction::escapeSingleQuotes(String(token_pos->begin + 1, token_pos->end - 1))
+                + "')";
+        else
+            new_expr = new_expr + "lower(" + DB::IParserKQLFunction::getExpression(token_pos) + ")";
+        ++token_pos;
+        if (token_pos->type == DB::TokenType::ClosingRoundBracket)
+        {
+            new_expr += ")";
+            ++token_pos;
+            break;
+        }
+    }
     tokens.pop_back();
 
     return new_expr;
@@ -271,16 +282,26 @@ String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
         if (token_pos->type != DB::TokenType::Comma && token_pos->type != DB::TokenType::ClosingRoundBracket
             && token_pos->type != DB::TokenType::OpeningRoundBracket && token_pos->type != DB::TokenType::OpeningSquareBracket
             && token_pos->type != DB::TokenType::ClosingSquareBracket && tmp_arg != "~" && tmp_arg != "dynamic")
-            new_expr = new_expr + "lower(" + tmp_arg + ")";
+        {
+            if (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier)
+                new_expr = new_expr + "lower('"
+                    + DB::IParserKQLFunction::escapeSingleQuotes(String(token_pos->begin + 1, token_pos->end - 1)) + "')";
+            else
+                new_expr = new_expr + "lower(" + tmp_arg + ")";
+        }
         ++token_pos;
         if (token_pos->type == DB::TokenType::ClosingRoundBracket)
+        {
+            new_expr += ")";
+            ++token_pos;
             break;
-        else if (token_pos->type == DB::TokenType::Comma)
+        }
+
+        if (token_pos->type == DB::TokenType::Comma)
             new_expr += ", ";
     }
     if (has_dynamic)
         ++token_pos;
-    new_expr += ")";
     return new_expr;
 }
 
