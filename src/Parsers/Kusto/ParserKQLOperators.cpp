@@ -221,23 +221,12 @@ String genEqOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
     new_expr += ch_op + " ";
     ++token_pos;
 
-    while (!token_pos->isEnd() && token_pos->type != DB::TokenType::PipeMark && token_pos->type != DB::TokenType::Semicolon)
-    {
-        if (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier)
-            new_expr = new_expr + "lower('" + DB::IParserKQLFunction::escapeSingleQuotes(String(token_pos->begin + 1, token_pos->end - 1))
-                + "')";
-        else
-            new_expr = new_expr + "lower(" + DB::IParserKQLFunction::getExpression(token_pos) + ")";
-        ++token_pos;
-        if (token_pos->type == DB::TokenType::ClosingRoundBracket)
-        {
-            new_expr += ")";
-            ++token_pos;
-            break;
-        }
-    }
-    tokens.pop_back();
+    if (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier)
+        new_expr += "lower('" + DB::IParserKQLFunction::escapeSingleQuotes(String(token_pos->begin + 1, token_pos->end - 1)) + "')";
+    else
+        new_expr += "lower(" + DB::IParserKQLFunction::getExpression(token_pos) + ")";
 
+    tokens.pop_back();
     return new_expr;
 }
 
@@ -272,7 +261,7 @@ String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
     --token_pos;
     --token_pos;
 
-    new_expr += ch_op + "(";
+    new_expr += ch_op;
     bool has_dynamic = false;
     while (!token_pos->isEnd() && token_pos->type != DB::TokenType::PipeMark && token_pos->type != DB::TokenType::Semicolon)
     {
@@ -284,21 +273,16 @@ String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
             && token_pos->type != DB::TokenType::ClosingSquareBracket && tmp_arg != "~" && tmp_arg != "dynamic")
         {
             if (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier)
-                new_expr = new_expr + "lower('"
-                    + DB::IParserKQLFunction::escapeSingleQuotes(String(token_pos->begin + 1, token_pos->end - 1)) + "')";
+                new_expr += "lower('" + DB::IParserKQLFunction::escapeSingleQuotes(String(token_pos->begin + 1, token_pos->end - 1)) + "')";
             else
-                new_expr = new_expr + "lower(" + tmp_arg + ")";
+                new_expr += "lower(" + tmp_arg + ")";
         }
-        ++token_pos;
-        if (token_pos->type == DB::TokenType::ClosingRoundBracket)
-        {
-            new_expr += ")";
-            ++token_pos;
-            break;
-        }
+        else if (tmp_arg != "~")
+            new_expr += tmp_arg;
 
-        if (token_pos->type == DB::TokenType::Comma)
-            new_expr += ", ";
+        if (token_pos->type == DB::TokenType::ClosingRoundBracket)
+            break;
+        ++token_pos;
     }
     if (has_dynamic)
         ++token_pos;
