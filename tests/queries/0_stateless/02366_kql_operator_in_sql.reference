@@ -87,6 +87,10 @@ Stephanie	Cox	Management abcd defg	Bachelors	33
 Peter	Nara	Skilled Manual	Graduate Degree	26
 -- #25 --
 Peter	Nara	Skilled Manual	Graduate Degree	26
+-- #26 --
+2.00:00:00
+-- #27 --
+4
 -- operator has, !has, has_cs, !has_cs, has_all, has_any --
 50000
 0
