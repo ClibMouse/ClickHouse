@@ -459,6 +459,10 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"has_any_ipv4", KQLFunction::has_any_ipv4},
     {"has_ipv4_prefix", KQLFunction::has_ipv4_prefix},
     {"has_any_ipv4_prefix", KQLFunction::has_any_ipv4_prefix},
+    {"has_ipv6", KQLFunction::has_ipv6},
+    {"has_any_ipv6", KQLFunction::has_any_ipv6},
+    {"has_ipv6_prefix", KQLFunction::has_ipv6_prefix},
+    {"has_any_ipv6_prefix", KQLFunction::has_any_ipv6_prefix},
 
     {"binary_and", KQLFunction::binary_and},
     {"binary_not", KQLFunction::binary_not},
