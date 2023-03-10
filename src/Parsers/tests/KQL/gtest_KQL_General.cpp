@@ -65,5 +65,17 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_General, ParserTest,
         {
             "print lookup('dictionary_table', 'value', '100', 'default')",
             "SELECT dictGetOrDefault('dictionary_table', 'value', '100', 'default') AS print_0"
+        },
+        {
+            "T | print 1",
+            "throws AS print_0"
+        },
+        {
+            "T | range from 1 to 5 step 1",
+            "throws"
+        },
+        {
+            "T |",
+            "throws"
         }
 })));
