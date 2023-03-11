@@ -262,12 +262,9 @@ String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
     --token_pos;
 
     new_expr += ch_op;
-    bool has_dynamic = false;
     while (!token_pos->isEnd() && token_pos->type != DB::TokenType::PipeMark && token_pos->type != DB::TokenType::Semicolon)
     {
         auto tmp_arg = DB::String(token_pos->begin, token_pos->end);
-        if (tmp_arg == "dynamic")
-            has_dynamic = true;
         if (token_pos->type != DB::TokenType::Comma && token_pos->type != DB::TokenType::ClosingRoundBracket
             && token_pos->type != DB::TokenType::OpeningRoundBracket && token_pos->type != DB::TokenType::OpeningSquareBracket
             && token_pos->type != DB::TokenType::ClosingSquareBracket && tmp_arg != "~" && tmp_arg != "dynamic")
@@ -277,15 +274,13 @@ String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
             else
                 new_expr += "lower(" + tmp_arg + ")";
         }
-        else if (tmp_arg != "~")
+        else if (tmp_arg != "~" && tmp_arg != "dynamic" && tmp_arg != "[" && tmp_arg != "]")
             new_expr += tmp_arg;
 
         if (token_pos->type == DB::TokenType::ClosingRoundBracket)
             break;
         ++token_pos;
     }
-    if (has_dynamic)
-        ++token_pos;
     return new_expr;
 }
 
