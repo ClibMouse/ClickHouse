@@ -84,56 +84,23 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_IP, ParserRegexTest,
         }
 })));
 
-INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_IP, ParserTest,
+INSTANTIATE_TEST_SUITE_P(
+    ParserKQLQuery_IP,
+    ParserTest,
     ::testing::Combine(
         ::testing::Values(std::make_shared<DB::ParserKQLQuery>()),
         ::testing::ValuesIn(std::initializer_list<ParserTestCase>{
-    {
-        "print has_ipv4(A, B)",
-	    "SELECT kql_has_ipv4(A, B) AS print_0"
-    },
-    {
-        "print has_ipv4_prefix(A, B)",
-	        "SELECT kql_has_ipv4_prefix(A, B) AS print_0"
-    },
-    {
-        "print has_any_ipv4(A, B, C)",
-	        "SELECT kql_has_any_ipv4(A, B, C) AS print_0"
-    },
-    {
-        "print has_any_ipv4_prefix(A, B, C)",
-	        "SELECT kql_has_any_ipv4_prefix(A, B, C) AS print_0"
-    },
-    {
-        "print has_any_ipv4(A, dynamic(['1.2.3.4']))",
-	        "SELECT kql_has_any_ipv4(A, ['1.2.3.4']) AS print_0"
-    },
-    {
-        "print has_any_ipv4_prefix(A, dynamic(['1.2.3.4']))",
-	        "SELECT kql_has_any_ipv4_prefix(A, ['1.2.3.4']) AS print_0"
-    },
-    {
-        "print has_ipv6(A, B)",
-	        "SELECT kql_has_ipv6(A, B) AS print_0"
-    },
-    {
-        "print has_ipv6_prefix(A, B)",
-	        "SELECT kql_has_ipv6_prefix(A, B) AS print_0"
-    },
-    {
-        "print has_any_ipv6(A, B, C)",
-	        "SELECT kql_has_any_ipv6(A, B, C) AS print_0"
-    },
-    {
-        "print has_any_ipv6_prefix(A, B, C)",
-	        "SELECT kql_has_any_ipv6_prefix(A, B, C) AS print_0"
-    },
-    {
-        "print has_any_ipv6(A, dynamic(['2600:1404:6400:168a:0:0:0:1e89']))",
-	        "SELECT kql_has_any_ipv6(A, ['2600:1404:6400:168a:0:0:0:1e89]) AS print_0"
-    },
-    {
-        "print has_any_ipv6_prefix(A, dynamic(['2600:1404:6400:168a:0:0:0:1e89']))",
-	        "SELECT kql_has_any_ipv6_prefix(A, ['2600:1404:6400:168a:0:0:0:1e89']) AS print_0"
-    }
-})));
+            {"print has_ipv4(A, B)", "SELECT kql_has_ipv4(A, B) AS print_0"},
+            {"print has_ipv4_prefix(A, B)", "SELECT kql_has_ipv4_prefix(A, B) AS print_0"},
+            {"print has_any_ipv4(A, B, C)", "SELECT kql_has_any_ipv4(A, B, C) AS print_0"},
+            {"print has_any_ipv4_prefix(A, B, C)", "SELECT kql_has_any_ipv4_prefix(A, B, C) AS print_0"},
+            {"print has_any_ipv4(A, dynamic(['1.2.3.4']))", "SELECT kql_has_any_ipv4(A, ['1.2.3.4']) AS print_0"},
+            {"print has_any_ipv4_prefix(A, dynamic(['1.2.3.4']))", "SELECT kql_has_any_ipv4_prefix(A, ['1.2.3.4']) AS print_0"},
+            {"print has_ipv6(A, B)", "SELECT kql_has_ipv6(A, B) AS print_0"},
+            {"print has_ipv6_prefix(A, B)", "SELECT kql_has_ipv6_prefix(A, B) AS print_0"},
+            {"print has_any_ipv6(A, B, C)", "SELECT kql_has_any_ipv6(A, B, C) AS print_0"},
+            {"print has_any_ipv6_prefix(A, B, C)", "SELECT kql_has_any_ipv6_prefix(A, B, C) AS print_0"},
+            {"print has_any_ipv6(A, dynamic(['2600:1404:6400:168a:0:0:0:1e89']))",
+             "SELECT kql_has_any_ipv6(A, ['2600:1404:6400:168a:0:0:0:1e89]) AS print_0"},
+            {"print has_any_ipv6_prefix(A, dynamic(['2600:1404:6400:168a:0:0:0:1e89']))",
+             "SELECT kql_has_any_ipv6_prefix(A, ['2600:1404:6400:168a:0:0:0:1e89']) AS print_0"}})));
