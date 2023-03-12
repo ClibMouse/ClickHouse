@@ -33,17 +33,18 @@ static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePt
     std::string ipv6_hex = "";
     std::vector<uint32_t> vec_v6;
     std::vector<uint32_t> vec_v4;
+    const auto last_char = str.back();
 
-    if (str.back() == ':')
+    if (last_char == ':')
     {
         const auto ipv6 = boost::spirit::x3::hex % ':';
-        auto r = boost::spirit::x3::parse(str.begin(), str.end(), ipv6, vec_v6);
+        const auto r = boost::spirit::x3::parse(str.begin(), str.end(), ipv6, vec_v6);
         if (!r || vec_v6.empty() || vec_v6.size() > 7)
         {
             return "";
         }
     }
-    else if (str.back() == '.')
+    else if (last_char == '.')
     {
         const auto ipv6_prefix = boost::spirit::x3::hex >> ':' >> boost::spirit::x3::hex >> ':' >> boost::spirit::x3::hex >> ':'
             >> boost::spirit::x3::hex >> ':' >> boost::spirit::x3::hex >> ':' >> boost::spirit::x3::hex >> ':';
@@ -70,7 +71,7 @@ static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePt
         return ipv6ToHex(str, result_type, context);
     }
 
-    if (std::ranges::any_of(vec_v6, [](auto & x) { return x > 65535; }) || std::ranges::any_of(vec_v4, [](auto & x) { return x > 255; }))
+    if (std::ranges::any_of(vec_v6, [](const auto & x) { return x > 65535; }) || std::ranges::any_of(vec_v4, [](const auto & x) { return x > 255; }))
     {
         return "";
     }
@@ -78,7 +79,7 @@ static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePt
     std::all_of(
         vec_v6.begin(),
         vec_v6.end(),
-        [&ipv6_hex](auto & n)
+        [&ipv6_hex](const auto & n)
         {
             ipv6_hex += std::format("{:04X}", n);
             return 1;
@@ -86,7 +87,7 @@ static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePt
     std::all_of(
         vec_v4.begin(),
         vec_v4.end(),
-        [&ipv6_hex](auto & n)
+        [&ipv6_hex](const auto & n)
         {
             ipv6_hex += std::format("{:02X}", n);
             return 1;
