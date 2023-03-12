@@ -101,6 +101,6 @@ INSTANTIATE_TEST_SUITE_P(
             {"print has_any_ipv6(A, B, C)", "SELECT kql_has_any_ipv6(A, B, C) AS print_0"},
             {"print has_any_ipv6_prefix(A, B, C)", "SELECT kql_has_any_ipv6_prefix(A, B, C) AS print_0"},
             {"print has_any_ipv6(A, dynamic(['2600:1404:6400:168a:0:0:0:1e89']))",
-             "SELECT kql_has_any_ipv6(A, ['2600:1404:6400:168a:0:0:0:1e89]) AS print_0"},
+             "SELECT kql_has_any_ipv6(A, ['2600:1404:6400:168a:0:0:0:1e89']) AS print_0"},
             {"print has_any_ipv6_prefix(A, dynamic(['2600:1404:6400:168a:0:0:0:1e89']))",
              "SELECT kql_has_any_ipv6_prefix(A, ['2600:1404:6400:168a:0:0:0:1e89']) AS print_0"}})));
