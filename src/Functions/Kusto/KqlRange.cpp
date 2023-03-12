@@ -98,6 +98,10 @@ private:
                     ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT,
                     "Illegal type of third argument of function {}, expected Interval or Number",
                     getName());
+
+            if ((start_type.isInterval() || start_type.isDateTime64()) && !step_type.isInterval())
+                throw Exception(
+                    ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Type not match of first argument and step of function {}", getName());
         }
 
         if (start_type.isDateTime64() || start_type.isInterval())
@@ -259,9 +263,8 @@ private:
                 || (res = executeGeneric<Int8>(column_ptrs[0], column_ptrs[1], column_ptrs[2], input_rows_count))
                 || (res = executeGeneric<Int16>(column_ptrs[0], column_ptrs[1], column_ptrs[2], input_rows_count))
                 || (res = executeGeneric<Int32>(column_ptrs[0], column_ptrs[1], column_ptrs[2], input_rows_count))
-                || (res = executeGeneric<Float32>(column_ptrs[0], column_ptrs[1], column_ptrs[2], input_rows_count))
-                || (res = executeGeneric<Float64>(column_ptrs[0], column_ptrs[1], column_ptrs[2], input_rows_count))
-                || (res = executeGeneric<Int64>(column_ptrs[0], column_ptrs[1], column_ptrs[2], input_rows_count)))
+                || (res = executeGeneric<Int64>(column_ptrs[0], column_ptrs[1], column_ptrs[2], input_rows_count))
+                || (res = executeGeneric<Float64>(column_ptrs[0], column_ptrs[1], column_ptrs[2], input_rows_count)))
             {
             }
         }
@@ -276,9 +279,12 @@ private:
     template <typename T>
     ColumnPtr executeConstStartStep(const IColumn * end_arg, const T start, const T step, const size_t input_rows_count) const
     {
+        const double epsilon = 0.00000001;
         auto end_column = checkAndGetColumn<ColumnVector<T>>(end_arg);
         if (!end_column)
             return nullptr;
+        using actual_type = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
+        bool is_float64 = std::is_same<Float64, actual_type>::value;
 
         const auto & end_data = end_column->getData();
 
@@ -292,20 +298,26 @@ private:
 
         for (size_t row_idx = 0; row_idx < input_rows_count; ++row_idx)
         {
-            if (start < end_data[row_idx] && step == 0)
-                throw Exception(
-                    ErrorCodes::ARGUMENT_OUT_OF_BOUND, "A call to function {} overflows, the 3rd argument step can't be zero", getName());
-
-            if (step > 0 && start <= end_data[row_idx])
+            size_t count_in_range = 0;
+            if ((start < end_data[row_idx] && step > 0) || (start > end_data[row_idx] && step < 0))
             {
-                pre_values += start >= end_data[row_idx] ? 0 : static_cast<size_t>((end_data[row_idx] - start) / (step) + 1);
+                auto st = step > 0 ? start : end_data[row_idx];
+                auto ed = step > 0 ? end_data[row_idx] : start;
+                auto new_step = step > 0 ? step : -1 * step;
+                if (is_float64 && step != 0)
+                {
+                    while (st < ed || st - ed < epsilon)
+                    {
+                        ++count_in_range;
+                        st += new_step;
+                    }
+                }
+                else
+                {
+                    count_in_range = static_cast<size_t>((ed - st) / new_step) + 1;
+                }
             }
-
-            if (step < 0 && start >= end_data[row_idx])
-            {
-                pre_values += start <= end_data[row_idx] ? 0 : static_cast<size_t>((start - end_data[row_idx]) / (-step) + 1);
-            }
-
+            pre_values += count_in_range;
             if (pre_values < total_values)
                 throw Exception(
                     ErrorCodes::ARGUMENT_OUT_OF_BOUND,
@@ -326,11 +338,10 @@ private:
         IColumn::Offset offset{};
         for (size_t row_idx = 0; row_idx < input_rows_count; ++row_idx)
         {
+            auto st = start;
+            auto ed = end_data[row_idx];
             if (step > 0)
-            {
-                T st = start;
-                T ed = end_data[row_idx];
-                while (st <= ed)
+                while (st < ed || st - ed < epsilon)
                 {
                     out_data[offset++] = st;
                     if (offset >= total_values)
@@ -340,15 +351,10 @@ private:
                             ErrorCodes::ARGUMENT_OUT_OF_BOUND,
                             "A call to function {} overflows, investigate the values of arguments you are passing",
                             getName());
-
                     st += step;
                 }
-            }
-            else
-            {
-                T st = start;
-                T ed = end_data[row_idx];
-                while (st >= ed)
+            else if (step < 0)
+                while (st > ed || ed - st < epsilon)
                 {
                     out_data[offset++] = st;
                     if (offset >= total_values)
@@ -358,10 +364,8 @@ private:
                             ErrorCodes::ARGUMENT_OUT_OF_BOUND,
                             "A call to function {} overflows, investigate the values of arguments you are passing",
                             getName());
-
                     st += step;
                 }
-            }
             out_offsets[row_idx] = offset;
         }
 
@@ -371,10 +375,13 @@ private:
     template <typename T>
     ColumnPtr executeConstStep(const IColumn * start_arg, const IColumn * end_arg, const T step, const size_t input_rows_count) const
     {
+        const double epsilon = 0.00000001;
         auto start_column = checkAndGetColumn<ColumnVector<T>>(start_arg);
         auto end_column = checkAndGetColumn<ColumnVector<T>>(end_arg);
         if (!end_column || !start_column)
             return nullptr;
+        using actual_type = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
+        bool is_float64 = std::is_same<Float64, actual_type>::value;
 
         const auto & start_data = start_column->getData();
         const auto & end_data = end_column->getData();
@@ -389,24 +396,26 @@ private:
 
         for (size_t row_idx = 0; row_idx < input_rows_count; ++row_idx)
         {
-            if (start_data[row_idx] < end_data[row_idx] && step == 0)
-                throw Exception(
-                    ErrorCodes::ARGUMENT_OUT_OF_BOUND, "A call to function {} overflows, the 3rd argument step can't be zero", getName());
-
-            if (step > 0 && start_data[row_idx] <= end_data[row_idx])
+            size_t count_in_range = 0;
+            if ((start_data[row_idx] < end_data[row_idx] && step > 0) || (start_data[row_idx] > end_data[row_idx] && step < 0))
             {
-                pre_values += start_data[row_idx] >= end_data[row_idx]
-                    ? 0
-                    : static_cast<size_t>((end_data[row_idx] - start_data[row_idx]) / (step) + 1);
+                auto st = step > 0 ? start_data[row_idx] : end_data[row_idx];
+                auto ed = step > 0 ? end_data[row_idx] : start_data[row_idx];
+                auto new_step = step > 0 ? step : -1 * step;
+                if (is_float64 && step != 0)
+                {
+                    while (st < ed || st - ed < epsilon)
+                    {
+                        ++count_in_range;
+                        st += new_step;
+                    }
+                }
+                else
+                {
+                    count_in_range = static_cast<size_t>((ed - st) / new_step) + 1;
+                }
             }
-
-            if (step < 0 && start_data[row_idx] >= end_data[row_idx])
-            {
-                pre_values += start_data[row_idx] <= end_data[row_idx]
-                    ? 0
-                    : static_cast<size_t>((start_data[row_idx] - end_data[row_idx]) / (-step) + 1);
-            }
-
+            pre_values += count_in_range;
             if (pre_values < total_values)
                 throw Exception(
                     ErrorCodes::ARGUMENT_OUT_OF_BOUND,
@@ -427,11 +436,10 @@ private:
         IColumn::Offset offset{};
         for (size_t row_idx = 0; row_idx < input_rows_count; ++row_idx)
         {
+            auto st = start_data[row_idx];
+            auto ed = end_data[row_idx];
             if (step > 0)
-            {
-                T st = start_data[row_idx];
-                T ed = end_data[row_idx];
-                while (st <= ed)
+                while (st < ed || st - ed < epsilon)
                 {
                     out_data[offset++] = st;
                     if (offset >= total_values)
@@ -443,12 +451,8 @@ private:
                             getName());
                     st += step;
                 }
-            }
-            else
-            {
-                T st = start_data[row_idx];
-                T ed = end_data[row_idx];
-                while (st >= ed)
+            else if (step < 0)
+                while (st > ed || ed - st < epsilon)
                 {
                     out_data[offset++] = st;
                     if (offset >= total_values)
@@ -460,7 +464,6 @@ private:
                             getName());
                     st += step;
                 }
-            }
             out_offsets[row_idx] = offset;
         }
 
@@ -470,10 +473,13 @@ private:
     template <typename T>
     ColumnPtr executeConstStart(const IColumn * end_arg, const IColumn * step_arg, const T start, const size_t input_rows_count) const
     {
+        const double epsilon = 0.00000001;
         auto end_column = checkAndGetColumn<ColumnVector<T>>(end_arg);
         auto step_column = checkAndGetColumn<ColumnVector<T>>(step_arg);
         if (!end_column || !step_column)
             return nullptr;
+        using actual_type = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
+        bool is_float64 = std::is_same<Float64, actual_type>::value;
 
         const auto & end_data = end_column->getData();
         const auto & step_data = step_column->getData();
@@ -488,19 +494,26 @@ private:
 
         for (size_t row_idx = 0; row_idx < input_rows_count; ++row_idx)
         {
-            if (start < end_data[row_idx] && step_data[row_idx] == 0)
-                throw Exception(
-                    ErrorCodes::ARGUMENT_OUT_OF_BOUND, "A call to function {} overflows, the 3rd argument step can't be zero", getName());
-
-            if (step_data[row_idx] > 0 && start <= end_data[row_idx])
+            size_t count_in_range = 0;
+            if ((start < end_data[row_idx] && step_data[row_idx] > 0) || (start > end_data[row_idx] && step_data[row_idx] < 0))
             {
-                pre_values += start >= end_data[row_idx] ? 0 : static_cast<size_t>((end_data[row_idx] - start) / (step_data[row_idx]) + 1);
+                auto st = step_data[row_idx] > 0 ? start : end_data[row_idx];
+                auto ed = step_data[row_idx] > 0 ? end_data[row_idx] : start;
+                auto step = step_data[row_idx] > 0 ? step_data[row_idx] : -1 * step_data[row_idx];
+                if (is_float64 && step_data[row_idx] != 0)
+                {
+                    while (st < ed || st - ed < epsilon)
+                    {
+                        ++count_in_range;
+                        st += step;
+                    }
+                }
+                else
+                {
+                    count_in_range = static_cast<size_t>((ed - st) / step) + 1;
+                }
             }
-
-            if (step_data[row_idx] < 0 && start >= end_data[row_idx])
-            {
-                pre_values += start <= end_data[row_idx] ? 0 : static_cast<size_t>((start - end_data[row_idx]) / (-step_data[row_idx]) + 1);
-            }
+            pre_values += count_in_range;
 
             if (pre_values < total_values)
                 throw Exception(
@@ -522,11 +535,10 @@ private:
         IColumn::Offset offset{};
         for (size_t row_idx = 0; row_idx < input_rows_count; ++row_idx)
         {
+            auto st = start;
+            auto ed = end_data[row_idx];
             if (step_data[row_idx] > 0)
-            {
-                T st = start;
-                T ed = end_data[row_idx];
-                while (st <= ed)
+                while (st < ed || st - ed < epsilon)
                 {
                     out_data[offset++] = st;
                     if (offset >= total_values)
@@ -538,12 +550,8 @@ private:
                             getName());
                     st += step_data[row_idx];
                 }
-            }
-            else
-            {
-                T st = start;
-                T ed = end_data[row_idx];
-                while (st >= ed)
+            else if (step_data[row_idx] < 0)
+                while (st > ed || ed - st < epsilon)
                 {
                     out_data[offset++] = st;
                     if (offset >= total_values)
@@ -555,7 +563,6 @@ private:
                             getName());
                     st += step_data[row_idx];
                 }
-            }
             out_offsets[row_idx] = offset;
         }
 
@@ -566,12 +573,15 @@ private:
     ColumnPtr
     executeGeneric(const IColumn * start_col, const IColumn * end_col, const IColumn * step_col, const size_t input_rows_count) const
     {
+        const double epsilon = 0.00000001;
         auto start_column = checkAndGetColumn<ColumnVector<T>>(start_col);
         auto end_column = checkAndGetColumn<ColumnVector<T>>(end_col);
         auto step_column = checkAndGetColumn<ColumnVector<T>>(step_col);
 
         if (!start_column || !end_column || !step_column)
             return nullptr;
+        using actual_type = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
+        bool is_float64 = std::is_same<Float64, actual_type>::value;
 
         //The maximum number of values in KQL is 1,048,576 (2^20).
         size_t total_elements = max_elements < 1048576 ? max_elements : 1048576;
@@ -587,23 +597,27 @@ private:
 
         for (size_t row_idx = 0; row_idx < input_rows_count; ++row_idx)
         {
-            if (start_data[row_idx] < end_start[row_idx] && step_data[row_idx] == 0)
-                throw Exception(
-                    ErrorCodes::ARGUMENT_OUT_OF_BOUND, "A call to function {} overflows, the 3rd argument step can't be zero", getName());
-
-            if (step_data[row_idx] > 0 && start_data[row_idx] <= end_start[row_idx])
+            size_t count_in_range = 0;
+            if ((start_data[row_idx] < end_start[row_idx] && step_data[row_idx] > 0)
+                || (start_data[row_idx] > end_start[row_idx] && step_data[row_idx] < 0))
             {
-                pre_values += start_data[row_idx] >= end_start[row_idx]
-                    ? 0
-                    : static_cast<size_t>((end_start[row_idx] - start_data[row_idx]) / (step_data[row_idx]) + 1);
+                auto st = step_data[row_idx] > 0 ? start_data[row_idx] : end_start[row_idx];
+                auto ed = step_data[row_idx] > 0 ? end_start[row_idx] : start_data[row_idx];
+                auto step = step_data[row_idx] > 0 ? step_data[row_idx] : -1 * step_data[row_idx];
+                if (is_float64 && step_data[row_idx] != 0)
+                {
+                    while (st < ed || st - ed < epsilon)
+                    {
+                        ++count_in_range;
+                        st += step;
+                    }
+                }
+                else
+                {
+                    count_in_range = static_cast<size_t>((ed - st) / step) + 1;
+                }
             }
-
-            if (step_data[row_idx] < 0 && start_data[row_idx] >= end_start[row_idx])
-            {
-                pre_values += start_data[row_idx] <= end_start[row_idx]
-                    ? 0
-                    : static_cast<size_t>((start_data[row_idx] - end_start[row_idx]) / (-step_data[row_idx]) + 1);
-            }
+            pre_values += count_in_range;
 
             if (pre_values < total_values)
                 throw Exception(
@@ -625,11 +639,10 @@ private:
         IColumn::Offset offset{};
         for (size_t row_idx = 0; row_idx < input_rows_count; ++row_idx)
         {
+            auto st = start_data[row_idx];
+            auto ed = end_start[row_idx];
             if (step_data[row_idx] > 0)
-            {
-                auto st = start_data[row_idx];
-                auto ed = end_start[row_idx];
-                while (st <= ed)
+                while (st < ed || st - ed < epsilon)
                 {
                     out_data[offset++] = st;
                     if (offset >= total_values)
@@ -641,12 +654,8 @@ private:
                             getName());
                     st += step_data[row_idx];
                 }
-            }
-            else
-            {
-                auto st = start_data[row_idx];
-                auto ed = end_start[row_idx];
-                while (st >= ed)
+            else if (step_data[row_idx] < 0)
+                while (st > ed || ed - st < epsilon)
                 {
                     out_data[offset++] = st;
                     if (offset >= total_values)
@@ -658,7 +667,6 @@ private:
                             getName());
                     st += step_data[row_idx];
                 }
-            }
             out_offsets[row_idx] = offset;
         }
 
@@ -686,10 +694,6 @@ private:
         {
             if (arguments.size() > 2)
                 step_value = arguments[2].column->getInt(row_idx);
-
-            if (start_data[row_idx] < end_data[row_idx] && step_value == 0)
-                throw Exception(
-                    ErrorCodes::ARGUMENT_OUT_OF_BOUND, "A call to function {} overflows, the 3rd argument step can't be zero", getName());
 
             if (step_value > 0 && start_data[row_idx] <= end_data[row_idx])
             {
@@ -740,7 +744,7 @@ private:
                             getName());
                 }
             }
-            else
+            else if (step_value < 0)
             {
                 for (size_t st = start_data[row_idx], ed = end_data[row_idx]; st >= ed; st += step_value)
                 {
@@ -781,10 +785,6 @@ private:
             if (arguments.size() > 2)
                 step_value = arguments[2].column->getInt(row_idx);
 
-            if (start_data[row_idx] < end_data[row_idx] && step_value == 0)
-                throw Exception(
-                    ErrorCodes::ARGUMENT_OUT_OF_BOUND, "A call to function {} overflows, the 3rd argument step can't be zero", getName());
-
             if (step_value > 0 && start_data[row_idx] <= end_data[row_idx])
             {
                 pre_values += start_data[row_idx] >= end_data[row_idx]
@@ -822,7 +822,7 @@ private:
                 step_value = arguments[2].column->getInt(row_idx);
             if (step_value > 0)
             {
-                for (size_t st = start_data[row_idx], ed = end_data[row_idx]; st <= ed; st += step_value)
+                for (int64_t st = start_data[row_idx], ed = end_data[row_idx]; st <= ed; st += step_value)
                 {
                     out_data.insert(Field(st));
                     current_offset++;
@@ -835,9 +835,9 @@ private:
                             getName());
                 }
             }
-            else
+            else if (step_value < 0)
             {
-                for (size_t st = start_data[row_idx], ed = end_data[row_idx]; st >= ed; st += step_value)
+                for (int64_t st = start_data[row_idx], ed = end_data[row_idx]; st >= ed; st += step_value)
                 {
                     out_data.insert(Field(st));
                     current_offset++;
