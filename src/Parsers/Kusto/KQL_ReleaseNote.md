@@ -20,6 +20,25 @@
    `print arr = to_utf8('⒦⒰⒮⒯⒪')`
 - [new_guid()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/newguidfunction.md)
    `print g = new_guid()`
+- has_ipv6()
+  `Note: Not part of Microsoft's Kusto. Functions similar to has_ipv4()`
+  `print has_ipv6('09:46:00 2600:1404:6400:1695::1e89 GET /favicon.ico 404', '2600:1404:6400:1695::1e89')`
+- has_any_ipv6()
+  ```
+  Note: Not part of Microsoft's Kusto. Functions similar to has_any_ipv4()
+  print has_any_ipv6('09:46:00 2600:1404:6400:1695::1e89', '::1', '2600:1404:6400:1695::1e89')
+  ```
+- has_ipv6_prefix()
+  ```
+  Note: Not part of Microsoft's Kusto. Functions similar to has_ipv4_prefix() although the prefixes can't contain :: compression syntax.
+  print has_ipv6_prefix('09:46:00 2600:1404:6400:1695::1e89', '2600:1404:6400:1695:0:0:0:')
+  ```
+- has_any_ipv6_prefix()
+  ```
+  Note: Not part of Microsoft's Kusto. Functions similar to has_any_ipv4_prefix() although the prefixes can't contain :: compression syntax.
+  print has_any_ipv6_prefix('09:46:00 2600:1404:6400:1695::1e89', '0:0:0:0:0:ffff:127.', '2600:1404:6400:1695:')
+  ```
+
 # February XX, 2023
 ## Operator
 
