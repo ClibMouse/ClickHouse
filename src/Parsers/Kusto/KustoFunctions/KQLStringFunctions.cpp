@@ -1,4 +1,5 @@
 #include "KQLStringFunctions.h"
+#include "KQLFunctionFactory.h"
 
 #include <Parsers/CommonParsers.h>
 
@@ -13,7 +14,6 @@ extern const int BAD_ARGUMENTS;
 
 namespace DB
 {
-
 bool Base64EncodeToString::convertImpl(String & out, IParser::Pos & pos)
 {
     return directMapping(out, pos, "base64Encode");
@@ -39,12 +39,14 @@ bool Base64DecodeToString::convertImpl(String & out, IParser::Pos & pos)
     const String fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;
-     ++pos;
-     const String str = getConvertedArgument(fn_name, pos);
+    ++pos;
+    const String str = getConvertedArgument(fn_name, pos);
 
-     out = std::format("IF ((length({0}) % 4) != 0, NULL, IF (countMatches(substring({0}, 1, length({0}) - 2), '=') > 0, NULL, tryBase64Decode({0})))", str);
+    out = std::format(
+        "IF ((length({0}) % 4) != 0, NULL, IF (countMatches(substring({0}, 1, length({0}) - 2), '=') > 0, NULL, tryBase64Decode({0})))",
+        str);
 
-     return true;
+    return true;
 }
 
 bool Base64DecodeToArray::convertImpl(String & out, IParser::Pos & pos)
@@ -56,7 +58,11 @@ bool Base64DecodeToArray::convertImpl(String & out, IParser::Pos & pos)
     ++pos;
     const String str = getConvertedArgument(fn_name, pos);
 
-    out = std::format("IF((length({0}) % 4) != 0, [NULL], IF(length(tryBase64Decode({0})) = 0, [NULL], IF(countMatches(substring({0}, 1, length({0}) - 2), '=') > 0, [NULL], arrayMap(x -> reinterpretAsUInt8(x), splitByRegexp('', base64Decode(assumeNotNull(IF(length(tryBase64Decode({0})) = 0, '', {0}))))))))", str);
+    out = std::format(
+        "IF((length({0}) % 4) != 0, [NULL], IF(length(tryBase64Decode({0})) = 0, [NULL], IF(countMatches(substring({0}, 1, length({0}) - "
+        "2), '=') > 0, [NULL], arrayMap(x -> reinterpretAsUInt8(x), splitByRegexp('', "
+        "base64Decode(assumeNotNull(IF(length(tryBase64Decode({0})) = 0, '', {0}))))))))",
+        str);
 
     return true;
 }
@@ -367,6 +373,57 @@ bool ParseCommandLine::convertImpl(String & out, IParser::Pos & pos)
 bool IsNull::convertImpl(String & out, IParser::Pos & pos)
 {
     return directMapping(out, pos, "isNull");
+}
+
+bool MakeString::convertImpl(String & out, IParser::Pos & pos)
+{
+    const auto function_name = getKQLFunctionName(pos);
+    if (function_name.empty())
+        return false;
+
+    out = "concat('' ,";
+    String expr;
+
+    ++pos;
+    while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    {
+        if (pos->type == TokenType::Number)
+            out += "char(" + getConvertedArgument(function_name, pos) + ")";
+        else if (pos->type == TokenType::BareWord)
+        {
+            const auto temp_arg = DB::String(pos->begin, pos->end);
+            if (!KQLFunctionFactory::get(temp_arg) && temp_arg != "dynamic")
+            {
+                out += "char(" + getConvertedArgument(function_name, pos) + ")";
+            }
+            else if (pos->type != TokenType::OpeningRoundBracket && pos->type != TokenType::Comma)
+            {
+                expr = getConvertedArgument(function_name, pos);
+                out += std::format(
+                    "if(substring(toTypeName({0}), 1, 3) == 'Arr',arrayStringConcat(arrayMap(x -> concat('', char(x)), {0})) , "
+                    "'')",
+                    expr);
+            }
+        }
+        /*
+        else if (pos->type != TokenType::OpeningRoundBracket && pos->type != TokenType::Comma)
+        {
+            expr = getConvertedArgument(function_name, pos);
+            out += std::format(
+                "if(substring(toTypeName({0}), 1, 3) == 'Arr',arrayStringConcat(arrayMap(x -> concat('', char(x)), {0})) , "
+                "'')",
+                expr);
+        }
+        */
+        if (pos->type == TokenType::Comma)
+            out += " , ";
+        if (pos->type == TokenType::ClosingRoundBracket)
+            break;
+        ++pos;
+    }
+
+    out += ")";
+    return true;
 }
 
 bool NewGuid::convertImpl(String & out, IParser::Pos & pos)
@@ -691,16 +748,18 @@ bool ToUtf8::convertImpl(String & out, IParser::Pos & pos)
     const String expr0 = base_arg + "substring(bin(x),2,7)" + base_arg_end;
     const String expr1 = base_arg + "concat(substring(bin(x),4,5), substring(bin(x),11,6))" + base_arg_end;
     const String expr2 = base_arg + "concat(substring(bin(x),5,4), substring(bin(x),11,6), substring(bin(x),19,6))" + base_arg_end;
-    const String expr3 = base_arg + "concat(substring(bin(x),6,3), substring(bin(x),11,6), substring(bin(x),19,6), substring(bin(x),27,6))" + base_arg_end;
+    const String expr3
+        = base_arg + "concat(substring(bin(x),6,3), substring(bin(x),11,6), substring(bin(x),19,6), substring(bin(x),27,6))" + base_arg_end;
 
-    out = std::format("arrayMap(x -> if(substring(bin(x),1,1)=='0', {0},"
-            "if (substring(bin(x),1,3)=='110', {1},if(substring(bin(x),1,4)=='1110'"
-            ", {2},if (substring(bin(x),1,5)=='11110', {3},-1)))), ngrams({4}, 1))",
-            expr0,
-            expr1,
-            expr2,
-            expr3,
-            func_arg);
+    out = std::format(
+        "arrayMap(x -> if(substring(bin(x),1,1)=='0', {0},"
+        "if (substring(bin(x),1,3)=='110', {1},if(substring(bin(x),1,4)=='1110'"
+        ", {2},if (substring(bin(x),1,5)=='11110', {3},-1)))), ngrams({4}, 1))",
+        expr0,
+        expr1,
+        expr2,
+        expr3,
+        func_arg);
     return true;
 }
 
