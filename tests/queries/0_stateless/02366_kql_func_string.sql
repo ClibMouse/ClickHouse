@@ -431,4 +431,10 @@ print t = string_size('⒦⒰⒮⒯⒪');
 
 print '-- to_utf8 --';
 print arr = to_utf8("⒦⒰⒮⒯⒪");
-print arr = to_utf8("קוסטו - Kusto")
+print arr = to_utf8("קוסטו - Kusto");
+
+print '-- make_string --';
+print str = make_string(75, 117, 115, 116, 111);
+print str = make_string(to_utf8("Kusto"));
+print str = make_string(dynamic([75, 117, 115]), 116, 111);
+print str = make_string(dynamic([75, 117, 115, 116, 111]));
