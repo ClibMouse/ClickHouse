@@ -404,16 +404,7 @@ bool MakeString::convertImpl(String & out, IParser::Pos & pos)
                     expr);
             }
         }
-        /*
-        else if (pos->type != TokenType::OpeningRoundBracket && pos->type != TokenType::Comma)
-        {
-            expr = getConvertedArgument(function_name, pos);
-            out += std::format(
-                "if(substring(toTypeName({0}), 1, 3) == 'Arr',arrayStringConcat(arrayMap(x -> concat('', char(x)), {0})) , "
-                "'')",
-                expr);
-        }
-        */
+
         if (pos->type == TokenType::Comma)
             out += " , ";
         if (pos->type == TokenType::ClosingRoundBracket)
