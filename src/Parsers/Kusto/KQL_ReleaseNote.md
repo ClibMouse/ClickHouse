@@ -36,6 +36,10 @@
    ADX will incorrectly consume part of encapsulated IPv6 Host as Port from last colon to '/'.
    print parse_url("http://[2001:db8:3333:4444:5555:6666:7777:8888]/filepath/index.htm")
    ```
+## Functions
+- [make_string()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/makestringfunction.md)
+   `print str = make_string(75, 117, 115, 116, 111)`
+
 # March XX, 2023
 ## Functions
 - [hash()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/hashfunction)

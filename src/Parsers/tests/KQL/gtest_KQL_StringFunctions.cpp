@@ -241,7 +241,15 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         {
             "print new_guid()",
             "SELECT generateUUIDv4() AS print_0"
-	},
+        },
+        {
+            "print str = make_string(dynamic([75, 117, 115, 116, 111]))",
+            "SELECT concat('', if(substring(toTypeName([75, 117, 115, 116, 111]), 1, 3) = 'Arr', arrayStringConcat(arrayMap(x -> concat('', char(x)), [75, 117, 115, 116, 111])), '')) AS str"
+        },
+        {
+            "Customers | project Age, make_string(Age), FirstName",
+            "SELECT\n    Age,\n    concat('', char(Age)),\n    FirstName\nFROM Customers"
+	    },
         {
             "print parse_url('https://john:123@google.com:1234/this/is/a/path?k1=v1&k2=v2#fragment')",
             "SELECT kql_parseurl('https://john:123@google.com:1234/this/is/a/path?k1=v1&k2=v2#fragment') AS print_0",

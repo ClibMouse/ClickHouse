@@ -1,4 +1,5 @@
 #include "KQLStringFunctions.h"
+#include "KQLFunctionFactory.h"
 
 #include <Parsers/CommonParsers.h>
 
@@ -12,7 +13,6 @@ extern const int BAD_ARGUMENTS;
 
 namespace DB
 {
-
 bool Base64EncodeToString::convertImpl(String & out, IParser::Pos & pos)
 {
     return directMapping(out, pos, "base64Encode");
@@ -372,6 +372,57 @@ bool ParseCommandLine::convertImpl(String & out, IParser::Pos & pos)
 bool IsNull::convertImpl(String & out, IParser::Pos & pos)
 {
     return directMapping(out, pos, "isNull");
+}
+
+bool MakeString::convertImpl(String & out, IParser::Pos & pos)
+{
+    const auto function_name = getKQLFunctionName(pos);
+    if (function_name.empty())
+        return false;
+
+    out = "concat('' ,";
+    String expr;
+
+    ++pos;
+    while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    {
+        if (pos->type == TokenType::Number)
+            out += "char(" + getConvertedArgument(function_name, pos) + ")";
+        else if (pos->type == TokenType::BareWord)
+        {
+            const auto temp_arg = DB::String(pos->begin, pos->end);
+            if (!KQLFunctionFactory::get(temp_arg) && temp_arg != "dynamic")
+            {
+                out += "char(" + getConvertedArgument(function_name, pos) + ")";
+            }
+            else if (pos->type != TokenType::OpeningRoundBracket && pos->type != TokenType::Comma)
+            {
+                expr = getConvertedArgument(function_name, pos);
+                out += std::format(
+                    "if(substring(toTypeName({0}), 1, 3) == 'Arr',arrayStringConcat(arrayMap(x -> concat('', char(x)), {0})) , "
+                    "'')",
+                    expr);
+            }
+        }
+        /*
+        else if (pos->type != TokenType::OpeningRoundBracket && pos->type != TokenType::Comma)
+        {
+            expr = getConvertedArgument(function_name, pos);
+            out += std::format(
+                "if(substring(toTypeName({0}), 1, 3) == 'Arr',arrayStringConcat(arrayMap(x -> concat('', char(x)), {0})) , "
+                "'')",
+                expr);
+        }
+        */
+        if (pos->type == TokenType::Comma)
+            out += " , ";
+        if (pos->type == TokenType::ClosingRoundBracket)
+            break;
+        ++pos;
+    }
+
+    out += ")";
+    return true;
 }
 
 bool NewGuid::convertImpl(String & out, IParser::Pos & pos)
