@@ -6,11 +6,6 @@
 
 namespace DB
 {
-namespace ErrorCodes
-{
-    extern const int NOT_IMPLEMENTED;
-}
-
 bool Ipv4Compare::convertImpl(String & out, IParser::Pos & pos)
 {
     const auto function_name = getKQLFunctionName(pos);
@@ -305,4 +300,3 @@ bool HasAnyIpv6Prefix::convertImpl(String & out, IParser::Pos & pos)
     return directMapping(out, pos, "kql_has_any_ipv6_prefix");
 }
 }
-
