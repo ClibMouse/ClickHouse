@@ -50,6 +50,8 @@ bool Lookup::convertImpl(String & out, IParser::Pos & pos)
     {
         arg = getConvertedArgument(fn_name, temp_pos);
         ++num_of_args;
+        if (temp_pos->type == TokenType::ClosingRoundBracket)
+            break;
         ++temp_pos;
     }
     if (num_of_args == 3)

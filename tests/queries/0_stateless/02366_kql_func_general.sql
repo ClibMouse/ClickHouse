@@ -46,3 +46,4 @@ Customers | extend t = iif(Age <= 10, "smaller", "bigger");
 print '-- lookup';
 print lookup('dictionary_table', 'value', '1');
 print lookup('dictionary_table', 'value', '100', 'default');
+dictionary_source_table | project start_range, t = lookup('dictionary_table', 'value', '1'), key
