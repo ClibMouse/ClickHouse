@@ -62,15 +62,15 @@ print datetime('2014-11-08 15:55:55.123456Z');
 print datetime('2022') - datetime('2021');
 print datetime('1970-05-11 13:45:07.456345672');
 print '-- time';
-print time(null);
-print time(1.2:3:3);
-print time(1.2:3:3.123);
-print time(-1.2:3:3.123);
-print time(001.02:03:03);
-print time(001.02:03);
-print time(02:03);
-print time(02:03:04);
-print time(02:03:04.5678901);
+print tolong(time(null));
+print tolong(time(1.2:3:3));
+print tolong(time(1.2:3:3.123));
+print tolong(time(-1.2:3:3.123));
+print tolong(time(001.02:03:03));
+print tolong(time(001.02:03));
+print tolong(time(02:03));
+print tolong(time(02:03:04));
+print tolong(time(02:03:04.5678901));
 print time(24:03:04.5678901); -- { clientError BAD_ARGUMENTS }
 print time(02:60:04.5678901); -- { clientError BAD_ARGUMENTS }
 print time(02:03:60.5678901); -- { clientError BAD_ARGUMENTS }
@@ -81,8 +81,8 @@ print time(1.-02:03:04.5678901); -- { clientError BAD_ARGUMENTS }
 print time(1.23); -- { clientError BAD_ARGUMENTS }
 print time(02:03:04.56789012); -- { clientError BAD_ARGUMENTS }
 print time(03:04.56789012); -- { clientError BAD_ARGUMENTS }
-print time('14.02:03:04.12345');
-print time('12:30:55.123');
+print tolong(time('14.02:03:04.12345'));
+print tolong(time('12:30:55.123'));
 print time(1d);
 print time(-1d);
 print time(6nanoseconds);
@@ -102,6 +102,7 @@ print timespan(1tick); --           100 nanoseconds
 --print timespan(1.5h) / timespan(30m);
 print timespan('12.23:12:23') / timespan(1s);
 print (timespan(1.5d) / timespan(0.6d)) * timespan(0.6d);
+print a = timespan(2d), b = timespan(4h), c = timespan(8m), d = timespan(16s), e = timespan(123millis), f = timespan(456micros), g = timespan(789nanos) | extend x = a + b + c + d + e + f + g;
 print tobool(timespan(0s));
 print tobool(timespan(1d));
 print todouble(timespan(1d));
@@ -130,7 +131,7 @@ print decimal(1e5);
 print '-- dynamic'; -- no support for mixed types and bags for now
 print dynamic(null);
 print dynamic(1);
-print dynamic(timespan(1d));
+print dynamic(timespan(1d)); -- should be 864000000000, `print gettype(dynamic(timespan(1d)));` returns `long` in ADX
 print dynamic([1,2,3]);
 print dynamic([[1], [2], [3]]);
 print dynamic(['a', "b", 'c']);
