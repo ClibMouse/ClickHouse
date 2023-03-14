@@ -48,5 +48,7 @@ print lookup('dictionary_table', 'value', '1');
 print lookup('dictionary_table', 'value', '100', 'default');
 dictionary_source_table | project start_range, t = lookup('dictionary_table', 'value', '1'), key
 print '-- gettype';
-Customers | print t = gettype(FirstName) | limit 1;
-Customers | print t = gettype(Age) | limit 1;
+Customers | project t = gettype(FirstName) | limit 1;
+Customers | project t = gettype(Age) | limit 1;
+print t = gettype(range(1, 10));
+print t = gettype(todatetime('2023-09-08'));
