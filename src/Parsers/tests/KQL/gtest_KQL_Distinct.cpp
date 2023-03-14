@@ -24,7 +24,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Distinct, ParserKQLTest,
         },
         {
             "Customers |where Age <30 | order by Age| distinct Occupation, Education",
-            "SELECT DISTINCT\n    Occupation,\n    Education\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE Age < 30\n    ORDER BY Age DESC\n)"
+            "SELECT DISTINCT\n    Occupation,\n    Education\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE Age < 30\n    ORDER BY Age DESC NULLS LAST\n)"
         },
         {
             "Customers | project a = (Age % 10) | distinct a;",

@@ -332,35 +332,31 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery, ParserKQLTest,
         },
         {
             "Customers | sort by FirstName desc",
-            "SELECT *\nFROM Customers\nORDER BY FirstName DESC"
+            "SELECT *\nFROM Customers\nORDER BY FirstName DESC NULLS LAST"
         },
         {
             "Customers | take 3 | order by FirstName desc",
-            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    LIMIT 3\n)\nORDER BY FirstName DESC"
+            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    LIMIT 3\n)\nORDER BY FirstName DESC NULLS LAST"
         },
         {
             "Customers | sort by FirstName asc",
-            "SELECT *\nFROM Customers\nORDER BY FirstName ASC"
+            "SELECT *\nFROM Customers\nORDER BY FirstName ASC NULLS FIRST"
         },
         {
             "Customers | sort by FirstName",
-            "SELECT *\nFROM Customers\nORDER BY FirstName DESC"
+            "SELECT *\nFROM Customers\nORDER BY FirstName DESC NULLS LAST"
         },
         {
-            "Customers | order by LastName",
-            "SELECT *\nFROM Customers\nORDER BY LastName DESC"
-        },
-        {
-            "Customers | order by Age desc, FirstName asc  ",
-            "SELECT *\nFROM Customers\nORDER BY\n    Age DESC,\n    FirstName ASC"
+            "Customers | order by Age desc, FirstName asc",
+            "SELECT *\nFROM Customers\nORDER BY\n    Age DESC NULLS LAST,\n    FirstName ASC NULLS FIRST"
         },
         {
             "Customers | order by Age asc, FirstName desc",
-            "SELECT *\nFROM Customers\nORDER BY\n    Age ASC,\n    FirstName DESC"
+            "SELECT *\nFROM Customers\nORDER BY\n    Age ASC NULLS FIRST,\n    FirstName DESC NULLS LAST"
         },
         {
             "Customers | sort by FirstName | order by Age ",
-            "SELECT *\nFROM Customers\nORDER BY\n    Age DESC,\n    FirstName DESC"
+            "SELECT *\nFROM Customers\nORDER BY\n    Age DESC NULLS LAST,\n    FirstName DESC NULLS LAST"
         },
         {
             "Customers | sort by FirstName nulls first",
