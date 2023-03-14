@@ -64,7 +64,7 @@ bool Lookup::convertImpl(String & out, IParser::Pos & pos)
 
 bool GetType::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "toTypeName");
+    return directMapping(out, pos, "kql_gettype");
 }
 
 }
