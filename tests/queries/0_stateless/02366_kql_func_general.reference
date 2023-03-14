@@ -38,5 +38,5 @@ default
 11	First	2
 12	First	3
 -- gettype
-Nullable(String)
-Nullable(UInt8)
+string
+int
