@@ -57,7 +57,7 @@ bool ParserKQLSort::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
                 ++tmp_pos;
                 tmp = String(tmp_pos->begin, tmp_pos->end);
                 if (tmp_pos->isEnd() || (tmp != "first" && tmp != "last"))
-                    throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid nulls postion of sort operator");
+                    throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid nulls position of sort operator");
 
                 nulls_position = "nulls " + tmp;
                 if (column_expr.empty())
