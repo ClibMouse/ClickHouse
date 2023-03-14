@@ -6,6 +6,7 @@
 #include "KQLDateTimeFunctions.h"
 #include "KQLDynamicFunctions.h"
 #include "KQLGeneralFunctions.h"
+#include "KQLHashFunctions.h"
 #include "KQLIPFunctions.h"
 #include "KQLMathematicalFunctions.h"
 #include "KQLStringFunctions.h"
@@ -263,7 +264,10 @@ enum class KQLFunction : uint16_t
     sign,
     sin,
     sqrt,
-    tan
+    tan,
+
+    hash,
+    hash_sha256
 };
 
 const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
@@ -520,7 +524,10 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"sign", KQLFunction::sign},
     {"sin", KQLFunction::sin},
     {"sqrt", KQLFunction::sqrt},
-    {"tan", KQLFunction::tan}};
+    {"tan", KQLFunction::tan},
+
+    {"hash", KQLFunction::hash},
+    {"hash_sha256", KQLFunction::hash_sha256}};
 }
 
 namespace DB
@@ -531,7 +538,7 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
     if (kql_function_it == KQL_FUNCTIONS.end())
         return nullptr;
 
-    const auto& kql_function_id = kql_function_it->second;
+    const auto & kql_function_id = kql_function_it->second;
     switch (kql_function_id)
     {
         case KQLFunction::none:
@@ -1244,6 +1251,12 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::tan:
             return std::make_unique<Tan>();
+
+        case KQLFunction::hash:
+            return std::make_unique<Hash>();
+
+        case KQLFunction::hash_sha256:
+            return std::make_unique<HashSha256>();
     }
 }
 }
