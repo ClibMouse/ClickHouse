@@ -1,5 +1,9 @@
 ## KQL implemented features  
 # March XX, 2023
+## Feature
+ - KQL - improve timespan textual representation in the CLI
+   The textual representation of `timespan` will now be identical to ADX, whenever the `dialect` setting is `kusto` or `kusto_auto`. The internal representation shall remain unchanged as `IntervalNanosecond`. In essence, any `Interval` type will also be represented this way even when running regular SQL queries as long as the `dialect` option is `kusto_auto`.
+   `print a = timespan(2d), b = timespan(4h), c = timespan(8m), d = timespan(16s), e = timespan(123millis), f = timespan(456micros), g = timespan(789nanos) | extend x = a + b + c + d + e + f + g;`
 ## Operator
 - [getschema](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/getschemaoperator)
    `print x = 'asd' | extend strlen(x) | getschema`
