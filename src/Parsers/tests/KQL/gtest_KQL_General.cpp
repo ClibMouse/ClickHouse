@@ -80,6 +80,10 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_General, ParserTest,
         },
         {
             "print t = gettype(1)",
-            "SELECT toTypeName(1) AS t"
+            "SELECT kql_gettype(1) AS t"
+        },
+        {
+            "Customers | print t = gettype(FirstName)",
+            "SELECT kql_gettype(FirstName) AS t\nFROM Customers"
         }
 })));
