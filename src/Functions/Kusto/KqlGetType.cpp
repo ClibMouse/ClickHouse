@@ -5,7 +5,6 @@
 #include <Functions/IFunction.h>
 #include <Parsers/Kusto/KQLDataType.h>
 
-#include <format>
 
 namespace DB
 {
@@ -34,9 +33,7 @@ FunctionKqlGetType::executeImpl(const ColumnsWithTypeAndName & arguments, const 
 {
     const auto & argument = arguments.front();
 
-    WhichDataType which_data_type(*argument.type);
-
-    return DataTypeString().createColumnConst(input_rows_count, toString(toKQLDataType(which_data_type.idx)));
+    return DataTypeString().createColumnConst(input_rows_count, toString(toKQLDataType(argument.type->getTypeId())));
 }
 
 
