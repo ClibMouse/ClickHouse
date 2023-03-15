@@ -52,4 +52,10 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class ToScalar : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "toscalar()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
 }
