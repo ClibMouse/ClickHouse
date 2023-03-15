@@ -1,5 +1,13 @@
 #include "KQLGeneralFunctions.h"
 
+#include <IO/WriteBufferFromString.h>
+#include <Parsers/IAST.h>
+#include <Parsers/Kusto/ParserKQLPrint.h>
+#include <Parsers/Kusto/ParserKQLQuery.h>
+#include <Parsers/Kusto/ParserKQLStatement.h>
+
+#include <format>
+
 namespace DB::ErrorCodes
 {
 extern const int SYNTAX_ERROR;
@@ -67,4 +75,33 @@ bool GetType::convertImpl(String & out, IParser::Pos & pos)
     return directMapping(out, pos, "kql_gettype");
 }
 
+bool ToScalar::convertImpl(String & out, IParser::Pos & pos)
+{
+    const auto function_name = getKQLFunctionName(pos);
+    if (function_name.empty())
+        return false;
+
+    Expected expected;
+    ASTPtr subquery;
+    try
+    {
+        subquery = std::make_shared<ASTSelectQuery>();
+        if (!ParserKQLPrint().parse(pos, subquery, expected))
+            subquery.reset();
+    }
+    catch (...)
+    {
+        subquery.reset();
+    }
+
+    if (!subquery && !ParserKQLTaleFunction().parse(pos, subquery, expected))
+        return false;
+
+    --pos;
+    WriteBufferFromOwnString write_buffer;
+    subquery->format(IAST::FormatSettings(write_buffer, true));
+
+    out = std::format("(select tuple(*) from ({}) limit 1).1", write_buffer.stringView());
+    return true;
+}
 }
