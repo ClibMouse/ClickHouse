@@ -127,6 +127,7 @@ enum class KQLFunction : uint16_t
     todouble,
     toint,
     tolong,
+    toscalar,
     tostring,
     todecimal,
 
@@ -386,6 +387,7 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"toint", KQLFunction::toint},
     {"tolong", KQLFunction::tolong},
     {"toreal", KQLFunction::todouble},
+    {"toscalar", KQLFunction::toscalar},
     {"tostring", KQLFunction::tostring},
     {"totimespan", KQLFunction::totimespan},
     {"todecimal", KQLFunction::todecimal},
@@ -861,6 +863,9 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::tolong:
             return std::make_unique<ToLong>();
+
+        case KQLFunction::toscalar:
+            return std::make_unique<ToScalar>();
 
         case KQLFunction::tostring:
             return std::make_unique<ToString>();
