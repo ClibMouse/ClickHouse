@@ -12,45 +12,6 @@
 #include <Functions/Kusto/KqlFunctionBase.h>
 #include <Functions/Kusto/kqlHasAnyIp.h>
 
-static std::vector<std::string> extractIpsFromArguments(const DB::ColumnsWithTypeAndName & arguments, size_t row)
-{
-    std::vector<std::string> ips;
-    if (DB::isStringOrFixedString(arguments.at(1).type))
-    {
-        std::ranges::copy_if(
-            arguments | std::views::drop(1)
-                | std::views::transform([&row](const DB::ColumnWithTypeAndName & arg) { return arg.column->getDataAt(row).toString(); }),
-            std::back_inserter(ips),
-            [](const std::string & arg)
-            {
-                const auto n = std::ranges::count(arg, '.');
-                return n == 3 || (arg.back() == '.' && n <= 2);
-            });
-    }
-
-    else if (isArray(arguments.at(1).type))
-    {
-        DB::Field array0;
-        arguments[1].column->get(row, array0);
-        const auto len0 = array0.get<DB::Array>().size();
-
-        for (size_t j = 0; j < len0; ++j)
-        {
-            if (const auto & value = array0.get<DB::Array>().at(j); value.getType() == DB::Field::Types::String)
-            {
-                const auto value_as_string = toString(value);
-
-                const auto n = std::ranges::count(value_as_string, '.');
-                if (n == 3 || (value_as_string.back() == '.' && n <= 2))
-                {
-                    ips.push_back(value_as_string);
-                }
-            }
-        }
-    }
-    return ips;
-}
-
 namespace DB
 {
 template <typename Name, ArgumentPolicy ap>
@@ -83,7 +44,7 @@ public:
         for (size_t i = 0; i < input_rows_count; ++i)
         {
             bool res = false;
-            const auto ips = extractIpsFromArguments(arguments, i);
+            const auto ips = extractIpsFromArguments(arguments, result_type, context, i, TransformType::IPv4_Prefix);
 
             std::string source = arguments[0].column->getDataAt(i).toString();
             const std::regex ip_finder("([^[:alnum:]]|^)([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})([^[:alnum:]]|$)");
@@ -91,25 +52,21 @@ public:
 
             while (!res && std::regex_search(source, matches, ip_finder))
             {
-                for (size_t j = 0; j < matches.size(); ++j)
+                const auto match_as_str = matches[2].str();
+
+                const ColumnsWithTypeAndName is_ipv4_string_args = {createConstColumnWithTypeAndName<DataTypeString>(match_as_str, "ip")};
+
+                const auto is_ipv4 = FunctionFactory::instance()
+                                         .get("isIPv4String", context)
+                                         ->build(is_ipv4_string_args)
+                                         ->execute(is_ipv4_string_args, result_type, 1);
+
+                if (is_ipv4->getUInt(0) == 1)
                 {
-                    const auto match_as_str = matches[j].str();
-
-                    const ColumnsWithTypeAndName is_ipv4_string_args
-                        = {createConstColumnWithTypeAndName<DataTypeString>(match_as_str, "ip")};
-
-                    const auto is_ipv4 = FunctionFactory::instance()
-                                             .get("isIPv4String", context)
-                                             ->build(is_ipv4_string_args)
-                                             ->execute(is_ipv4_string_args, result_type, 1);
-
-                    if (is_ipv4->getUInt(0) == 1)
-                    {
-                        res = std::ranges::any_of(
-                            ips,
-                            [&match_as_str](const std::string & str) -> bool
-                            { return std::memcmp(str.c_str(), match_as_str.c_str(), std::min(str.size(), match_as_str.size())) == 0; });
-                    }
+                    res = std::ranges::any_of(
+                        ips,
+                        [&match_as_str](const std::string & str) -> bool
+                        { return std::memcmp(str.c_str(), match_as_str.c_str(), std::min(str.size(), match_as_str.size())) == 0; });
                 }
                 source = matches.suffix().str();
             }
