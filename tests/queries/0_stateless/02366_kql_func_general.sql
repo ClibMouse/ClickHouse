@@ -52,3 +52,12 @@ Customers | project t = gettype(FirstName) | limit 1;
 Customers | project t = gettype(Age) | limit 1;
 print t = gettype(range(1, 10));
 print t = gettype(todatetime('2023-09-08'));
+
+print '-- toscalar #1 --';
+print x = 5 | extend a = toscalar(print 5, 'asd' | project y = strcat(print_0, print_1));
+print '-- toscalar #2 --';
+range z from toscalar(print x=1) to toscalar(range x from 1 to 9 step 1 | count) step toscalar(2);
+print '-- toscalar #3 --';
+range x from 1 to 2 step 1 | extend x=toscalar(print new_guid()), y=new_guid() | count;
+print '-- toscalar #4 --';
+range x from 1 to 2 step 1 | extend x=toscalar(new_guid()), y=new_guid() | distinct x | count;

@@ -8,10 +8,10 @@ namespace DB
 
 bool ParserKQLPrint::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
-    const auto expr = getExprFromToken(pos);
-
+    auto temp_pos = pos;
+    const auto expr = getExprFromToken(temp_pos);
     Tokens tokens(expr.c_str(), expr.c_str() + expr.size());
-    IParser::Pos new_pos(tokens, pos.max_depth);
+    IParser::Pos new_pos(tokens, temp_pos.max_depth);
 
     ASTPtr select_expression_list;
     if (!ParserNotEmptyExpressionList(true).parse(new_pos, select_expression_list, expected))
@@ -29,6 +29,8 @@ bool ParserKQLPrint::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
         });
 
     node->as<ASTSelectQuery>()->setExpression(ASTSelectQuery::Expression::SELECT, std::move(select_expression_list));
+
+    pos = temp_pos;
     return true;
 }
 
