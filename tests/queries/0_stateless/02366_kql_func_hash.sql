@@ -8,7 +8,7 @@ print hash(int(-1));
 print hash(long(-1));
 print hash(real(-1));
 print hash(-1, 100);
-print hash(-1, -1); -- { serverError FUNCTION_THROW_IF_VALUE_IS_NON_ZERO }
+print hash(-1, -1); -- { serverError ILLEGAL_TYPE_OF_ARGUMENT } 
 print ' -- hash_sha256 --';
 print hash_sha256('World');
 print hash_sha256(datetime(2020-01-01));
