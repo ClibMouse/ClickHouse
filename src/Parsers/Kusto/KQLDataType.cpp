@@ -15,7 +15,7 @@ namespace
 {
 const std::unordered_map<DB::TypeIndex, DB::KQLDataType> CLICKHOUSE_TO_KQL_TYPE{
     {DB::TypeIndex::AggregateFunction, DB::KQLDataType::Invalid},
-    {DB::TypeIndex::Array, DB::KQLDataType::Dynamic},
+    {DB::TypeIndex::Array, DB::KQLDataType::Array},
     {DB::TypeIndex::Date, DB::KQLDataType::DateTime},
     {DB::TypeIndex::Date32, DB::KQLDataType::DateTime},
     {DB::TypeIndex::DateTime, DB::KQLDataType::DateTime},
@@ -44,7 +44,7 @@ const std::unordered_map<DB::TypeIndex, DB::KQLDataType> CLICKHOUSE_TO_KQL_TYPE{
     {DB::TypeIndex::Nothing, DB::KQLDataType::Invalid},
     {DB::TypeIndex::Nullable, DB::KQLDataType::Invalid},
     {DB::TypeIndex::Object, DB::KQLDataType::Invalid},
-    {DB::TypeIndex::Set, DB::KQLDataType::Dynamic},
+    {DB::TypeIndex::Set, DB::KQLDataType::Dictionary},
     {DB::TypeIndex::String, DB::KQLDataType::String},
     {DB::TypeIndex::Tuple, DB::KQLDataType::Invalid},
     {DB::TypeIndex::UInt8, DB::KQLDataType::Int},

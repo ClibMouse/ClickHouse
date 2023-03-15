@@ -8,10 +8,11 @@ namespace DB
 {
 enum class KQLDataType
 {
+    Array,
     Bool,
     DateTime,
     Decimal,
-    Dynamic,
+    Dictionary,
     Guid,
     Int,
     Invalid,

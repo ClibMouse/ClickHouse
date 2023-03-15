@@ -40,5 +40,5 @@ default
 -- gettype
 string
 int
-dynamic
+array
 datetime
