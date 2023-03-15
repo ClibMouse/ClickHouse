@@ -8,6 +8,7 @@ namespace DB
 
 namespace ErrorCodes
 {
+    extern const int ARGUMENT_OUT_OF_BOUND;
     extern const int NUMBER_OF_ARGUMENTS_DOESNT_MATCH;
     extern const int ILLEGAL_TYPE_OF_ARGUMENT;
 }
@@ -35,7 +36,7 @@ private:
 
 ColumnPtr FunctionKqlHash::executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr &, const size_t input_rows_count) const
 {
-    const auto argument = arguments.front();
+    const auto & argument = arguments.front();
     const ColumnsWithTypeAndName firstarg{argument};
     WhichDataType which(*argument.type);
     ColumnsWithTypeAndName args = firstarg;
@@ -54,11 +55,18 @@ ColumnPtr FunctionKqlHash::executeImpl(const ColumnsWithTypeAndName & arguments,
         args = {asArgument(tocast, name)};
     }
     const auto tohash = executeFunctionCall(context, "xxHash64", args, input_rows_count);
-    const ColumnsWithTypeAndName hashargs{asArgument(tohash, "tohash")};
     if (arguments.size() == 1)
+    {
+        const ColumnsWithTypeAndName hashargs{asArgument(tohash, "tohash")};
         return executeFunctionCall(context, "toInt64", hashargs, input_rows_count).first;
+    }
     else
     {
+        for (size_t row_idx = 0; row_idx < input_rows_count; ++row_idx)
+        {
+            if (arguments[1].column->getInt(row_idx) < 1)
+                throw Exception(ErrorCodes::ARGUMENT_OUT_OF_BOUND, "hash(): argument 2 must be a constant positive long value");
+        }
         const ColumnsWithTypeAndName modargs{asArgument(tohash, "tohash"), arguments.back()};
         const auto tomod = executeFunctionCall(context, "moduloOrZero", modargs, input_rows_count);
         const ColumnsWithTypeAndName touint{asArgument(tomod, "tomod")};
@@ -68,10 +76,10 @@ ColumnPtr FunctionKqlHash::executeImpl(const ColumnsWithTypeAndName & arguments,
 
 DataTypePtr FunctionKqlHash::getReturnTypeImpl(const ColumnsWithTypeAndName & arguments) const
 {
-    if (arguments.size() == 0 || arguments.size() > 2)
+    if (arguments.empty() || arguments.size() > 2)
         throw Exception(ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "hash(): function expects [1..2] argument(s).");
 
-    if (arguments.size() == 2 && !isUnsignedInteger(arguments[1].type))
+    if (arguments.size() == 2 && !isNativeInteger(arguments[1].type))
     {
         throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "hash(): argument 2 must be a constant positive long value");
     }
