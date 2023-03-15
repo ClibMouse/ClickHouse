@@ -11,57 +11,6 @@
 #include <Functions/Kusto/KqlFunctionBase.h>
 #include <Functions/Kusto/kqlHasAnyIp.h>
 
-static std::string ipv6ToHex(const std::string & str, const DB::DataTypePtr & result_type, const DB::ContextPtr & context)
-{
-    const DB::ColumnsWithTypeAndName ipv6_string = {DB::createConstColumnWithTypeAndName<DB::DataTypeString>(str, "ipv6")};
-    const auto is_ipv6
-        = DB::FunctionFactory::instance().get("isIPv6String", context)->build(ipv6_string)->execute(ipv6_string, result_type, 1);
-    if (is_ipv6->getUInt(0))
-    {
-        const auto ipv6_string_to_num = DB::executeFunctionCall(context, "IPv6StringToNum", ipv6_string, 1);
-        const DB::ColumnsWithTypeAndName hex_args{DB::asArgument(ipv6_string_to_num, "")};
-        const auto [hex_string, _] = DB::executeFunctionCall(context, "hex", hex_args, 1);
-        return hex_string->getDataAt(0).toString();
-    }
-    return "";
-}
-
-static std::vector<std::string> extractIpsFromArguments(
-    const DB::ColumnsWithTypeAndName & arguments, const DB::DataTypePtr & result_type, const DB::ContextPtr & context, size_t row)
-{
-    std::vector<std::string> ips;
-
-    if (DB::isStringOrFixedString(arguments.at(1).type))
-    {
-        std::ranges::copy_if(
-            arguments | std::views::drop(1)
-                | std::views::transform([&row, &result_type, &context](const DB::ColumnWithTypeAndName & arg)
-                                        { return ipv6ToHex(arg.column->getDataAt(row).toString(), result_type, context); }),
-            std::back_inserter(ips),
-            [](const std::string & arg) { return arg.size() != 0; });
-    }
-
-    else if (isArray(arguments.at(1).type))
-    {
-        DB::Field array0;
-        arguments[1].column->get(row, array0);
-        const auto len0 = array0.get<DB::Array>().size();
-
-        for (size_t j = 0; j < len0; ++j)
-        {
-            if (const auto & value = array0.get<DB::Array>().at(j); value.getType() == DB::Field::Types::String)
-            {
-                const auto ipv6_string = ipv6ToHex(toString(value), result_type, context);
-                if (ipv6_string.size())
-                {
-                    ips.push_back(ipv6_string);
-                }
-            }
-        }
-    }
-    return ips;
-}
-
 namespace DB
 {
 template <typename Name, ArgumentPolicy ap>
@@ -94,7 +43,7 @@ public:
         for (size_t i = 0; i < input_rows_count; ++i)
         {
             bool res = false;
-            const auto ips = extractIpsFromArguments(arguments, result_type, context, i);
+            const auto ips = extractIpsFromArguments(arguments, result_type, context, i, TransformType::IPv6);
 
             std::string source = arguments[0].column->getDataAt(i).toString();
             const std::regex ip_finder("([^a-zA-Z0-9:.]|^)([0-9a-fA-F:.]{3,})([^a-zA-Z0-9:.]|$)");
