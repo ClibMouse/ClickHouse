@@ -8,7 +8,10 @@ print hash(int(-1));
 print hash(long(-1));
 print hash(real(-1));
 print hash(-1, 100);
-print hash(-1, -1); -- { serverError ILLEGAL_TYPE_OF_ARGUMENT } 
+print hash(-1, -1); -- { serverError ARGUMENT_OUT_OF_BOUND } 
+print hash(-1, 'World'); -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
+print hash(-1, long(100));
+print hash(-1, int(100));
 print ' -- hash_sha256 --';
 print hash_sha256('World');
 print hash_sha256(datetime(2020-01-01));
