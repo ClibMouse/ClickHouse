@@ -90,26 +90,52 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Combine(
         ::testing::Values(std::make_shared<DB::ParserKQLQuery>()),
         ::testing::ValuesIn(std::initializer_list<ParserTestCase>{
-            {"print has_ipv4('127.0.0.1', '127.0.0.1')", "SELECT kql_has_ipv4('127.0.0.1', '127.0.0.1') AS print_0"},
-            {"print has_ipv4_prefix('127.0.0.1', '127.0.0.')", "SELECT kql_has_ipv4_prefix('127.0.0.1', '127.0.0.') AS print_0"},
-            {"print has_any_ipv4('127.0.0.1', '1.2.3.4', '127.0.0.1')",
-             "SELECT kql_has_any_ipv4('127.0.0.1', '1.2.3.4', '127.0.0.1') AS print_0"},
-            {"print has_any_ipv4_prefix('127.0.0.1', '1.2.3.4', '127.0.0.')",
-             "SELECT kql_has_any_ipv4_prefix('127.0.0.1', '1.2.3.4', '127.0.0.') AS print_0"},
-            {"print has_any_ipv4('1.2.3.4', dynamic(['1.2.3.4']))", "SELECT kql_has_any_ipv4('1.2.3.4', ['1.2.3.4']) AS print_0"},
-            {"print has_any_ipv4_prefix('1.2.3.4', dynamic(['1.2.3.4']))",
-             "SELECT kql_has_any_ipv4_prefix('1.2.3.4', ['1.2.3.4']) AS print_0"},
-            {"print has_ipv6('2600:1404:6400:1695:0:0:0:1e89', '2600:1404:6400:1695:0:0:0:1e89')",
-             "SELECT kql_has_ipv6('2600:1404:6400:1695:0:0:0:1e89', '2600:1404:6400:1695:0:0:0:1e89') AS print_0"},
-            {"print has_ipv6_prefix('2600:1404:6400:1695:0:0:0:1e89', '2600:1404:6400:1695:0:0:0:')",
-             "SELECT kql_has_ipv6_prefix('2600:1404:6400:1695:0:0:0:1e89', '2600:1404:6400:1695:0:0:0:') AS print_0"},
-            {"print has_any_ipv6('2600:1404:6400:1695:0:0:0:1e89', '0:0:0:0:0:ffff:1.2.3.4', '2600:1404:6400:1695:0:0:0:1e89')",
-             "SELECT kql_has_any_ipv6('2600:1404:6400:1695:0:0:0:1e89', '0:0:0:0:0:ffff:1.2.3.4', '2600:1404:6400:1695:0:0:0:1e89') AS "
-             "print_0"},
-            {"print has_any_ipv6_prefix('2600:1404:6400:1695:0:0:0:1e89', '0:0:0:0:0:ffff:1.2.3.4', '2600:1404:6400:1695:0:0:0:')",
-             "SELECT kql_has_any_ipv6_prefix('2600:1404:6400:1695:0:0:0:1e89', '0:0:0:0:0:ffff:1.2.3.4', '2600:1404:6400:1695:0:0:0:') AS "
-             "print_0"},
-            {"print has_any_ipv6('2600:1404:6400:1695:0:0:0:1e89', dynamic(['2600:1404:6400:168a:0:0:0:1e89']))",
-             "SELECT kql_has_any_ipv6('2600:1404:6400:1695:0:0:0:1e89', ['2600:1404:6400:168a:0:0:0:1e89']) AS print_0"},
-            {"print has_any_ipv6_prefix('2600:1404:6400:1695:0:0:0:1e89', dynamic(['2600:1404:6400:168a:0:0:0:1e89']))",
-             "SELECT kql_has_any_ipv6_prefix('2600:1404:6400:1695:0:0:0:1e89', ['2600:1404:6400:168a:0:0:0:1e89']) AS print_0"}})));
+            {
+                "print has_ipv4('127.0.0.1', '127.0.0.1')",
+                "SELECT kql_has_ipv4('127.0.0.1', '127.0.0.1') AS print_0"
+            },
+            {
+                "print has_ipv4_prefix('127.0.0.1', '127.0.0.')",
+                "SELECT kql_has_ipv4_prefix('127.0.0.1', '127.0.0.') AS print_0"
+            },
+            {
+                "print has_any_ipv4('127.0.0.1', '1.2.3.4', '127.0.0.1')",
+                "SELECT kql_has_any_ipv4('127.0.0.1', '1.2.3.4', '127.0.0.1') AS print_0"
+            },
+            {
+                "print has_any_ipv4_prefix('127.0.0.1', '1.2.3.4', '127.0.0.')",
+                "SELECT kql_has_any_ipv4_prefix('127.0.0.1', '1.2.3.4', '127.0.0.') AS print_0"
+            },
+            {
+                "print has_any_ipv4('1.2.3.4', dynamic(['1.2.3.4']))",
+                "SELECT kql_has_any_ipv4('1.2.3.4', ['1.2.3.4']) AS print_0"
+            },
+            {
+                "print has_any_ipv4_prefix('1.2.3.4', dynamic(['1.2.3.4']))",
+                "SELECT kql_has_any_ipv4_prefix('1.2.3.4', ['1.2.3.4']) AS print_0"
+            },
+            {
+                "print has_ipv6('2600:1404:6400:1695:0:0:0:1e89', '2600:1404:6400:1695:0:0:0:1e89')",
+                "SELECT kql_has_ipv6('2600:1404:6400:1695:0:0:0:1e89', '2600:1404:6400:1695:0:0:0:1e89') AS print_0"
+            },
+            {
+                "print has_ipv6_prefix('2600:1404:6400:1695:0:0:0:1e89', '2600:1404:6400:1695:0:0:0:')",
+                "SELECT kql_has_ipv6_prefix('2600:1404:6400:1695:0:0:0:1e89', '2600:1404:6400:1695:0:0:0:') AS print_0"
+            },
+            {
+                "print has_any_ipv6('2600:1404:6400:1695:0:0:0:1e89', '0:0:0:0:0:ffff:1.2.3.4', '2600:1404:6400:1695:0:0:0:1e89')",
+                "SELECT kql_has_any_ipv6('2600:1404:6400:1695:0:0:0:1e89', '0:0:0:0:0:ffff:1.2.3.4', '2600:1404:6400:1695:0:0:0:1e89') AS print_0"
+            },
+            {
+                "print has_any_ipv6_prefix('2600:1404:6400:1695:0:0:0:1e89', '0:0:0:0:0:ffff:1.2.3.4', '2600:1404:6400:1695:0:0:0:')",
+                "SELECT kql_has_any_ipv6_prefix('2600:1404:6400:1695:0:0:0:1e89', '0:0:0:0:0:ffff:1.2.3.4', '2600:1404:6400:1695:0:0:0:') AS print_0"
+            },
+            {
+                "print has_any_ipv6('2600:1404:6400:1695:0:0:0:1e89', dynamic(['2600:1404:6400:168a:0:0:0:1e89']))",
+                "SELECT kql_has_any_ipv6('2600:1404:6400:1695:0:0:0:1e89', ['2600:1404:6400:168a:0:0:0:1e89']) AS print_0"
+            },
+            {
+                "print has_any_ipv6_prefix('2600:1404:6400:1695:0:0:0:1e89', dynamic(['2600:1404:6400:168a:0:0:0:1e89']))",
+                "SELECT kql_has_any_ipv6_prefix('2600:1404:6400:1695:0:0:0:1e89', ['2600:1404:6400:168a:0:0:0:1e89']) AS print_0"
+            }
+})));
