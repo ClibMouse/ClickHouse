@@ -42,3 +42,15 @@ string
 int
 dynamic
 datetime
+-- toscalar #1 --
+5	5asd
+-- toscalar #2 --
+1
+3
+5
+7
+9
+-- toscalar #3 --
+2
+-- toscalar #4 --
+1
