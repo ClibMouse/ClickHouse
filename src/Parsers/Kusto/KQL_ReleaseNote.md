@@ -18,6 +18,12 @@
    `print has_ipv4_prefix('10:00:00 192.168.1.1 GET /index.html 404', '192.168.')`
 - [has_any_ipv4_prefix()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/has-any-ipv4-prefix-function)
    `print has_any_ipv4_prefix('10:00:00 192.168.1.1 GET /index.html 404', '127.', '192.168.1.')`
+- [hash()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/hashfunction)
+   `print hash('World')`
+   Note: ClickHouse will attempt to fit a number within the smallest data type possible. As a result
+   Int32 data types not cast with KQL int() may not match ADX results.
+- [hash_sha256()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sha256hashfunction)
+   `print hash_sha256('World')`
 - [string_size()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/stringsizefunction.md)
    `print string_size('⒦⒰⒮⒯⒪')`
 - [to_utf8()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/toutf8function.md)
@@ -128,12 +134,6 @@
 - [exp10()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/exp10-function)
    `print exp10(3)`
 - [gamma()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/gammafunction)
-- [hash()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/hashfunction)
-   `print hash('World')`
-Note: ClickHouse will attempt to fit a number within the smallest data type possible. As a result
-Int32 data types not cast with KQL int() may not match ADX results.
-- [hash_sha256()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sha256hashfunction)
-   `print hash_sha256('World')`
 - [isfinite()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/isfinitefunction)
    `print isfinite(1.0/0.0)`
 - [isinf()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/isinffunction)
