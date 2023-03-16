@@ -94,8 +94,8 @@ static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePt
         return ipv6ToHex(str, result_type, context);
     }
 
-    if (std::ranges::any_of(vec_v6, [](const auto & x) { return x > 65535; })
-        || std::ranges::any_of(vec_v4, [](const auto & x) { return x > 255; }))
+    if (std::ranges::any_of(vec_v6, [](const auto & x) { return x > std::numeric_limits<uint16_t>::max(); })
+        || std::ranges::any_of(vec_v4, [](const auto & x) { return x > std::numeric_limits<uint8_t>::max(); }))
     {
         return "";
     }
