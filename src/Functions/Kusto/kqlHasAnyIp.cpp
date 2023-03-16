@@ -99,7 +99,7 @@ public:
 
                 source = matches.suffix().str();
             }
-            result_column.push_back(UInt8(res));
+            result_column.push_back(static_cast<UInt8>(res));
         }
         return result;
     }
