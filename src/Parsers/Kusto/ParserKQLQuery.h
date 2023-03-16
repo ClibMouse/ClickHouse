@@ -13,10 +13,16 @@ public:
     static String getExprFromToken(Pos & pos);
     static String getExprFromToken(const String & text, const uint32_t max_depth);
     static String getExprFromPipe(Pos & pos);
-    static bool setSubQuerySource(ASTPtr & select_query, ASTPtr & source, const bool dest_is_subquery, const bool src_is_subquery, const String alias = "", const int32_t table_index = 0);
+    static bool setSubQuerySource(
+        ASTPtr & select_query,
+        ASTPtr & source,
+        const bool dest_is_subquery,
+        const bool src_is_subquery,
+        const String alias = "",
+        const int32_t table_index = 0);
     static bool parseSQLQueryByString(ParserPtr && parser, String & query, ASTPtr & select_node, int32_t max_depth);
     bool parseByString(const String expr, ASTPtr & node, const uint32_t max_depth);
-    virtual bool updatePipeLine (OperationsPos & /*operations*/, String & /*query*/) {return false;}
+    virtual bool updatePipeLine(OperationsPos & /*operations*/, String & /*query*/) { return false; }
 };
 
 class ParserKQLQuery : public IParserBase
@@ -31,6 +37,7 @@ public:
         int8_t backspace_steps; // how many steps to last token of previous pipe
     };
     static bool getOperations(Pos & pos, Expected & expected, OperationsPos & operation_pos);
+
 protected:
     static std::unique_ptr<ParserKQLBase> getOperator(std::string_view op_name);
     static bool pre_process(String & source, Pos & pos);
@@ -49,10 +56,32 @@ protected:
 class ParserSimpleCHSubquery : public ParserKQLBase
 {
 public:
-    ParserSimpleCHSubquery(ASTPtr parent_select_node_ = nullptr) {parent_select_node = parent_select_node_;}
+    ParserSimpleCHSubquery(ASTPtr parent_select_node_ = nullptr) { parent_select_node = parent_select_node_; }
+
 protected:
     const char * getName() const override { return "Simple ClickHouse subquery"; }
     bool parseImpl(Pos & pos, ASTPtr & node, Expected & expected) override;
     ASTPtr parent_select_node;
+};
+
+class BracketCount
+{
+public:
+    void count(IParser::Pos & pos)
+    {
+        if (pos->type == TokenType::OpeningRoundBracket)
+            ++round_bracket_count;
+        if (pos->type == TokenType::ClosingRoundBracket)
+            --round_bracket_count;
+        if (pos->type == TokenType::OpeningSquareBracket)
+            ++square_bracket_count;
+        if (pos->type == TokenType::ClosingSquareBracket)
+            --square_bracket_count;
+    }
+    bool isZero() const { return round_bracket_count == 0 && square_bracket_count == 0; }
+
+private:
+    int16_t round_bracket_count = 0;
+    int16_t square_bracket_count = 0;
 };
 }
