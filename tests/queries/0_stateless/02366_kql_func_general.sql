@@ -1,3 +1,16 @@
+-- let Customers = datatable (FirstName:string, LastName:string, Occupation:string, Education:string, Age:int) [
+--     'Theodore', 'Diaz', 'Skilled Manual', 'Bachelors', 28,
+--     'Stephanie', 'Cox', 'Management', 'Bachelors', 33,
+--     'Peter', 'Nara', 'Skilled Manual', 'Graduate Degree', 26,
+--     'Latoya', 'Shen', 'Professional', 'Graduate Degree', 25,
+--     'Joshua', 'Lee', 'Professional', 'Partial College', 26,
+--     'Edward', 'Hernandez', 'Skilled Manual', 'High School', 36,
+--     'Dalton', 'Wood', 'Professional', 'Partial College', 42,
+--     'Christine', 'Nara', 'Skilled Manual', 'Partial College', 33,
+--     'Cameron', 'Rodriguez', 'Professional', 'Partial College', 28,
+--     'Angel', 'Stewart', 'Professional', 'Partial College', 46
+-- ];
+
 DROP TABLE IF EXISTS Customers;
 CREATE TABLE Customers
 (    
@@ -61,3 +74,11 @@ print '-- toscalar #3 --';
 range x from 1 to 2 step 1 | extend x=toscalar(print new_guid()), y=new_guid() | count;
 print '-- toscalar #4 --';
 range x from 1 to 2 step 1 | extend x=toscalar(new_guid()), y=new_guid() | distinct x | count;
+print '-- toscalar #5 --';
+Customers | where FirstName == toscalar(Customers | where Age > 30 | order by Age asc, FirstName);
+print '-- toscalar #6 --';
+Customers | order by Age | limit toscalar(Customers | where Age == 33 | count);
+print '-- toscalar #7 --';
+Customers | where Age == toscalar(print 33, 'asd') | count;
+print '-- toscalar #8 --';
+Customers | limit toscalar(Customers | where Age > toscalar(toscalar(print 5, 'asd')) | count) | count;
