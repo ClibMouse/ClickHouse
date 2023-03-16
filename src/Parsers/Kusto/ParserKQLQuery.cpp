@@ -224,12 +224,10 @@ String ParserKQLBase::getExprFromPipe(Pos & pos)
 
 String ParserKQLBase::getExprFromToken(Pos & pos)
 {
-    String res;
     std::vector<Pos> comma_pos;
-    std::vector<String> columns;
-    size_t paren_count = 0;
-
     comma_pos.push_back(pos);
+
+    size_t paren_count = 0;
     while (!pos->isEnd() && pos->type != TokenType::Semicolon)
     {
         if (pos->type == TokenType::PipeMark && paren_count == 0)
@@ -249,6 +247,7 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
         ++pos;
     }
 
+    std::vector<String> columns;
     auto set_columns = [&](Pos & start_pos, Pos & end_pos)
     {
         bool has_alias = false;
@@ -271,6 +270,7 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
                         throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid equal symbol (=)");
                     has_alias = true;
                 }
+
                 --it_pos;
                 equal_pos = it_pos;
             }
@@ -299,7 +299,7 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
             ++columms_start_pos;
         }
 
-        for (auto const & token : tokens)
+        for (const auto & token : tokens)
             column_str = column_str.empty() ? token : column_str + " " + token;
 
         if (has_alias)
@@ -374,6 +374,7 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
         }
     }
 
+    String res;
     for (const auto & token : columns)
         res = res.empty() ? token : res + "," + token;
     return res;
