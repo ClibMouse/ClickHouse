@@ -25,6 +25,16 @@ insert into StormEventsLite select 'strong wind' from numbers(10000);
 insert into StormEventsLite select 'iddqd Strong wind iddqd' from numbers(10000);
 insert into StormEventsLite select 'iddqd Strong Wind iddqd' from numbers(10000);
 
+DROP TABLE IF EXISTS TableWithVariousDataTypes;
+CREATE TABLE TableWithVariousDataTypes
+(
+    Name String,
+    Age Nullable(UInt8),
+    Height Float64,
+    JoinDate DateTime64
+) engine = Memory;
+
+INSERT INTO TableWithVariousDataTypes VALUES ('A', 12, 5.2, '2020-01-01'), ('B', 22, 7.2, '2020-01-02'), ('C', 32, 9.3, '2021-12-31');
 -- explain indexes = 1 select count(*) from StormEventsLite where hasToken(EventType, 'strong');
 
 select '-- #1 --' ;
@@ -94,5 +104,17 @@ select * from kql(StormEventsLite | where EventType has_cs 'Strong Wind' | count
 select * from kql(StormEventsLite | where EventType !has_cs 'iddqd' | count);
 select * from kql(StormEventsLite | where EventType has_all ('iddqd', 'string') | count);
 select * from kql(StormEventsLite | where EventType has_any ('iddqd', 'string') | count);
+select '-- operator between, !between --';
+select * from kql(TableWithVariousDataTypes | project Age | where Age between (10 .. 12));
+select * from kql(TableWithVariousDataTypes | project Age | where Age !between (10 .. 30));
+select * from kql(TableWithVariousDataTypes | project Height | where Height between (5.2 .. 6.6));
+select * from kql(TableWithVariousDataTypes | project Height | where Height !between (5.3 .. 7.6));
+select * from kql(TableWithVariousDataTypes | project JoinDate | where todatetime(JoinDate) between (datetime('2020-01-01') .. 2d));
+select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate !between (datetime('2020-01-01') .. 2d));
+select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate between (datetime('2020-06-30') .. datetime('2025-06-30')));
+select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate !between (datetime('2020-06-30') .. datetime('2025-06-30')));
+select * from kql(TableWithVariousDataTypes | project Age | where Age between (10 .. 12) or Age > 30);
+select * from kql(TableWithVariousDataTypes | project Age | where Age between (10 .. 12) or Age between (30 .. 50));
 DROP TABLE IF EXISTS Customers;
 drop table if exists StormEventsLite;
+DROP TABLE IF EXISTS TableWithVariousDataTypes;
