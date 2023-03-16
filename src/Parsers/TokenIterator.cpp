@@ -22,7 +22,9 @@ Tokens::Tokens(const char * begin, const char * end, size_t max_query_size, bool
 UnmatchedParentheses checkUnmatchedParentheses(TokenIterator begin)
 {
     std::unordered_set<String> valid_kql_negative_suffix(
-        {"contains",
+        {
+         "between",
+         "contains",
          "contains_cs",
          "endswith",
          "endswith_cs",
