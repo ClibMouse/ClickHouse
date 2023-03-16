@@ -22,18 +22,18 @@
 #include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/Kusto/ParserKQLPrint.h>
 #include <Parsers/Kusto/ParserKQLProject.h>
+#include <Parsers/Kusto/ParserKQLProjectAway.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
+#include <Parsers/Kusto/ParserKQLRange.h>
 #include <Parsers/Kusto/ParserKQLSort.h>
 #include <Parsers/Kusto/ParserKQLStatement.h>
 #include <Parsers/Kusto/ParserKQLSummarize.h>
 #include <Parsers/Kusto/ParserKQLTable.h>
 #include <Parsers/Kusto/ParserKQLTop.h>
 #include <Parsers/Kusto/ParserKQLTopHitter.h>
+#include <Parsers/Kusto/ParserKQLTopNested.h>
 #include <Parsers/ParserSelectWithUnionQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
-#include <Parsers/Kusto/ParserKQLTopNested.h>
-#include <Parsers/Kusto/ParserKQLRange.h>
-#include <Parsers/Kusto/ParserKQLProjectAway.h>
 #include <format>
 
 namespace DB
@@ -258,12 +258,14 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
         if (String(it_pos->begin, it_pos->end) == "=")
             throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid equal symbol (=)");
 
+        BracketCount bracket_count;
         while (it_pos < end_pos)
         {
+            bracket_count.count(it_pos);
             if (String(it_pos->begin, it_pos->end) == "=")
             {
                 ++it_pos;
-                if (String(it_pos->begin, it_pos->end) != "~")
+                if (String(it_pos->begin, it_pos->end) != "~" && bracket_count.isZero())
                 {
                     if (has_alias)
                         throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid equal symbol (=)");
