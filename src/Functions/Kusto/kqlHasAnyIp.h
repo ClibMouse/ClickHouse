@@ -99,17 +99,17 @@ static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePt
         return "";
     }
     auto ipv6_hex = std::accumulate(
-        std::next(vec_v6.begin()),
-        vec_v6.end(),
-        std::format("{:04X}", vec_v6.front()),
-        [](const auto & x, const auto & y) { return x + std::format("{:04X}", y); });
+        vec_v6.cbegin(),
+        vec_v6.cend(),
+        std::string(),
+        [](const auto & x, const auto & y) { return std::move(x) + std::format("{:04X}", y); });
     if (!vec_v4.empty())
     {
         ipv6_hex += std::accumulate(
-            std::next(vec_v4.begin()),
-            vec_v4.end(),
-            std::format("{:02X}", vec_v4.front()),
-            [](const std::string & x, const auto & y) { return x + std::format("{:02X}", y); });
+            vec_v4.cbegin(),
+            vec_v4.cend(),
+            std::string(),
+            [](const std::string & x, const auto & y) { return std::move(x) + std::format("{:02X}", y); });
     }
     return ipv6_hex;
 }
