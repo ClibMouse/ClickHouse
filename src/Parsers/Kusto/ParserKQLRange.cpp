@@ -17,9 +17,14 @@ bool ParserKQLRange::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expected*/
     String column_name, start, stop, step;
     auto start_pos = pos;
     auto end_pos = pos;
-    while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    BracketCount bracket_count;
+    while (!pos->isEnd())
     {
-        if (String(pos->begin, pos->end) == "from")
+        bracket_count.count(pos);
+        if ((pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon) && bracket_count.isZero())
+            break;
+
+        if (String(pos->begin, pos->end) == "from" && bracket_count.isZero())
         {
             end_pos = pos;
             --end_pos;
@@ -30,7 +35,7 @@ bool ParserKQLRange::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expected*/
             start_pos = pos;
             ++start_pos;
         }
-        if (String(pos->begin, pos->end) == "to")
+        if (String(pos->begin, pos->end) == "to" && bracket_count.isZero())
         {
             if (column_name.empty())
                 throw Exception(ErrorCodes::SYNTAX_ERROR, "Missing `from` for range operator");
@@ -42,7 +47,7 @@ bool ParserKQLRange::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expected*/
             start_pos = pos;
             ++start_pos;
         }
-        if (String(pos->begin, pos->end) == "step")
+        if (String(pos->begin, pos->end) == "step" && bracket_count.isZero())
         {
             if (column_name.empty())
                 throw Exception(ErrorCodes::SYNTAX_ERROR, "Missing `from` for range operator");

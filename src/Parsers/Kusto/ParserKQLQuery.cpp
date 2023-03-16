@@ -22,18 +22,18 @@
 #include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/Kusto/ParserKQLPrint.h>
 #include <Parsers/Kusto/ParserKQLProject.h>
+#include <Parsers/Kusto/ParserKQLProjectAway.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
+#include <Parsers/Kusto/ParserKQLRange.h>
 #include <Parsers/Kusto/ParserKQLSort.h>
 #include <Parsers/Kusto/ParserKQLStatement.h>
 #include <Parsers/Kusto/ParserKQLSummarize.h>
 #include <Parsers/Kusto/ParserKQLTable.h>
 #include <Parsers/Kusto/ParserKQLTop.h>
 #include <Parsers/Kusto/ParserKQLTopHitter.h>
+#include <Parsers/Kusto/ParserKQLTopNested.h>
 #include <Parsers/ParserSelectWithUnionQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
-#include <Parsers/Kusto/ParserKQLTopNested.h>
-#include <Parsers/Kusto/ParserKQLRange.h>
-#include <Parsers/Kusto/ParserKQLProjectAway.h>
 #include <format>
 
 namespace DB
