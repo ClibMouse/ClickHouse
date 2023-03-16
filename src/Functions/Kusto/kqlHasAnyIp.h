@@ -56,9 +56,7 @@ static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePt
 {
     std::vector<uint32_t> vec_v6;
     std::vector<uint32_t> vec_v4;
-    const auto last_char = str.back();
-
-    if (last_char == ':')
+    if (const auto & last_char = str.back(); last_char == ':')
     {
         const auto ipv6 = boost::spirit::x3::hex % ':';
         const auto r = boost::spirit::x3::parse(str.begin(), str.end(), ipv6, vec_v6);
