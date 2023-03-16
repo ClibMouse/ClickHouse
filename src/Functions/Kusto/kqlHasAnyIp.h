@@ -69,8 +69,7 @@ static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePt
     }
     else if (last_char == '.')
     {
-        const auto ipv6_prefix = boost::spirit::x3::hex >> ':' >> boost::spirit::x3::hex >> ':' >> boost::spirit::x3::hex >> ':'
-            >> boost::spirit::x3::hex >> ':' >> boost::spirit::x3::hex >> ':' >> boost::spirit::x3::hex >> ':';
+        const auto ipv6_prefix = boost::spirit::x3::repeat(6)[boost::spirit::x3::hex >> ':'];
         const auto ipv4_embedded = boost::spirit::x3::uint_ % '.';
 
         auto iter = str.begin();
