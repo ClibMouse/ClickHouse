@@ -54,7 +54,6 @@ static std::string ipv6ToHex(const std::string & str, const DB::DataTypePtr & re
 
 static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePtr & result_type, const DB::ContextPtr & context)
 {
-    std::string ipv6_hex = "";
     std::vector<uint32_t> vec_v6;
     std::vector<uint32_t> vec_v4;
     const auto last_char = str.back();
@@ -100,24 +99,19 @@ static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePt
     {
         return "";
     }
-
-    std::all_of(
-        vec_v6.begin(),
+    auto ipv6_hex = std::accumulate(
+        std::next(vec_v6.begin()),
         vec_v6.end(),
-        [&ipv6_hex](const auto & n)
-        {
-            ipv6_hex += std::format("{:04X}", n);
-            return 1;
-        });
-    std::all_of(
-        vec_v4.begin(),
-        vec_v4.end(),
-        [&ipv6_hex](const auto & n)
-        {
-            ipv6_hex += std::format("{:02X}", n);
-            return 1;
-        });
-
+        std::format("{:04X}", vec_v6.front()),
+        [](const auto & x, const auto & y) { return x + std::format("{:04X}", y); });
+    if (!vec_v4.empty())
+    {
+        ipv6_hex += std::accumulate(
+            std::next(vec_v4.begin()),
+            vec_v4.end(),
+            std::format("{:02X}", vec_v4.front()),
+            [](const std::string & x, const auto & y) { return x + std::format("{:02X}", y); });
+    }
     return ipv6_hex;
 }
 
@@ -206,7 +200,7 @@ static std::vector<std::string> extractIpsFromArguments(
                 else
                 {
                     const auto ipv6_string = search_type == SearchType::IPv6_Prefix ? ipv6PrefixToHex(toString(value), result_type, context)
-                                                                                 : ipv6ToHex(toString(value), result_type, context);
+                                                                                    : ipv6ToHex(toString(value), result_type, context);
                     if (!ipv6_string.empty())
                     {
                         ips.push_back(ipv6_string);
