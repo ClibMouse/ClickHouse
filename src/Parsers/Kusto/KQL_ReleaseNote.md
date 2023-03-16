@@ -1,5 +1,5 @@
 ## KQL implemented features  
-# March XX, 2023
+# March 15, 2023
 ## Feature
  - KQL - improve timespan textual representation in the CLI
    The textual representation of `timespan` will now be identical to ADX, whenever the `dialect` setting is `kusto` or `kusto_auto`. The internal representation shall remain unchanged as `IntervalNanosecond`. In essence, any `Interval` type will also be represented this way even when running regular SQL queries as long as the `dialect` option is `kusto_auto`.
@@ -45,9 +45,8 @@
   print has_any_ipv6_prefix('09:46:00 2600:1404:6400:1695::1e89', '0:0:0:0:0:ffff:127.', '2600:1404:6400:1695:')
   ```
 
-# February XX, 2023
+# February 28, 2023
 ## Operator
-
 - [project-away](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/projectawayoperator)
     ```
     print '1-- remove one column';
@@ -103,6 +102,7 @@
 - todecimal() doesn't work with column arguments (1413)
 - extract_json value cast to boolean causes exception (1490)
 - [isempty() and isnotempty() not accepting non-quoted strings]
+
 ## Functions
 - [abs()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/abs-function)
    `print abs(-5)`
@@ -170,7 +170,8 @@
 Supports simple keys only. Do not suppoer RANGE_HASHED keys.)
    `print lookup('dictionary_table', 'value', '1')`
    `print lookup('dictionary_table', 'value', '100', 'default')`
-# January XX, 2023
+
+# January 26, 2023
 ## Functions
 - [range()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/rangefunction)  
 Difference from ADX:  
