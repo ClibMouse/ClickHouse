@@ -58,9 +58,11 @@ static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePt
     std::vector<uint32_t> vec_v4;
     if (const auto & last_char = str.back(); last_char == ':')
     {
-        const auto ipv6 = boost::spirit::x3::hex % ':';
-        const auto r = boost::spirit::x3::parse(str.begin(), str.end(), ipv6, vec_v6);
-        if (!r || vec_v6.empty() || vec_v6.size() > 7)
+        auto iter = str.begin();
+        auto iter_end = str.end();
+        const auto ipv6 = boost::spirit::x3::hex % ':' >> ':';
+        const auto r = boost::spirit::x3::parse(iter, iter_end, ipv6, vec_v6);
+        if (!r || iter != iter_end || vec_v6.empty() || vec_v6.size() > 7)
         {
             return "";
         }
