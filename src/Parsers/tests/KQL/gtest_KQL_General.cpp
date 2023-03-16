@@ -85,5 +85,9 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_General, ParserTest,
         {
             "Customers | project t = gettype(FirstName)",
             "SELECT kql_gettype(FirstName) AS t\nFROM Customers"
+        },
+        {
+            "print x = 5 | extend a = toscalar(print 5, 'asd' | project y = strcat(print_0, print_1));",
+            "SELECT\n    * EXCEPT a,\n    (\n        SELECT tuple(*)\n        FROM\n        (\n            SELECT concat(ifNull(kql_tostring(print_0), ''), ifNull(kql_tostring(print_1), ''), '') AS y\n            FROM\n            (\n                SELECT\n                    5 AS print_0,\n                    'asd' AS print_1\n            )\n        )\n        LIMIT 1\n    ).1 AS a\nFROM\n(\n    SELECT 5 AS x\n)"
         }
 })));
