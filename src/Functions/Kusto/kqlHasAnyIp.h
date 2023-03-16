@@ -37,7 +37,7 @@ enum class SearchType
     IPv4_Prefix
 };
 
-static std::string ipv6ToHex(const std::string & str, const DB::DataTypePtr & result_type, const DB::ContextPtr & context)
+static std::optional<std::string> ipv6ToHex(const std::string & str, const DB::DataTypePtr & result_type, const DB::ContextPtr & context)
 {
     const DB::ColumnsWithTypeAndName ipv6_string = {DB::createConstColumnWithTypeAndName<DB::DataTypeString>(str, "ipv6")};
     const auto is_ipv6
@@ -49,10 +49,10 @@ static std::string ipv6ToHex(const std::string & str, const DB::DataTypePtr & re
         const auto [hex_string, _] = DB::executeFunctionCall(context, "hex", hex_args, 1);
         return hex_string->getDataAt(0).toString();
     }
-    return "";
+    return std::nullopt;
 }
 
-static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePtr & result_type, const DB::ContextPtr & context)
+static std::optional<std::string> ipv6PrefixToHex(const std::string & str, const DB::DataTypePtr & result_type, const DB::ContextPtr & context)
 {
     std::vector<uint32_t> vec_v6;
     std::vector<uint32_t> vec_v4;
@@ -64,7 +64,7 @@ static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePt
         const auto r = boost::spirit::x3::parse(iter, iter_end, ipv6, vec_v6);
         if (!r || iter != iter_end || vec_v6.empty() || vec_v6.size() > 7)
         {
-            return "";
+            return std::nullopt;
         }
     }
     else if (last_char == '.')
@@ -78,7 +78,7 @@ static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePt
         auto r = boost::spirit::x3::parse(iter, iter_end, ipv4_embedded, result);
         if (!r || iter != iter_end || result.size() < 7 || result.size() > 9)
         {
-            return "";
+            return std::nullopt;
         }
         std::copy(result.cbegin(), result.cbegin() + 6, std::back_inserter(vec_v6));
         std::copy(result.cbegin() + 6, result.cend(), std::back_inserter(vec_v4));
@@ -91,7 +91,7 @@ static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePt
     if (std::ranges::any_of(vec_v6, [](const auto & x) { return x > std::numeric_limits<uint16_t>::max(); })
         || std::ranges::any_of(vec_v4, [](const auto & x) { return x > std::numeric_limits<uint8_t>::max(); }))
     {
-        return "";
+        return std::nullopt;
     }
     auto ipv6_hex = std::accumulate(
         vec_v6.cbegin(),
@@ -129,11 +129,11 @@ static std::vector<std::string> extractIpsFromArguments(
                     {
                         if (search_type == SearchType::IPv6_Prefix)
                         {
-                            return ipv6PrefixToHex(arg.column->getDataAt(row).toString(), result_type, context);
+                            return ipv6PrefixToHex(arg.column->getDataAt(row).toString(), result_type, context).value_or("");
                         }
                         else if (search_type == SearchType::IPv6)
                         {
-                            return ipv6ToHex(arg.column->getDataAt(row).toString(), result_type, context);
+                            return ipv6ToHex(arg.column->getDataAt(row).toString(), result_type, context).value_or("");
                         }
                         else
                         {
@@ -193,8 +193,8 @@ static std::vector<std::string> extractIpsFromArguments(
                 }
                 else
                 {
-                    const auto ipv6_string = search_type == SearchType::IPv6_Prefix ? ipv6PrefixToHex(toString(value), result_type, context)
-                                                                                    : ipv6ToHex(toString(value), result_type, context);
+                    const auto ipv6_string = search_type == SearchType::IPv6_Prefix ? ipv6PrefixToHex(toString(value), result_type, context).value_or("")
+                                                                                    : ipv6ToHex(toString(value), result_type, context).value_or("");
                     if (!ipv6_string.empty())
                     {
                         ips.push_back(ipv6_string);
