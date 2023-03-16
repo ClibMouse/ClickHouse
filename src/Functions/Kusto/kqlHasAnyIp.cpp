@@ -25,7 +25,7 @@ public:
 
     String getName() const override { return name; }
     size_t getNumberOfArguments() const override { return ap == ArgumentPolicy::Variadic ? 0 : 2; }
-    bool isVariadic() const override { return ap == ArgumentPolicy::Variadic ? true : false; }
+    bool isVariadic() const override { return ap == ArgumentPolicy::Variadic; }
 
     bool isSuitableForShortCircuitArgumentsExecution(const DataTypesWithConstInfo & /*arguments*/) const override { return false; }
 
