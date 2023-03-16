@@ -3,7 +3,6 @@
 #include <IO/WriteBufferFromString.h>
 #include <Parsers/IAST.h>
 #include <Parsers/Kusto/ParserKQLPrint.h>
-#include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLStatement.h>
 
 #include <format>
