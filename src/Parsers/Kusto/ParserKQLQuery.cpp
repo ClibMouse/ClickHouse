@@ -253,14 +253,18 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
             throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid equal symbol (=)");
 
         BracketCount bracket_count;
-        while (it_pos < end_pos && !has_alias)
+        while (it_pos < end_pos)
         {
             bracket_count.count(it_pos);
             if (String(it_pos->begin, it_pos->end) == "=")
             {
                 ++it_pos;
                 if (String(it_pos->begin, it_pos->end) != "~" && bracket_count.isZero())
+                {
+                    if (has_alias)
+                        throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid equal symbol (=)");
                     has_alias = true;
+                }
 
                 --it_pos;
                 if (equal_pos == start_pos)
