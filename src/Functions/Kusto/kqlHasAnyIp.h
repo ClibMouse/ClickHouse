@@ -60,23 +60,23 @@ static std::optional<std::string> ipv6PrefixToHex(const std::string & str, const
     {
         auto iter = str.cbegin();
         auto iter_end = str.cend();
-        const auto ipv6 = boost::spirit::x3::hex % ':' >> ':';
+        const auto ipv6 = boost::spirit::x3::repeat(1,7)[boost::spirit::x3::hex >> ':'];
         const auto r = boost::spirit::x3::parse(iter, iter_end, ipv6, vec_v6);
-        if (!r || iter != iter_end || vec_v6.empty() || vec_v6.size() > 7)
+        if (!r || iter != iter_end)
         {
             return std::nullopt;
         }
     }
     else if (last_char == '.')
     {
-        const auto ipv4_embedded = boost::spirit::x3::repeat(6)[boost::spirit::x3::hex >> ':'] >> boost::spirit::x3::uint_ % '.' >> '.';
+        const auto ipv4_embedded = boost::spirit::x3::repeat(6)[boost::spirit::x3::hex >> ':'] >> boost::spirit::x3::repeat(1,3)[boost::spirit::x3::uint_ >> '.'];
         std::vector<uint32_t> result;
 
         auto iter = str.begin();
         auto iter_end = str.end();
 
         auto r = boost::spirit::x3::parse(iter, iter_end, ipv4_embedded, result);
-        if (!r || iter != iter_end || result.size() < 7 || result.size() > 9)
+        if (!r || iter != iter_end)
         {
             return std::nullopt;
         }
