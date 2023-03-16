@@ -29,7 +29,7 @@ enum class ArgumentPolicy
     Variadic
 };
 
-enum class TransformType
+enum class SearchType
 {
     IPv6,
     IPv6_Prefix,
@@ -126,7 +126,7 @@ static std::vector<std::string> extractIpsFromArguments(
     const DB::DataTypePtr & result_type,
     const DB::ContextPtr & context,
     size_t row,
-    const TransformType & trans)
+    const SearchType & search_type)
 {
     std::vector<std::string> ips;
     const auto is_ipv4_string = [&, result_type](const DB::ColumnsWithTypeAndName & args)
@@ -137,13 +137,13 @@ static std::vector<std::string> extractIpsFromArguments(
         std::ranges::copy_if(
             arguments | std::views::drop(1)
                 | std::views::transform(
-                    [&row, &result_type, &context, &trans](const DB::ColumnWithTypeAndName & arg)
+                    [&row, &result_type, &context, &search_type](const DB::ColumnWithTypeAndName & arg)
                     {
-                        if (trans == TransformType::IPv6_Prefix)
+                        if (search_type == SearchType::IPv6_Prefix)
                         {
                             return ipv6PrefixToHex(arg.column->getDataAt(row).toString(), result_type, context);
                         }
-                        else if (trans == TransformType::IPv6)
+                        else if (search_type == SearchType::IPv6)
                         {
                             return ipv6ToHex(arg.column->getDataAt(row).toString(), result_type, context);
                         }
@@ -153,16 +153,16 @@ static std::vector<std::string> extractIpsFromArguments(
                         }
                     }),
             std::back_inserter(ips),
-            [&is_ipv4_string, &trans](const std::string & arg)
+            [&is_ipv4_string, &search_type](const std::string & arg)
             {
-                if (trans == TransformType::IPv4)
+                if (search_type == SearchType::IPv4)
                 {
                     const DB::ColumnsWithTypeAndName is_ipv4_string_args
                         = {DB::createConstColumnWithTypeAndName<DB::DataTypeString>(arg, "ip")};
                     const auto is_ipv4 = is_ipv4_string(is_ipv4_string_args);
                     return is_ipv4->getUInt(0) == 1;
                 }
-                else if (trans == TransformType::IPv4_Prefix)
+                else if (search_type == SearchType::IPv4_Prefix)
                 {
                     const auto n = std::ranges::count(arg, '.');
                     return n == 3 || (arg.back() == '.' && n <= 2);
@@ -181,7 +181,7 @@ static std::vector<std::string> extractIpsFromArguments(
         {
             if (const auto & value = array0.get<DB::Array>().at(j); value.getType() == DB::Field::Types::String)
             {
-                if (trans == TransformType::IPv4)
+                if (search_type == SearchType::IPv4)
                 {
                     const auto value_as_string = toString(value);
                     const DB::ColumnsWithTypeAndName is_ipv4_string_args
@@ -193,7 +193,7 @@ static std::vector<std::string> extractIpsFromArguments(
                     }
                 }
 
-                else if (trans == TransformType::IPv4_Prefix)
+                else if (search_type == SearchType::IPv4_Prefix)
                 {
                     const auto value_as_string = toString(value);
 
@@ -205,7 +205,7 @@ static std::vector<std::string> extractIpsFromArguments(
                 }
                 else
                 {
-                    const auto ipv6_string = trans == TransformType::IPv6_Prefix ? ipv6PrefixToHex(toString(value), result_type, context)
+                    const auto ipv6_string = search_type == SearchType::IPv6_Prefix ? ipv6PrefixToHex(toString(value), result_type, context)
                                                                                  : ipv6ToHex(toString(value), result_type, context);
                     if (!ipv6_string.empty())
                     {
