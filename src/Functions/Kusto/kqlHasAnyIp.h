@@ -58,8 +58,8 @@ static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePt
     std::vector<uint32_t> vec_v4;
     if (const auto & last_char = str.back(); last_char == ':')
     {
-        auto iter = str.begin();
-        auto iter_end = str.end();
+        auto iter = str.cbegin();
+        auto iter_end = str.cend();
         const auto ipv6 = boost::spirit::x3::hex % ':' >> ':';
         const auto r = boost::spirit::x3::parse(iter, iter_end, ipv6, vec_v6);
         if (!r || iter != iter_end || vec_v6.empty() || vec_v6.size() > 7)
@@ -69,24 +69,19 @@ static std::string ipv6PrefixToHex(const std::string & str, const DB::DataTypePt
     }
     else if (last_char == '.')
     {
-        const auto ipv6_prefix = boost::spirit::x3::repeat(6)[boost::spirit::x3::hex >> ':'];
-        const auto ipv4_embedded = boost::spirit::x3::uint_ % '.';
+        const auto ipv4_embedded = boost::spirit::x3::repeat(6)[boost::spirit::x3::hex >> ':'] >> boost::spirit::x3::uint_ % '.' >> '.';
+        std::vector<uint32_t> result;
 
         auto iter = str.begin();
         auto iter_end = str.end();
 
-        auto r = boost::spirit::x3::parse(iter, iter_end, ipv6_prefix, vec_v6);
-        if (!r || vec_v6.empty() || vec_v6.size() != 6)
+        auto r = boost::spirit::x3::parse(iter, iter_end, ipv4_embedded, result);
+        if (!r || iter != iter_end || result.size() < 7 || result.size() > 9)
         {
             return "";
         }
-
-        r = boost::spirit::x3::parse(iter, iter_end, ipv4_embedded, vec_v4);
-
-        if (!r || vec_v4.empty() || vec_v4.size() >= 4)
-        {
-            return "";
-        }
+        std::copy(result.cbegin(), result.cbegin() + 6, std::back_inserter(vec_v6));
+        std::copy(result.cbegin() + 6, result.cend(), std::back_inserter(vec_v4));
     }
     else
     {
