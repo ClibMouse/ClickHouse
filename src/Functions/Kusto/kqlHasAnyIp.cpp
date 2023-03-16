@@ -83,7 +83,7 @@ public:
                 }
                 else
                 {
-                    const auto m = ipv6ToHex(matches[2].str(), result_type, context);
+                    const auto m = ipv6ToHex(matches[2].str(), result_type, context).value_or("");
 
                     if (search == SearchType::IPv6)
                     {
