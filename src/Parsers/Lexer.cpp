@@ -83,10 +83,6 @@ Token Lexer::nextToken()
     Token res = nextTokenImpl();
     if (max_query_size && res.end > begin + max_query_size)
         res.type = TokenType::ErrorMaxQuerySizeExceeded;
-
-    /*if (prev_significant_token_type == TokenType::Dot && res.type == TokenType::Dot) //for KQL between function
-        prev_significant_token_type = TokenType::Whitespace;
-    else*/ 
     if (res.isSignificant())
         prev_significant_token_type = res.type;
     return res;
