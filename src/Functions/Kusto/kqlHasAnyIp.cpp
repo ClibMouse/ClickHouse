@@ -321,7 +321,7 @@ struct HasAnyIpv6Prefix
 
         return std::ranges::any_of(
             ips,
-            [&m](const std::string & str) -> bool { return std::memcmp(str.c_str(), m.c_str(), std::min(str.size(), m.size())) == 0; });
+            [&m](const std::string & str) { return std::memcmp(str.c_str(), m.c_str(), std::min(str.size(), m.size())) == 0; });
     }
 };
 
