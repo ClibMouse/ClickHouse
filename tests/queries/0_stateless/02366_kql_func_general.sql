@@ -82,3 +82,10 @@ print '-- toscalar #7 --';
 Customers | where Age == toscalar(print 33, 'asd') | count;
 print '-- toscalar #8 --';
 Customers | limit toscalar(Customers | where Age > toscalar(toscalar(print 5, 'asd')) | count) | count;
+
+print '-- not --';
+print t = not(1);
+print t = not(false);
+print t = not(strlen('abc'));
+print t = not(1.1); -- result differs from ADX
+Customers | project not(Age);
