@@ -1,5 +1,22 @@
 ## KQL implemented features  
 # March XX, 2023
+## Functions
+- [hash()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/hashfunction)
+   `print hash('World')`
+   Note: ClickHouse will attempt to fit a number within the smallest data type possible. As a result
+   Int32 data types not cast with KQL int() may not match ADX results.
+- [hash_sha256()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sha256hashfunction)
+   `print hash_sha256('World')`
+
+## Special Functions
+- [toscalar](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/toscalarfunction)
+   `range z from toscalar(print x=1) to toscalar(range x from 1 to 9 step 1 | count) step toscalar(2);`
+
+# March 15, 2023
+## Feature
+ - KQL - improve timespan textual representation in the CLI
+   The textual representation of `timespan` will now be identical to ADX, whenever the `dialect` setting is `kusto` or `kusto_auto`. The internal representation shall remain unchanged as `IntervalNanosecond`. In essence, any `Interval` type will also be represented this way even when running regular SQL queries as long as the `dialect` option is `kusto_auto`.
+   `print a = timespan(2d), b = timespan(4h), c = timespan(8m), d = timespan(16s), e = timespan(123millis), f = timespan(456micros), g = timespan(789nanos) | extend x = a + b + c + d + e + f + g;`
 ## Operator
 - [getschema](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/getschemaoperator)
    `print x = 'asd' | extend strlen(x) | getschema`
@@ -20,6 +37,7 @@
    `print arr = to_utf8('⒦⒰⒮⒯⒪')`
 - [new_guid()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/newguidfunction.md)
    `print g = new_guid()`
+
 - has_ipv6()
   `Note: Not part of Microsoft's Kusto. Functions similar to has_ipv4()`
   `print has_ipv6('09:46:00 2600:1404:6400:1695::1e89 GET /favicon.ico 404', '2600:1404:6400:1695::1e89')`
@@ -42,6 +60,12 @@
 # February XX, 2023
 ## Operator
 
+- [gettype()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/gettypefunction)
+   `print t = gettype(1)`
+
+
+# February 28, 2023
+## Operator
 - [project-away](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/projectawayoperator)
     ```
     print '1-- remove one column';
@@ -97,24 +121,25 @@
 - todecimal() doesn't work with column arguments (1413)
 - extract_json value cast to boolean causes exception (1490)
 - [isempty() and isnotempty() not accepting non-quoted strings]
+
 ## Functions
 - [abs()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/abs-function)
    `print abs(-5)`
 - [acos()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/acosfunction)
 - [asin()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/asinfunction)
-    print asin(0.5)
+   `print asin(0.5)`
 - [atan()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/atanfunction)
-    print atan(0.5)
+   `print atan(0.5)`
 - [atan2()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/atan2function)
-    print atan2(1,1)
+   `print atan2(1,1)`
 - [ceiling()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/ceilingfunction)
    `print c1 = ceiling(-1.1), c2 = ceiling(0), c3 = ceiling(0.9)`
 - [cos()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/cosfunction)
-    print cos(1)
+   `print cos(1)`
 - [cot()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/cotfunction)
-    print cot(1)
+   `print cot(1)`
 - [degrees()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/degreesfunction)
-    print degrees(pi()/4)
+   `print degrees(pi()/4)`
 - [exp()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/exp-function)
    `print exp(2)`
 - [exp2()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/exp2-function)
@@ -123,9 +148,9 @@
    `print exp10(3)`
 - [gamma()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/gammafunction)
 - [isfinite()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/isfinitefunction)
-    print isfinite(1.0/0.0)
+   `print isfinite(1.0/0.0)`
 - [isinf()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/isinffunction)
-    print isinf(1.0/0.0)
+   `print isinf(1.0/0.0)`
 - [log()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/log-function)
    `print log(5)`
 - [log2()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/log2-function)
@@ -133,23 +158,23 @@
 - [log10()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/log10-function)
    `print log10(5)`
 - [loggamma()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/loggammafunction)
-    print loggamma(5)
+   `print loggamma(5)`
 - [max_of()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/max-offunction)
-    print result = max_of(10, 1, -3, 17) 
+   `print result = max_of(10, 1, -3, 17)` 
 - [min_of()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/min-offunction)
-    print result = min_of(10, 1, -3, 17) 
+   `print result = min_of(10, 1, -3, 17)` 
 - [pi()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/pifunction)
-    print pi()
+   `print pi()`
 - [pow()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/powfunction)
-    print pow(2, 3)`
+   `print pow(2, 3)`
 - [radians()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/radiansfunction)
-    print radians0 = radians(90), radians1 = radians(180), radians2 = radians(360) 
+   `print radians0 = radians(90), radians1 = radians(180), radians2 = radians(360)` 
 - [rand()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/randfunction)
-    print rand(1000)
+   `print rand(1000)`
 - [round()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/roundfunction)
-    print round(2.15, 1)
+   `print round(2.15, 1)`
 - [sign()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/signfunction)
-    print s1 = sign(-42), s2 = sign(0), s3 = sign(11.2)
+   `print s1 = sign(-42), s2 = sign(0), s3 = sign(11.2)`
 - [sin()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sinfunction)
 - [sqrt()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sqrtfunction)
    `print sqrt(256)`
@@ -164,7 +189,8 @@
 Supports simple keys only. Do not suppoer RANGE_HASHED keys.)
    `print lookup('dictionary_table', 'value', '1')`
    `print lookup('dictionary_table', 'value', '100', 'default')`
-# January XX, 2023
+
+# January 26, 2023
 ## Functions
 - [range()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/rangefunction)  
 Difference from ADX:  

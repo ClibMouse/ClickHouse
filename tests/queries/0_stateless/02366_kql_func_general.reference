@@ -37,3 +37,29 @@ default
 10	First	1
 11	First	2
 12	First	3
+-- gettype
+string
+int
+array
+datetime
+-- toscalar #1 --
+5	5asd
+-- toscalar #2 --
+1
+3
+5
+7
+9
+-- toscalar #3 --
+2
+-- toscalar #4 --
+1
+-- toscalar #5 --
+Stephanie	Cox	Management	Bachelors	33
+-- toscalar #6 --
+Angel	Stewart	Professional	Partial College	46
+Dalton	Wood	Professional	Partial College	42
+-- toscalar #7 --
+2
+-- toscalar #8 --
+10

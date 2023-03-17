@@ -1,0 +1,14 @@
+{% for dialect in ['clickhouse', 'kusto_auto'] -%}
+select '{{ dialect }}';
+set dialect = '{{ dialect }}';
+select toIntervalNanosecond(99);
+select toIntervalNanosecond(100);
+select toIntervalMillisecond(1);
+select toIntervalSecond(42);
+select toIntervalMinute(66);
+select toIntervalHour(66);
+select toIntervalDay(5);
+select toIntervalWeek(1);
+select toIntervalWeek(2);
+select toIntervalSecond(72) + toIntervalWeek(3) + toIntervalNanosecond(200);
+{% endfor -%}
