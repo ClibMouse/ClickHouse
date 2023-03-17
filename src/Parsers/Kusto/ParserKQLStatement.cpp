@@ -1,3 +1,4 @@
+#include "KQLContext.h"
 #include "Utilities.h"
 
 #include <Parsers/IParserBase.h>
@@ -14,7 +15,9 @@ namespace DB
 
 bool ParserKQLStatement::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
-    ParserKQLWithOutput query_with_output_p(end, allow_settings_after_format_in_insert);
+    KQLContext kql_context;
+
+    ParserKQLWithOutput query_with_output_p(kql_context);
     ParserSetQuery set_p;
 
     bool res = query_with_output_p.parse(pos, node, expected) || set_p.parse(pos, node, expected);
@@ -24,7 +27,7 @@ bool ParserKQLStatement::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
 
 bool ParserKQLWithOutput::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
-    ParserKQLWithUnionQuery kql_p;
+    ParserKQLWithUnionQuery kql_p(kql_context);
 
     ASTPtr query;
     bool parsed = kql_p.parse(pos, query, expected);
@@ -40,7 +43,7 @@ bool ParserKQLWithUnionQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & exp
 {
     // will support union next phase
     ASTPtr kql_query;
-    if (!ParserKQLQuery().parse(pos, kql_query, expected))
+    if (!ParserKQLQuery(kql_context).parse(pos, kql_query, expected))
         return false;
 
     if (kql_query->as<ASTSelectWithUnionQuery>())
@@ -55,7 +58,7 @@ bool ParserKQLWithUnionQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & exp
 
 bool ParserKQLTableFunction::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
-    ParserKQLWithUnionQuery kql_p;
+    ParserKQLWithUnionQuery kql_p(kql_context);
     ASTPtr select;
     ParserToken s_lparen(TokenType::OpeningRoundBracket);
 
