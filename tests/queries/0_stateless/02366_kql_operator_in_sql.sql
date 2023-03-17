@@ -31,7 +31,7 @@ CREATE TABLE TableWithVariousDataTypes
     Name String,
     Age Nullable(UInt8),
     Height Float64,
-    JoinDate DateTime64
+    JoinDate DateTime64(9, 'UTC')
 ) engine = Memory;
 
 INSERT INTO TableWithVariousDataTypes VALUES ('A', 12, 5.2, '2020-01-01'), ('B', 22, 7.2, '2020-01-02'), ('C', 32, 9.3, '2021-12-31');
