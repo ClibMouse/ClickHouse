@@ -283,7 +283,7 @@ struct HasAnyIpv6Prefix
             vec_v6.cbegin(),
             vec_v6.cend(),
             std::string(),
-            [](const auto & x, const auto & y) { return std::move(x) + std::format("{:04X}", y); });
+            [](auto & x, const auto & y) { return std::move(x) + std::format("{:04X}", y); });
         if (!vec_v4.empty())
         {
             ipv6_hex += std::accumulate(
