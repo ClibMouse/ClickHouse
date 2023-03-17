@@ -372,7 +372,7 @@ static std::tuple<ASTPtr, BlockIO> executeQueryImpl(
 
         if (dialect == Dialect::kusto && !internal)
         {
-            ParserKQLStatement parser(end, settings.allow_settings_after_format_in_insert);
+            ParserKQLStatement parser;
             ast = parseQuery(parser, begin, end, "", max_query_size, settings.max_parser_depth);
         }
         else if (dialect == Dialect::kusto_auto && !internal)
@@ -385,7 +385,7 @@ static std::tuple<ASTPtr, BlockIO> executeQueryImpl(
             }
             catch (...)
             {
-                ParserKQLStatement parser(end, settings.allow_settings_after_format_in_insert);
+                ParserKQLStatement parser;
                 ast = parseQuery(parser, begin, end, "", max_query_size, settings.max_parser_depth);
             }
         }
