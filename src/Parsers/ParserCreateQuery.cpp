@@ -24,7 +24,6 @@
 #include <Common/typeid_cast.h>
 #include <Parsers/ASTColumnDeclaration.h>
 
-
 namespace DB
 {
 

@@ -13,7 +13,6 @@
 #include <Common/typeid_cast.h>
 #include "Parsers/IAST_fwd.h"
 
-
 namespace DB
 {
 
@@ -182,11 +181,6 @@ bool ParserInsertQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
         pos = before_values;
         ParserWatchQuery watch_p;
         watch_p.parse(pos, watch, expected);
-    }
-    else if (!infile && s_kql.ignore(pos, expected))
-    {
-        if (KQLContext kql_context; !ParserKQLTaleFunction(kql_context).parse(pos, select, expected))
-            return false;
     }
     else if (!infile)
     {
