@@ -10,6 +10,8 @@ using OperationsPos = std::vector<std::pair<String, IParser::Pos>>;
 class ParserKQLBase : public IParserBase
 {
 public:
+    ~ParserKQLBase() override = default;
+
     static String getExprFromToken(Pos & pos);
     static String getExprFromToken(const String & text, const uint32_t max_depth);
     static String getExprFromPipe(Pos & pos);

@@ -32,8 +32,7 @@ ColumnPtr
 FunctionKqlGetType::executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr &, const size_t input_rows_count) const
 {
     const auto & argument = arguments.front();
-
-    return DataTypeString().createColumnConst(input_rows_count, toString(toKQLDataType(argument.type->getTypeId())));
+    return DataTypeString().createColumnConst(input_rows_count, toString(toKQLDataType(argument.type->getTypeId(), KQLScope::Row)));
 }
 
 

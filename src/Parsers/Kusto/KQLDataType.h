@@ -8,9 +8,11 @@ namespace DB
 {
 enum class KQLDataType
 {
+    Array,
     Bool,
     DateTime,
     Decimal,
+    Dictionary,
     Dynamic,
     Guid,
     Int,
@@ -21,6 +23,12 @@ enum class KQLDataType
     Timespan
 };
 
-KQLDataType toKQLDataType(TypeIndex type_id);
+enum class KQLScope
+{
+    Column,
+    Row
+};
+
+KQLDataType toKQLDataType(TypeIndex type_id, KQLScope scope);
 std::string toString(KQLDataType data_type);
 }
