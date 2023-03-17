@@ -58,4 +58,11 @@ protected:
     const char * getName() const override { return "toscalar()"; }
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
+
+class Not : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "not()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
 }
