@@ -58,9 +58,9 @@ struct HasAnyIpv4
         if (is_ipv4->getUInt(0) == 1)
         {
             ips.push_back(value_as_string);
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     static bool checkRegexMatch(
@@ -77,7 +77,7 @@ struct HasAnyIpv4
         {
             return std::ranges::any_of(ips, std::bind_front(std::equal_to<std::string>(), s));
         }
-        return 0;
+        return false;
     }
 };
 
