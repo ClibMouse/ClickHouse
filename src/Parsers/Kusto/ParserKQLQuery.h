@@ -1,5 +1,7 @@
 #pragma once
 
+#include "KQLContext.h"
+
 #include <Parsers/ASTSelectQuery.h>
 #include <Parsers/IParserBase.h>
 
@@ -38,21 +40,33 @@ public:
         bool need_reinterpret;
         int8_t backspace_steps; // how many steps to last token of previous pipe
     };
+
+    explicit ParserKQLQuery(KQLContext & kql_context_) : kql_context(kql_context_) { }
+
     static bool getOperations(Pos & pos, Expected & expected, OperationsPos & operation_pos);
 
 protected:
-    static std::unique_ptr<ParserKQLBase> getOperator(std::string_view op_name);
+    std::unique_ptr<ParserKQLBase> getOperator(std::string_view op_name);
     static bool pre_process(String & source, Pos & pos);
     const char * getName() const override { return "KQL query"; }
     bool parseImpl(Pos & pos, ASTPtr & node, Expected & expected) override;
-    static bool executeImpl(Pos & pos, ASTPtr & node, Expected & expected);
+    bool executeImpl(Pos & pos, ASTPtr & node, Expected & expected);
+
+private:
+    KQLContext & kql_context;
 };
 
 class ParserKQLSubquery : public ParserKQLBase
 {
+public:
+    explicit ParserKQLSubquery(KQLContext & kql_context_) : kql_context(kql_context_) { }
+
 protected:
     const char * getName() const override { return "KQL subquery"; }
     bool parseImpl(Pos & pos, ASTPtr & node, Expected & expected) override;
+
+private:
+    KQLContext & kql_context;
 };
 
 class ParserSimpleCHSubquery : public ParserKQLBase
