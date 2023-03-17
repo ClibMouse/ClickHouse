@@ -12,7 +12,7 @@ namespace
 std::string toKQLDataTypeName(const DB::DataTypePtr & data_type)
 {
     const auto nested_type = DB::removeNullable(data_type);
-    const auto kql_data_type = DB::toKQLDataType(nested_type->getTypeId());
+    const auto kql_data_type = DB::toKQLDataType(nested_type->getTypeId(), DB::KQLScope::Column);
     return toString(kql_data_type);
 }
 }
