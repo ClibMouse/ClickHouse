@@ -275,14 +275,14 @@ struct HasAnyIpv6Prefix
             vec_v6.cbegin(),
             vec_v6.cend(),
             std::string(),
-            [](const auto & x, const auto & y) { return std::move(x) + std::format("{:04X}", y); });
+            [](const auto & x, const auto & y) { return x + std::format("{:04X}", y); });
         if (!vec_v4.empty())
         {
             ipv6_hex += std::accumulate(
                 vec_v4.cbegin(),
                 vec_v4.cend(),
                 std::string(),
-                [](const auto & x, const auto & y) { return std::move(x) + std::format("{:02X}", y); });
+                [](const auto & x, const auto & y) { return x + std::format("{:02X}", y); });
         }
         return ipv6_hex;
     }
