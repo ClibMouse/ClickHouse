@@ -272,7 +272,8 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
                 }
 
                 --it_pos;
-                equal_pos = it_pos;
+                if (equal_pos == start_pos)
+                    equal_pos = it_pos;
             }
             ++it_pos;
         }
