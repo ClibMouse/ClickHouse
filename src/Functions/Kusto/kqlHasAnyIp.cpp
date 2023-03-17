@@ -198,7 +198,7 @@ struct HasAnyIpv6
     {
         const auto m = ipv6ToHex(s, result_type, context).value_or("");
 
-        return std::ranges::any_of(ips, std::bind_front(std::equal_to<std::string>(), m));
+        return std::ranges::any_of(ips, std::bind_front(std::equal_to<std::string>(), std::cref(m)));
     }
 };
 
