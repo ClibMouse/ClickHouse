@@ -657,7 +657,7 @@ bool ParserCreateTableQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & expe
                     ParserKeyword s_kql("KQL");
                     if (s_kql.ignore(pos, expected))
                     {
-                        if (!ParserKQLTaleFunction().parse(pos, select, expected))
+                        if (KQLContext kql_context; !ParserKQLTaleFunction(kql_context).parse(pos, select, expected))
                             return false;
                     }
                     else
