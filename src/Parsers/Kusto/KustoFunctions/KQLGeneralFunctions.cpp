@@ -93,7 +93,7 @@ bool ToScalar::convertImpl(String & out, IParser::Pos & pos)
         subquery.reset();
     }
 
-    if (!subquery && !ParserKQLTaleFunction().parse(pos, subquery, expected))
+    if (KQLContext kql_context; !subquery && !ParserKQLTaleFunction(kql_context).parse(pos, subquery, expected))
         return false;
 
     --pos;

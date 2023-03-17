@@ -1,10 +1,10 @@
 #include <Parsers/tests/gtest_common.h>
 
-#include <Parsers/Kusto/ParserKQLQuery.h>
+#include <Parsers/Kusto/ParserKQLStatement.h>
 
 INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_IP, ParserRegexTest,
     ::testing::Combine(
-        ::testing::Values(std::make_shared<DB::ParserKQLQuery>()),
+        ::testing::Values(std::make_shared<DB::ParserKQLStatement>()),
         ::testing::ValuesIn(std::initializer_list<ParserTestCase>{
         {
             "print format_ipv4(A)",
@@ -88,7 +88,7 @@ INSTANTIATE_TEST_SUITE_P(
     ParserKQLQuery_IP,
     ParserTest,
     ::testing::Combine(
-        ::testing::Values(std::make_shared<DB::ParserKQLQuery>()),
+        ::testing::Values(std::make_shared<DB::ParserKQLStatement>()),
         ::testing::ValuesIn(std::initializer_list<ParserTestCase>{
             {
                 "print has_ipv4('127.0.0.1', '127.0.0.1')",
