@@ -5,6 +5,7 @@
 #include <Parsers/ASTSelectQuery.h>
 #include <Parsers/CommonParsers.h>
 #include <Parsers/formatAST.h>
+#include <Parsers/Kusto/ParserKQLQuery.h>
 #include "KustoFunctions/IParserKQLFunction.h"
 #include "ParserKQLQuery.h"
 #include "ParserKQLStatement.h"
@@ -250,9 +251,17 @@ String genBetweenOpExpr(std::vector<std::string> & tokens, DB::IParser::Pos & to
 
     if (dot_token.ignore(token_pos) && dot_token.ignore(token_pos))
     {
-        new_expr += DB::IParserKQLFunction::getExpression(token_pos);
-        ++token_pos;
-        new_expr += ")";
+        DB::BracketCount bracket_count;
+        while(!token_pos->isEnd())
+        {
+            bracket_count.count(token_pos);
+            if ((token_pos->type == DB::TokenType::PipeMark || token_pos->type == DB::TokenType::Semicolon) && bracket_count.isZero())
+                break;
+            new_expr += DB::IParserKQLFunction::getExpression(token_pos);
+            if (token_pos->type == DB::TokenType::ClosingRoundBracket)
+                break;
+            ++token_pos;
+        }
     }
     else
         throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error, number of dots do not match.");
