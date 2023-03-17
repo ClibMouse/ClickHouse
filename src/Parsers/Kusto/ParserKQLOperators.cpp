@@ -6,8 +6,8 @@
 #include <Parsers/CommonParsers.h>
 #include <Parsers/formatAST.h>
 #include "KustoFunctions/IParserKQLFunction.h"
-#include "ParserKQLStatement.h"
 #include "ParserKQLQuery.h"
+#include "ParserKQLStatement.h"
 
 #include <format>
 #include <unordered_map>
@@ -234,104 +234,29 @@ String genEqOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
     tokens.pop_back();
     return new_expr;
 }
-/*
-String genBetweenOpExpr(DB::IParser::Pos & token_pos, const DB::String & ch_op)
-{
-    DB::String tmp_arg(token_pos->begin, token_pos->end);
-    DB::String new_expr;
-    new_expr += ch_op + " ";
-    ++token_pos;
 
-    bool dot_validated = false;
-    int num_params = 0;
-    String expr;
-    String prev;
-    String expr_keep;
-
-    while (!token_pos->isEnd() && token_pos->type != DB::TokenType::PipeMark && token_pos->type != DB::TokenType::Semicolon)
-    {
-        if (token_pos->type == DB::TokenType::OpeningRoundBracket)
-            ++token_pos;
-        else if (String(token_pos->begin, token_pos->end) == ".")
-        {
-            if (prev == ".")
-            {
-                if (!dot_validated)
-                {
-                    new_expr += " AND ";
-                    dot_validated = true;
-                }
-                else
-                    throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error, number of consecutive dots exceed 2!");
-            }
-            else if (dot_validated)
-                new_expr += ".";
-
-            prev = ".";
-            ++token_pos;
-        }
-        else
-        {
-            expr = DB::IParserKQLFunction::getExpression(token_pos);
-            if(expr_keep.size() > 0 && expr.size() < 12)
-                throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error, second parameter is not of type time or datetime while the first one is a datetime.");
-
-            if ((expr.size() > 12) && (expr.substr(0, 12) == "kql_datetime"))
-                expr_keep = expr;
-
-            if ((expr.size() > 20) && (expr.substr(0, 20) == "toIntervalNanosecond"))
-                expr = expr_keep + " + " + expr;
-
-            prev = expr;
-            new_expr += expr;
-            ++token_pos;
-            ++num_params;
-        }
-        if (token_pos->type == DB::TokenType::ClosingRoundBracket)
-            break;
-    }
-
-    if (!dot_validated)
-        throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error, no dots or number of consecutive dots mismatch.");
-
-    if (num_params < 2)
-        throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error, number of parameters do not match.");
-
-    return new_expr;
-}
-*/
 String genBetweenOpExpr(std::vector<std::string> & tokens, DB::IParser::Pos & token_pos, const String & ch_op)
 {
     DB::String new_expr;
     new_expr += ch_op + "(";
-    //new_expr += DB::String(token_pos->begin, token_pos->end) + ","; //first param
-    new_expr += tokens.back() + ","; //first param -- throw error if token is empty
+    new_expr += tokens.back() + ",";
     tokens.pop_back();
-    //++token_pos; // move back to initial position (between)
-    ++token_pos; //first bracket -- if not "(", throw error
-    ++token_pos; //second param
-    //new_expr += DB::String(token_pos->begin, token_pos->end) + ",";
-    new_expr += DB::IParserKQLFunction::getExpression(token_pos) + ","; //second param
-    ++token_pos; //move to first dot
+    ++token_pos;
+    ++token_pos;
+
+    new_expr += DB::IParserKQLFunction::getExpression(token_pos) + ",";
+    ++token_pos;
     DB::ParserToken dot_token(DB::TokenType::Dot);
 
     if (dot_token.ignore(token_pos) && dot_token.ignore(token_pos))
     {
-        //++token_pos; //TO-DO: add dot check later
-        //++token_pos; //TO-DO: add dot check later
-        
-        //++token_pos; //third param
-
-        //new_expr += DB::String(token_pos->begin, token_pos->end);
-        new_expr += DB::IParserKQLFunction::getExpression(token_pos); //third param
+        new_expr += DB::IParserKQLFunction::getExpression(token_pos);
         ++token_pos;
         new_expr += ")";
-        //++token_pos; //second bracket
     }
     else
         throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error, number of dots do not match.");
-   
-    std::cout << "new_expr: " << new_expr << std::endl;
+
     return new_expr;
 }
 
