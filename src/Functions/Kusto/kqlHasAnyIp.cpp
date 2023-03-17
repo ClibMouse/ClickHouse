@@ -44,10 +44,10 @@ struct HasAnyIpv4
 
         const ColumnsWithTypeAndName is_ipv4_string_args = {createConstColumnWithTypeAndName<DataTypeString>(arg, "ip")};
         const auto is_ipv4 = is_ipv4_string(is_ipv4_string_args);
-        return is_ipv4->getUInt(0) == 1;
+        return is_ipv4->getUInt(0);
     }
 
-    static bool
+    static void
     insertFromArrayElement(const Field & value, const DataTypePtr & result_type, const ContextPtr & context, std::vector<std::string> & ips)
     {
         const auto is_ipv4_string = [&, result_type](const DB::ColumnsWithTypeAndName & args)
@@ -55,12 +55,10 @@ struct HasAnyIpv4
         const auto value_as_string = toString(value);
         const ColumnsWithTypeAndName is_ipv4_string_args = {createConstColumnWithTypeAndName<DB::DataTypeString>(value_as_string, "ip")};
         const auto is_ipv4 = is_ipv4_string(is_ipv4_string_args);
-        if (is_ipv4->getUInt(0) == 1)
+        if (is_ipv4->getUInt(0))
         {
             ips.push_back(value_as_string);
-            return true;
         }
-        return false;
     }
 
     static bool checkRegexMatch(
@@ -75,7 +73,7 @@ struct HasAnyIpv4
 
         if (is_ipv4->getUInt(0) == 1)
         {
-            return std::ranges::any_of(ips, std::bind_front(std::equal_to<std::string>(), s));
+            return std::ranges::any_of(ips, std::bind_front(std::equal_to<std::string>(), std::cref(s)));
         }
         return false;
     }
@@ -100,7 +98,7 @@ struct HasAnyIpv4Prefix
         const auto n = std::ranges::count(arg, '.');
         return n == 3 || (arg.back() == '.' && n <= 2);
     }
-    static bool insertFromArrayElement(
+    static void insertFromArrayElement(
         const Field & value,
         [[maybe_unused]] const DataTypePtr & result_type,
         [[maybe_unused]] const ContextPtr & context,
@@ -112,9 +110,7 @@ struct HasAnyIpv4Prefix
         if (n == 3 || (value_as_string.back() == '.' && n <= 2))
         {
             ips.push_back(value_as_string);
-            return true;
         }
-        return false;
     }
     static bool checkRegexMatch(
         const std::string & s, const DataTypePtr & result_type, const ContextPtr & context, const std::vector<std::string> & ips)
@@ -126,7 +122,7 @@ struct HasAnyIpv4Prefix
                                  ->build(is_ipv4_string_args)
                                  ->execute(is_ipv4_string_args, result_type, 1);
 
-        if (is_ipv4->getUInt(0) == 1)
+        if (is_ipv4->getUInt(0))
         {
             return std::ranges::any_of(
                 ips,
@@ -140,14 +136,12 @@ struct HasIpv4 : HasAnyIpv4
 {
     static constexpr auto name = "kql_has_ipv4";
     static constexpr auto variadic = false;
-    static constexpr auto regex = "([^[:alnum:]]|^)([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})([^[:alnum:]]|$)";
 };
 
 struct HasIpv4Prefix : HasAnyIpv4Prefix
 {
     static constexpr auto name = "kql_has_ipv4_prefix";
     static constexpr auto variadic = false;
-    static constexpr auto regex = "([^[:alnum:]]|^)([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})([^[:alnum:]]|$)";
 };
 
 struct HasAnyIpv6
@@ -182,16 +176,14 @@ struct HasAnyIpv6
     {
         return !arg.empty();
     }
-    static bool
+    static void
     insertFromArrayElement(const Field & value, const DataTypePtr & result_type, const ContextPtr & context, std::vector<std::string> & ips)
     {
         const auto ipv6_string = ipv6ToHex(toString(value), result_type, context).value_or("");
         if (!ipv6_string.empty())
         {
             ips.push_back(ipv6_string);
-            return true;
         }
-        return false;
     }
     static bool checkRegexMatch(
         const std::string & s, const DataTypePtr & result_type, const ContextPtr & context, const std::vector<std::string> & ips)
@@ -283,14 +275,14 @@ struct HasAnyIpv6Prefix
             vec_v6.cbegin(),
             vec_v6.cend(),
             std::string(),
-            [](auto & x, const auto & y) { return std::move(x) + std::format("{:04X}", y); });
+            [](const auto & x, const auto & y) { return std::move(x) + std::format("{:04X}", y); });
         if (!vec_v4.empty())
         {
             ipv6_hex += std::accumulate(
                 vec_v4.cbegin(),
                 vec_v4.cend(),
                 std::string(),
-                [](auto & x, const auto & y) { return std::move(x) + std::format("{:02X}", y); });
+                [](const auto & x, const auto & y) { return std::move(x) + std::format("{:02X}", y); });
         }
         return ipv6_hex;
     }
@@ -303,16 +295,14 @@ struct HasAnyIpv6Prefix
     {
         return HasAnyIpv6::checkStringArgument(arg, result_type, context, row);
     }
-    static bool
+    static void
     insertFromArrayElement(const Field & value, const DataTypePtr & result_type, const ContextPtr & context, std::vector<std::string> & ips)
     {
         const auto ipv6_string = ipv6PrefixToHex(toString(value), result_type, context).value_or("");
         if (!ipv6_string.empty())
         {
             ips.push_back(ipv6_string);
-            return true;
         }
-        return false;
     }
     static bool checkRegexMatch(
         const std::string & s, const DataTypePtr & result_type, const ContextPtr & context, const std::vector<std::string> & ips)
@@ -329,14 +319,12 @@ struct HasIpv6 : HasAnyIpv6
 {
     static constexpr auto name = "kql_has_ipv6";
     static constexpr auto variadic = false;
-    static constexpr auto regex = "([^a-zA-Z0-9:.]|^)([0-9a-fA-F:.]{3,})([^a-zA-Z0-9:.]|$)";
 };
 
 struct HasIpv6Prefix : HasAnyIpv6Prefix
 {
     static constexpr auto name = "kql_has_ipv6_prefix";
     static constexpr auto variadic = false;
-    static constexpr auto regex = "([^a-zA-Z0-9:.]|^)([0-9a-fA-F:.]{3,})([^a-zA-Z0-9:.]|$)";
 };
 
 template <typename Func>
@@ -430,8 +418,6 @@ private:
         const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const ContextPtr & context, size_t row)
     {
         std::vector<std::string> ips;
-        const auto is_ipv4_string = [&, result_type](const DB::ColumnsWithTypeAndName & args)
-        { return DB::FunctionFactory::instance().get("isIPv4String", context)->build(args)->execute(args, result_type, 1); };
 
         if (isStringOrFixedString(arguments.at(1).type))
         {
