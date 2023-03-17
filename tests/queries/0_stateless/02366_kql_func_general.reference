@@ -40,7 +40,7 @@ default
 -- gettype
 string
 int
-dynamic
+array
 datetime
 -- toscalar #1 --
 5	5asd
