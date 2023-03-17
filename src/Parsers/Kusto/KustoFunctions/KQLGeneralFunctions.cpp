@@ -103,4 +103,10 @@ bool ToScalar::convertImpl(String & out, IParser::Pos & pos)
     out = std::format("(select tuple(*) from ({}) limit 1).1", write_buffer.stringView());
     return true;
 }
+
+bool Not::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "not");
+}
+
 }
