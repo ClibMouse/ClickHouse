@@ -1,6 +1,6 @@
 #include <Parsers/tests/gtest_common.h>
 
-#include <Parsers/Kusto/ParserKQLQuery.h>
+#include <Parsers/Kusto/ParserKQLStatement.h>
 #include <Parsers/ParserSelectQuery.h>
 
 INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_operator_in_sql, ParserKQLTest,

@@ -34,7 +34,9 @@
 #include <Parsers/Kusto/ParserKQLTopNested.h>
 #include <Parsers/ParserSelectWithUnionQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
+
 #include <format>
+#include <ranges>
 
 namespace DB
 {
@@ -389,7 +391,7 @@ std::unique_ptr<ParserKQLBase> ParserKQLQuery::getOperator(const std::string_vie
     else if (op_name == "getschema")
         return std::make_unique<ParserKQLGetSchema>();
     else if (op_name == "extend")
-        return std::make_unique<ParserKQLExtend>();
+        return std::make_unique<ParserKQLExtend>(kql_context);
     else if (op_name == "sort by" || op_name == "order by")
         return std::make_unique<ParserKQLSort>();
     else if (op_name == "summarize")
@@ -654,7 +656,7 @@ bool ParserKQLQuery::executeImpl(Pos & pos, ASTPtr & node, Expected & expected)
             IParser::Pos pos_subquery(token_subquery, pos.max_depth);
 
             ASTPtr tables;
-            if (!ParserKQLSubquery().parse(pos_subquery, tables, expected))
+            if (!ParserKQLSubquery(kql_context).parse(pos_subquery, tables, expected))
                 return false;
             node->as<ASTSelectQuery>()->setExpression(ASTSelectQuery::Expression::TABLES, std::move(tables));
         }
@@ -691,6 +693,12 @@ bool ParserKQLQuery::executeImpl(Pos & pos, ASTPtr & node, Expected & expected)
 
     if (auto * select_query = node->as<ASTSelectQuery>(); !select_query->select())
         setSelectAll(*select_query);
+    else
+    {
+        std::ranges::for_each(
+            select_query->select()->children | std::views::transform([](const auto & expression) { return expression->tryGetAlias(); }),
+            std::bind_front(&KQLContext::checkForDefaultColumnName, std::ref(kql_context)));
+    }
 
     return true;
 }
@@ -699,7 +707,7 @@ bool ParserKQLSubquery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
     ASTPtr select_node;
 
-    if (!ParserKQLTableFunction().parse(pos, select_node, expected))
+    if (!ParserKQLTableFunction(kql_context).parse(pos, select_node, expected))
         return false;
 
     ASTPtr node_subquery = std::make_shared<ASTSubquery>();
