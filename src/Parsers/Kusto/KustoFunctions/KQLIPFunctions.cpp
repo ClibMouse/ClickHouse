@@ -6,11 +6,6 @@
 
 namespace DB
 {
-namespace ErrorCodes
-{
-    extern const int NOT_IMPLEMENTED;
-}
-
 bool Ipv4Compare::convertImpl(String & out, IParser::Pos & pos)
 {
     const auto function_name = getKQLFunctionName(pos);
@@ -151,26 +146,6 @@ bool ParseIpv4Mask::convertImpl(String & out, IParser::Pos & pos)
     return true;
 }
 
-bool HasIpv6::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
-{
-    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "");
-}
-
-bool HasAnyIpv6::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
-{
-    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "");
-}
-
-bool HasIpv6Prefix::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
-{
-    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "");
-}
-
-bool HasAnyIpv6Prefix::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
-{
-    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "");
-}
-
 bool Ipv6Compare::convertImpl(String & out, IParser::Pos & pos)
 {
     const auto function_name = getKQLFunctionName(pos);
@@ -304,5 +279,24 @@ bool HasAnyIpv4Prefix::convertImpl(String & out, IParser::Pos & pos)
 {
     return directMapping(out, pos, "kql_has_any_ipv4_prefix");
 }
+
+bool HasIpv6::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "kql_has_ipv6");
 }
 
+bool HasAnyIpv6::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "kql_has_any_ipv6");
+}
+
+bool HasIpv6Prefix::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "kql_has_ipv6_prefix");
+}
+
+bool HasAnyIpv6Prefix::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "kql_has_any_ipv6_prefix");
+}
+}
