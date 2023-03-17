@@ -290,7 +290,7 @@ struct HasAnyIpv6Prefix
                 vec_v4.cbegin(),
                 vec_v4.cend(),
                 std::string(),
-                [](const std::string & x, const auto & y) { return std::move(x) + std::format("{:02X}", y); });
+                [](auto & x, const auto & y) { return std::move(x) + std::format("{:02X}", y); });
         }
         return ipv6_hex;
     }
