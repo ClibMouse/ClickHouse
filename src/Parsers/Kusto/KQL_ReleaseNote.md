@@ -13,6 +13,19 @@
 - [toscalar](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/toscalarfunction)
    `range z from toscalar(print x=1) to toscalar(range x from 1 to 9 step 1 | count) step toscalar(2);`
 
+## Operator
+ - [between, !between](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/betweenoperator)
+    ```
+    select * from kql(TableWithVariousDataTypes | project Age | where Age between (10 .. 12));
+    select * from kql(TableWithVariousDataTypes | project Age | where Age !between (10 .. 30));
+    select * from kql(TableWithVariousDataTypes | project Height | where Height between (5.2 .. 6.6));
+    select * from kql(TableWithVariousDataTypes | project Height | where Height !between (5.3 .. 7.6));
+    select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate between (datetime('2020-01-01') .2d));
+    select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate !between (datetime('2020-01-01') .. 2d));
+    select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate between (datetime('2020-06-30') .. datetime('2025-06-30')));
+    select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate !between (datetime('2020-06-30') .. datetime('2025-06-30')));
+    ```
+
 # March 15, 2023
 ## Feature
  - KQL - improve timespan textual representation in the CLI
