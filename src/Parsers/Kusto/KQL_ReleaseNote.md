@@ -7,7 +7,8 @@
    Int32 data types not cast with KQL int() may not match ADX results.
 - [hash_sha256()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sha256hashfunction)
    `print hash_sha256('World')`
-
+- [not()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/notfunction)
+   `print not(1)`
 ## Special Functions
 - [toscalar](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/toscalarfunction)
    `range z from toscalar(print x=1) to toscalar(range x from 1 to 9 step 1 | count) step toscalar(2);`
