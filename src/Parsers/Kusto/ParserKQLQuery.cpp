@@ -22,18 +22,18 @@
 #include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/Kusto/ParserKQLPrint.h>
 #include <Parsers/Kusto/ParserKQLProject.h>
+#include <Parsers/Kusto/ParserKQLProjectAway.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
+#include <Parsers/Kusto/ParserKQLRange.h>
 #include <Parsers/Kusto/ParserKQLSort.h>
 #include <Parsers/Kusto/ParserKQLStatement.h>
 #include <Parsers/Kusto/ParserKQLSummarize.h>
 #include <Parsers/Kusto/ParserKQLTable.h>
 #include <Parsers/Kusto/ParserKQLTop.h>
 #include <Parsers/Kusto/ParserKQLTopHitter.h>
+#include <Parsers/Kusto/ParserKQLTopNested.h>
 #include <Parsers/ParserSelectWithUnionQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
-#include <Parsers/Kusto/ParserKQLTopNested.h>
-#include <Parsers/Kusto/ParserKQLRange.h>
-#include <Parsers/Kusto/ParserKQLProjectAway.h>
 #include <format>
 
 namespace DB
@@ -224,12 +224,10 @@ String ParserKQLBase::getExprFromPipe(Pos & pos)
 
 String ParserKQLBase::getExprFromToken(Pos & pos)
 {
-    String res;
     std::vector<Pos> comma_pos;
-    std::vector<String> columns;
-    size_t paren_count = 0;
-
     comma_pos.push_back(pos);
+
+    size_t paren_count = 0;
     while (!pos->isEnd() && pos->type != TokenType::Semicolon)
     {
         if (pos->type == TokenType::PipeMark && paren_count == 0)
@@ -249,6 +247,7 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
         ++pos;
     }
 
+    std::vector<String> columns;
     auto set_columns = [&](Pos & start_pos, Pos & end_pos)
     {
         bool has_alias = false;
@@ -258,19 +257,23 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
         if (String(it_pos->begin, it_pos->end) == "=")
             throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid equal symbol (=)");
 
+        BracketCount bracket_count;
         while (it_pos < end_pos)
         {
+            bracket_count.count(it_pos);
             if (String(it_pos->begin, it_pos->end) == "=")
             {
                 ++it_pos;
-                if (String(it_pos->begin, it_pos->end) != "~")
+                if (String(it_pos->begin, it_pos->end) != "~" && bracket_count.isZero())
                 {
                     if (has_alias)
                         throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid equal symbol (=)");
                     has_alias = true;
                 }
+
                 --it_pos;
-                equal_pos = it_pos;
+                if (equal_pos == start_pos)
+                    equal_pos = it_pos;
             }
             ++it_pos;
         }
@@ -297,7 +300,7 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
             ++columms_start_pos;
         }
 
-        for (auto const & token : tokens)
+        for (const auto & token : tokens)
             column_str = column_str.empty() ? token : column_str + " " + token;
 
         if (has_alias)
@@ -372,6 +375,7 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
         }
     }
 
+    String res;
     for (const auto & token : columns)
         res = res.empty() ? token : res + "," + token;
     return res;
