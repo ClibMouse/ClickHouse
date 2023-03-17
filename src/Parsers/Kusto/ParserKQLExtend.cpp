@@ -19,16 +19,14 @@ bool ParserKQLExtend::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
     if (!ParserNotEmptyExpressionList(false).parse(npos, expression_list, expected) || !npos->isEnd())
         return false;
 
-    int column_index = 1;
     std::ranges::for_each(
         expression_list->children,
-        [&column_index](const ASTPtr & expression)
+        [this](const ASTPtr & expression)
         {
             if (const auto alias = expression->tryGetAlias(); !alias.empty())
                 return;
 
-            expression->setAlias(std::format("Column{}", column_index));
-            ++column_index;
+            expression->setAlias(kql_context.nextDefaultColumnName());
         });
 
     auto asterisk = std::make_shared<ASTAsterisk>();
