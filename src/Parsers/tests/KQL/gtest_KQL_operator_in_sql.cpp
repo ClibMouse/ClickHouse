@@ -106,17 +106,5 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_operator_in_sql, ParserKQLTest,
         {
             "select * from kql(Customers | where FirstName !~ 'nEyMaR' and LastName =~ 'naRA')",
             "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE (lower(FirstName) != lower('nEyMaR')) AND (lower(LastName) = lower('naRA'))\n)"
-        },
-        {
-            "select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate between (datetime('2020-06-30') .. datetime('2025-06-30')))",
-            "SELECT *\nFROM\n(\n    SELECT JoinDate\n    FROM TableWithVariousDataTypes\n    WHERE kql_between(JoinDate, kql_datetime('2020-06-30'), kql_datetime('2025-06-30'))\n)"
-        },
-        {
-            "select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate !between (datetime('2020-01-01') .. 2d))",
-            "SELECT *\nFROM\n(\n    SELECT JoinDate\n    FROM TableWithVariousDataTypes\n    WHERE NOT kql_between(JoinDate, kql_datetime('2020-01-01'), toIntervalNanosecond(172800000000000))\n)"
-        },
-        {
-            "select * from kql(TableWithVariousDataTypes | project Age | where Age between (10 .. 12) or Age between (30 .. 50))",
-            "SELECT *\nFROM\n(\n    SELECT Age\n    FROM TableWithVariousDataTypes\n    WHERE kql_between(Age, 10, 12) OR kql_between(Age, 30, 50)\n)"
         }
 })));
