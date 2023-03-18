@@ -14,10 +14,11 @@ protected:
         String alias;
         String aggregation_fun;
         String column;
-        double default_value;
-        AggregationColumn(String alias_, String aggregation_fun_, String column_, double default_value_)
+        String default_value;
+        AggregationColumn(String alias_, String aggregation_fun_, String column_, String default_value_)
         :alias(alias_), aggregation_fun(aggregation_fun_), column(column_), default_value(default_value_){}
     };
+
     using AggregationColumns = std::vector<AggregationColumn>;
 
     struct FromToStepClause
@@ -43,7 +44,8 @@ protected:
     static bool makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & select_node, const uint32_t & max_depth);
     static bool parseAggregationColumns(AggregationColumns & aggregation_columns, Pos & pos);
     static bool parseFromToStepClause(FromToStepClause & from_to_step, Pos & pos);
-
+    static void parseSingleAggregationColumn(AggregationColumns & aggregation_columns, Pos begin, Pos end, size_t & column_index);
+    static bool parseAxisColumn(String & axis_column, Pos & pos);
     const char * getName() const override { return "KQL make-series"; }
     bool parseImpl(Pos & pos, ASTPtr & node, Expected & expected) override;
 };
