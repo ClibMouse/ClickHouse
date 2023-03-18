@@ -4,8 +4,10 @@
 #include <Parsers/ASTIdentifier.h>
 #include <Parsers/ASTSelectQuery.h>
 #include <Parsers/CommonParsers.h>
+#include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/formatAST.h>
 #include "KustoFunctions/IParserKQLFunction.h"
+#include "ParserKQLQuery.h"
 #include "ParserKQLStatement.h"
 
 #include <format>
@@ -30,6 +32,8 @@ enum class WildcardsPos : uint8_t
 enum class KQLOperatorValue : uint16_t
 {
     none,
+    between,
+    not_between,
     contains,
     not_contains,
     contains_cs,
@@ -68,6 +72,8 @@ enum class KQLOperatorValue : uint16_t
 };
 
 const std::unordered_map<String, KQLOperatorValue> KQLOperator = {
+    {"between", KQLOperatorValue::between},
+    {"!between", KQLOperatorValue::not_between},
     {"contains", KQLOperatorValue::contains},
     {"!contains", KQLOperatorValue::not_contains},
     {"contains_cs", KQLOperatorValue::contains_cs},
@@ -227,6 +233,54 @@ String genEqOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
         new_expr += "lower(" + DB::IParserKQLFunction::getExpression(token_pos) + ")";
 
     tokens.pop_back();
+    return new_expr;
+}
+
+String genBetweenOpExpr(std::vector<std::string> & tokens, DB::IParser::Pos & token_pos, const String & ch_op)
+{
+    DB::String new_expr;
+    new_expr += ch_op + "(";
+    new_expr += tokens.back() + ",";
+    tokens.pop_back();
+    ++token_pos;
+
+    DB::BracketCount bracket_count;
+    bracket_count.count(token_pos);
+
+    ++token_pos;
+
+    while (!token_pos->isEnd())
+    {
+        if ((token_pos->type == DB::TokenType::PipeMark || token_pos->type == DB::TokenType::Semicolon))
+            break;
+        if (token_pos->type == DB::TokenType::Dot)
+            break;
+        new_expr += DB::IParserKQLFunction::getExpression(token_pos);
+        ++token_pos;
+    }
+    new_expr += ",";
+
+    DB::ParserToken dot_token(DB::TokenType::Dot);
+
+    if (dot_token.ignore(token_pos) && dot_token.ignore(token_pos))
+    {
+        while (!token_pos->isEnd())
+        {
+            bracket_count.count(token_pos);
+            if ((token_pos->type == DB::TokenType::PipeMark || token_pos->type == DB::TokenType::Semicolon) && bracket_count.isZero())
+                break;
+            new_expr += DB::IParserKQLFunction::getExpression(token_pos);
+
+            if (token_pos->type == DB::TokenType::ClosingRoundBracket && bracket_count.isZero())
+            {
+                break;
+            }
+            ++token_pos;
+        }
+    }
+    else
+        throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error, number of dots do not match.");
+
     return new_expr;
 }
 
@@ -407,10 +461,6 @@ bool KQLOperators::convert(std::vector<String> & tokens, IParser::Pos & pos)
             else
                 --pos;
         }
-    }
-    else
-    {
-        op = token;
     }
 
     ++pos;
@@ -618,6 +668,14 @@ bool KQLOperators::convert(std::vector<String> & tokens, IParser::Pos & pos)
         case KQLOperatorValue::not_startswith_cs:
             new_expr
                 = genHaystackOpExpr(tokens, pos, op, std::bind_front(&applyFormatString, "not startsWith({0}, {1})"), WildcardsPos::none);
+            break;
+
+        case KQLOperatorValue::between:
+            new_expr = genBetweenOpExpr(tokens, pos, "kql_between");
+            break;
+
+        case KQLOperatorValue::not_between:
+            new_expr = genBetweenOpExpr(tokens, pos, "not kql_between");
             break;
 
         default:
