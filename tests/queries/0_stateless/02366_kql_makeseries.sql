@@ -72,3 +72,16 @@ print '-- without by';
 make_series_test_table2 | make-series PriceAvg=avg(Price) default=0 on Purchase step  2.0;
 
 make_series_test_table3 | make-series avg(metric) default=0  on timestamp from datetime(2017-01-01) to datetime(2017-01-10) step 1d;
+
+print '--aggregation function 1  without aggregation alias';
+make_series_test_table |  make-series avg(Price+1)  on Purchase from datetime(2016-09-10)  to datetime(2016-09-13) step 1d by Supplier, Fruit | order by Supplier, Fruit;
+print '--aggregation function 1  without aggregation alias';
+make_series_test_table |  make-series avg(Price+1)+1  on Purchase from datetime(2016-09-10)  to datetime(2016-09-13) step 1d by Supplier, Fruit | order by Supplier, Fruit;
+print '--other function and aggregation function 1  without aggregation alias';
+make_series_test_table |  make-series ceiling(avg(Price+1)+1) on Purchase from datetime(2016-09-10)  to datetime(2016-09-13) step 1d by Supplier, Fruit | order by Supplier, Fruit;
+print '-- defaut with expression';
+make_series_test_table |  make-series ceiling(avg(Price+1)+1) default = strlen('123')+1.5 on Purchase from datetime(2016-09-10)  to datetime(2016-09-13) step 1d by Supplier, Fruit | order by Supplier, Fruit;
+print '--other function and aggregation function 1  without aggregation alias';
+make_series_test_table |  make-series ceiling(avg(Price+1)+1) on Purchase from datetime(2016-09-10)  to datetime(2016-09-13) step 1d by Supplier, Fruit | order by Supplier, Fruit;
+print '--from , to expression';
+make_series_test_table |  make-series avg(Price) on Purchase from datetime(2016-09-10)+1d  to datetime(2016-09-13)+1d step 1d by Supplier, Fruit | order by Supplier, Fruit;
