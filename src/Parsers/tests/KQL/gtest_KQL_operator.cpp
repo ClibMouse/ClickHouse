@@ -1,10 +1,10 @@
 #include <Parsers/tests/gtest_common.h>
 
-#include <Parsers/Kusto/ParserKQLQuery.h>
+#include <Parsers/Kusto/ParserKQLStatement.h>
 
 INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_operator, ParserTest,
     ::testing::Combine(
-        ::testing::Values(std::make_shared<DB::ParserKQLQuery>()),
+        ::testing::Values(std::make_shared<DB::ParserKQLStatement>()),
         ::testing::ValuesIn(std::initializer_list<ParserTestCase>{
         {
             "TableWithVariousDataTypes | project JoinDate | where JoinDate between (datetime('2020-06-30') .. datetime('2025-06-30'))",
