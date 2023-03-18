@@ -15,8 +15,10 @@ protected:
         String aggregation_fun;
         String column;
         String default_value;
-        AggregationColumn(String alias_, String aggregation_fun_, String column_, String default_value_)
-        :alias(alias_), aggregation_fun(aggregation_fun_), column(column_), default_value(default_value_){}
+        AggregationColumn(const String & alias_, const String & aggregation_fun_, const String & column_, const String & default_value_)
+            : alias(alias_), aggregation_fun(aggregation_fun_), column(column_), default_value(default_value_)
+        {
+        }
     };
 
     using AggregationColumns = std::vector<AggregationColumn>;
