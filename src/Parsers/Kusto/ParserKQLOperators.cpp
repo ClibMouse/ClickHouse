@@ -4,8 +4,8 @@
 #include <Parsers/ASTIdentifier.h>
 #include <Parsers/ASTSelectQuery.h>
 #include <Parsers/CommonParsers.h>
-#include <Parsers/formatAST.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
+#include <Parsers/formatAST.h>
 #include "KustoFunctions/IParserKQLFunction.h"
 #include "ParserKQLQuery.h"
 #include "ParserKQLStatement.h"
@@ -243,23 +243,38 @@ String genBetweenOpExpr(std::vector<std::string> & tokens, DB::IParser::Pos & to
     new_expr += tokens.back() + ",";
     tokens.pop_back();
     ++token_pos;
+
+    DB::BracketCount bracket_count;
+    bracket_count.count(token_pos);
+
     ++token_pos;
 
-    new_expr += DB::IParserKQLFunction::getExpression(token_pos) + ",";
-    ++token_pos;
+    while (!token_pos->isEnd())
+    {
+        if ((token_pos->type == DB::TokenType::PipeMark || token_pos->type == DB::TokenType::Semicolon))
+            break;
+        if (token_pos->type == DB::TokenType::Dot)
+            break;
+        new_expr += DB::IParserKQLFunction::getExpression(token_pos);
+        ++token_pos;
+    }
+    new_expr += ",";
+
     DB::ParserToken dot_token(DB::TokenType::Dot);
 
     if (dot_token.ignore(token_pos) && dot_token.ignore(token_pos))
     {
-        DB::BracketCount bracket_count;
-        while(!token_pos->isEnd())
+        while (!token_pos->isEnd())
         {
             bracket_count.count(token_pos);
             if ((token_pos->type == DB::TokenType::PipeMark || token_pos->type == DB::TokenType::Semicolon) && bracket_count.isZero())
                 break;
             new_expr += DB::IParserKQLFunction::getExpression(token_pos);
-            if (token_pos->type == DB::TokenType::ClosingRoundBracket)
+
+            if (token_pos->type == DB::TokenType::ClosingRoundBracket && bracket_count.isZero())
+            {
                 break;
+            }
             ++token_pos;
         }
     }
