@@ -41,45 +41,33 @@ private:
 ColumnPtr
 FunctionKqlBetween::executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr &, const size_t input_rows_count) const
 {
-    if (arguments.size() < 3)
-        throw Exception(ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "Number of arguments in function {} doesn't match.", getName());
-
     const auto & base_arg = arguments[0];
     const auto & comparable_arg1 = arguments[1];
     const auto & comparable_arg2 = arguments[2];
 
-    auto new_column = ColumnUInt8::create(input_rows_count);
+    const ColumnsWithTypeAndName lhs_and_value{comparable_arg1, base_arg};
+    const auto lhs_and_value_compared = executeFunctionCall(context, "lessOrEquals", lhs_and_value, input_rows_count);
 
-    bool add_interval = false;
-
-    if (WhichDataType which_data_type(*comparable_arg2.type); which_data_type.isInterval())
-        add_interval = true;
-
-    for (size_t i = 0; i < input_rows_count; ++i)
+    if (!WhichDataType(*comparable_arg2.type).isInterval() || !WhichDataType(*comparable_arg1.type).isDateTime64())
     {
-        if (add_interval)
-            new_column->getData()[i]
-                = (base_arg.column->getInt(i) >= comparable_arg1.column->getInt(i)
-                   && base_arg.column->getInt(i) <= comparable_arg2.column->getInt(i) + comparable_arg1.column->getInt(i));
-        else
-        {
-            if (WhichDataType which_data_type2(*base_arg.type);
-                which_data_type2.isInt() || which_data_type2.isDateOrDate32OrDateTimeOrDateTime64())
-                new_column->getData()[i]
-                    = (base_arg.column->getInt(i) >= comparable_arg1.column->getInt(i)
-                       && base_arg.column->getInt(i) <= comparable_arg2.column->getInt(i));
-            else if (WhichDataType which_data_type3(*base_arg.type); which_data_type3.isUInt())
-                new_column->getData()[i]
-                    = (base_arg.column->getUInt(i) >= comparable_arg1.column->getUInt(i)
-                       && base_arg.column->getUInt(i) <= comparable_arg2.column->getUInt(i));
-            else if (WhichDataType which_data_type4(*base_arg.type); which_data_type4.isDecimal() || which_data_type4.isFloat())
-                new_column->getData()[i]
-                    = (base_arg.column->getFloat64(i) >= comparable_arg1.column->getFloat64(i)
-                       && base_arg.column->getFloat64(i) <= comparable_arg2.column->getFloat64(i));
-        }
+        const ColumnsWithTypeAndName value_and_rhs{base_arg, comparable_arg2};
+        const auto value_and_rhs_compared = executeFunctionCall(context, "lessOrEquals", value_and_rhs, input_rows_count);
+        const ColumnsWithTypeAndName comparisons{
+            asArgument(lhs_and_value_compared, "lhs_and_value_compared"), asArgument(value_and_rhs_compared, "value_and_rhs_compared")};
+        return executeFunctionCall(context, "and", comparisons, input_rows_count).first;
     }
+    else
+    {
+        const ColumnsWithTypeAndName lhs_and_rhs{comparable_arg1, comparable_arg2};
+        const auto lhs_and_rhs_sum = executeFunctionCall(context, "plus", lhs_and_rhs, input_rows_count);
 
-    return new_column;
+        const ColumnsWithTypeAndName value_and_rhs{base_arg, asArgument(lhs_and_rhs_sum, "lhs_and_rhs_sum")};
+
+        const auto value_and_rhs_compared = executeFunctionCall(context, "lessOrEquals", value_and_rhs, input_rows_count);
+        const ColumnsWithTypeAndName comparisons{
+            asArgument(lhs_and_value_compared, "lhs_and_value_compared"), asArgument(value_and_rhs_compared, "value_and_rhs_compared")};
+        return executeFunctionCall(context, "and", comparisons, input_rows_count).first;
+    }
 }
 
 REGISTER_FUNCTION(KqlBetween)
