@@ -25,10 +25,8 @@ bool ParserKQLTopHitters::updatePipeLine (OperationsPos & operations, String & q
 
     Pos start_pos = operations.front().second;
     Pos end_pos = pos;
-    --end_pos;
-    --end_pos;
-    --end_pos;
-    --end_pos;
+    for (auto i = 0; i < 4; ++i)
+        --end_pos;
 
     String prev_query(start_pos->begin, end_pos->end);
 
