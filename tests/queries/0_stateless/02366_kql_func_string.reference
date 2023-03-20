@@ -302,10 +302,23 @@ S3VzdG8x
 
 Kusto1
 \N
--- parse_url()
-{"Scheme":"scheme","Host":"","Port":"0","Path":"/this/is/a/path","Username":"username","Password":"password","Query Parameters":{"k1":"v1","k2":"v2"},"Fragment":"fragment"}
--- parse_url()
+-- parse_url() same as ADX
+{"Scheme":"scheme","Host":"host","Port":"1234","Path":"/this/is/a/path","Username":"username","Password":"password","Query Parameters":{"k1":"v1","k2":"v2"},"Fragment":"fragment"}
 {"Scheme":"","Host":"","Port":"","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"2001:db8:3333:4444:5555:6666:7777:8888","Port":"1234","Path":"/filepath/index.htm","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"host","Port":"1234","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"","Port":"","Path":"/this/is/a/path/index.htm","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"","Port":"","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":"fragment"}
+{"Scheme":"http","Host":"host","Port":"abcd","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"","Port":"","Path":"","Username":"username","Password":"password","Query Parameters":{},"Fragment":""}
+-- parse_url() improved over ADX
+{"Scheme":"http","Host":"host","Port":"1234","Path":"/","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"","Port":"1234","Path":"/","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"","Port":"","Path":"","Username":"","Password":"","Query Parameters":{"arg":"value"},"Fragment":""}
+{"Scheme":"http","Host":"host","Port":"1234","Path":"","Username":"","Password":"","Query Parameters":{"arg":"value"},"Fragment":""}
+-- parse_url() invalid IPV6
+{"Scheme":"http","Host":"2001","Port":"db8","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"2001","Port":"db8","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
 -- parse_urlquery()
 {"Query Parameters":{"k1":"v1","k2":"v2","k3":"v3"}}
 -- strcat --
