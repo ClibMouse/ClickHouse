@@ -25,7 +25,25 @@
     select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate between (datetime('2020-06-30') .. datetime('2025-06-30')));
     select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate !between (datetime('2020-06-30') .. datetime('2025-06-30')));
     ```
-
+## Bugfixes
+ - Corrected an issue with parse_url in which hostnames and port numbers were not correctly parsed.
+   Notes on differences between ADX and ClickHouse:
+   ```
+   ClickHouse includes Path as '/'.
+   print parse_url("http://host:1234/");
+   ClickHouse includes port.
+   print parse_url("http://:1234/");
+   ClickHouse includes arg value in Query parameters where ADX treats this as host.
+   print parse_url("http://?arg=value");
+   ClickHouse includes host and port where ADX treats host and port as host.
+   print parse_url("http://host:1234?arg=value");
+   ClickHouse will not parse IPv6 addresses not encapsulated in brackets 
+   Correct IPv6
+   print parse_url("http://[2001:db8:3333:4444:5555:6666:7777:8888]:1234/filepath/index.htm")
+   Incorrect IPv6
+   print parse_url("http://2001:db8:3333:4444:5555:6666:7777:8888:1234/filepath/index.htm");
+   print parse_url("http://2001:db8:3333:4444:5555:6666:7777:8888/filepath/index.htm");
+   ```
 # March 15, 2023
 ## Feature
  - KQL - improve timespan textual representation in the CLI
