@@ -50,6 +50,15 @@ create table StringTest
 
 insert into StringTest values ('asdf'), ('asdf.ghkj'), ('asdf.qwer'), ('asdfghkj'), ('qwer'), ('qwerqwer');
 
+DROP TABLE IF EXISTS MyTable;
+CREATE TABLE MyTable
+(    
+    `col_arr` Array(UInt64),
+    `col1` UInt64, 
+    `col2` UInt64
+) ENGINE = Memory;
+
+INSERT INTO MyTable VALUES (array(81,82,83,84), 71, 72), (array(85, 86), 73, 74), (array(87,88,89), 75, 76)
 
 set dialect='kusto';
 print '-- test String Functions --';
@@ -438,3 +447,5 @@ print str = make_string(75, 117, 115, 116, 111);
 print str = make_string(to_utf8("Kusto"));
 print str = make_string(dynamic([75, 117, 115]), 116, 111);
 print str = make_string(dynamic([75, 117, 115, 116, 111]));
+MyTable | project t = make_string(col_arr, col1, col2);
+MyTable | project t = strcat(make_string(col1), '-', make_string(col2), '-', make_string(strlen('abcd') * 20), '-', make_string(col_arr));
