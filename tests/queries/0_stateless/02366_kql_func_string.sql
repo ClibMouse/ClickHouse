@@ -450,3 +450,4 @@ print str = make_string(dynamic([75, 117, 115, 116, 111]));
 MyTable | project t = make_string(col_arr, col1, col2);
 MyTable | project t = strcat(make_string(col1), '-', make_string(col2), '-', make_string(strlen('abcd') * 20), '-', make_string(col_arr));
 print str = make_string(range(80, 85), 86, 87, range(88, 90));
+print str = make_string(dynamic([]), 80, 81)
