@@ -406,6 +406,34 @@ print idx12 = indexof('abcdefgabcdefg','cde', -5);
 print idx13 = indexof('abcdefgabcdefg','cde', -105);
 print idx14 = indexof(1d, '.');
 
+print '-- indexof_regex --';
+print idx1 = indexof_regex("abcabc", "a.c");
+print idx2 = indexof_regex("abcabcdefg", "a.c", 0, 9, 2);
+print idx3 = indexof_regex("abcabc", "a.c", 1, -1, 2);
+print idx4 = indexof_regex("ababaa", "a.a", 0, -1, 2);
+print idx5 = indexof_regex("abcabc", "a|ab", -1);
+print indexof_regex('adsasdasasd', 'sas');
+print indexof_regex('adsasdasasd', 'sas', -1);
+print indexof_regex('adsasdasasd', 'sas', 99);
+print indexof_regex('adsasdasasd', 'sas', 0, -1);
+print indexof_regex('adsasdasasd', 'sas', 0, -2);
+print indexof_regex('adsasdasasd', 'sas', 0, 0);
+print indexof_regex('adsasdasasd', 'sas', 0, 4);
+print indexof_regex('adsasdasasd', 'sas', 0, 5);
+print indexof_regex('adsasdasasd', 'sas', 0, 99);
+print indexof_regex('adsasdasasd', 'sas', 0, -1, 1);
+-- the following case differs from ADX, but conforms to the specification (https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/indexofregexfunction#returns)
+print indexof_regex('adsasdasasd', 'sas', 0, -1, 0);
+print indexof_regex('adsasdasasd', 'sas', 0, -1, 2);
+print indexof_regex('adsasdasasd', 'sas', 0, -1, 3);
+print indexof_regex(123456789, '67');
+print indexof_regex(12345.6789, 67);
+print now = now() | project indexof_regex(strcat('blabla', now, 'blablabla'), now);
+print indexof_regex(dynamic([1, 2, 3]), 2);
+print indexof_regex(true, 'rue');
+print indexof_regex(guid(74be27de-1e4e-49d9-b579-fe0b331d3642), 42);
+print indexof_regex(1d + 1h + 1m + 1s, '1.01:01:01');
+
 print '-- has --';
 print 'svchost.exe1' has '';
 print 'svchost.exe1' has 'svchost.exe';

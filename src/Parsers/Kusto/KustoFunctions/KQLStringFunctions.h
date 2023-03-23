@@ -81,6 +81,13 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class IndexOfRegex : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "indexof_regex()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
 class IsEmpty : public IParserKQLFunction
 {
 protected:
@@ -120,7 +127,7 @@ class NewGuid : public IParserKQLFunction
 {
 protected:
     const char * getName() const override { return "new_guid()"; }
-    bool convertImpl(String &out,IParser::Pos &pos) override;
+    bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
 class ParseCommandLine : public IParserKQLFunction
@@ -211,7 +218,7 @@ class StringSize : public IParserKQLFunction
 {
 protected:
     const char * getName() const override { return "string_size()"; }
-    bool convertImpl(String &out,IParser::Pos &pos) override;
+    bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
 class StrLen : public IParserKQLFunction
@@ -253,7 +260,7 @@ class ToUtf8 : public IParserKQLFunction
 {
 protected:
     const char * getName() const override { return "to_utf8()"; }
-    bool convertImpl(String &out,IParser::Pos &pos) override;
+    bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
 class Translate : public IParserKQLFunction
