@@ -1,4 +1,9 @@
-## KQL implemented features  
+## KQL implemented features
+# April XX, 2023
+## Functions
+- [make_string()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/makestringfunction.md)
+   `print str = make_string(75, 117, 115, 116, 111)`
+
 # March XX, 2023
 ## Functions
 - [hash()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/hashfunction)
@@ -71,10 +76,6 @@
   print has_any_ipv6_prefix('09:46:00 2600:1404:6400:1695::1e89', '0:0:0:0:0:ffff:127.', '2600:1404:6400:1695:')
   ```
 
-- [gettype()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/gettypefunction)
-   `print t = gettype(1)`
-- [make_string()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/makestringfunction.md)
-   `print str = make_string(75, 117, 115, 116, 111)`
 # February XX, 2023
 ## Operator
 
