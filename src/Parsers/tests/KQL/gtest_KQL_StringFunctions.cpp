@@ -249,5 +249,9 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserTest,
         {
             "MyTable | project t = make_string(col_arr, col1, col2)",
             "SELECT kql_make_string(col_arr, col1, col2) AS t\nFROM MyTable"
+        },
+        {
+            "print indexof_regex(A, B, C, D, E)",
+            "SELECT kql_indexof_regex(A, B, C, D, E) AS print_0"
         }
 })));

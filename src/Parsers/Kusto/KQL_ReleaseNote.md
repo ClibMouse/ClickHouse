@@ -1,6 +1,8 @@
 ## KQL implemented features
 # April XX, 2023
 ## Functions
+- [indexof_regex](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/indexofregexfunction)
+   `print idx1 = indexof_regex("abcabc", "a.c");`
 - [make_string()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/makestringfunction.md)
    `print str = make_string(75, 117, 115, 116, 111)`
 
