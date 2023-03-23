@@ -291,36 +291,30 @@ bool HasAnyIndex::convertImpl(String & out, IParser::Pos & pos)
 
 bool IndexOf::convertImpl(String & out, IParser::Pos & pos)
 {
-    String start_index = "0", length = "-1", occurrence = "1";
-    const String fn_name = getKQLFunctionName(pos);
+    const auto fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;
-    ++pos;
-    const String source = getConvertedArgument(fn_name, pos);
 
-    ++pos;
-    const String lookup = getConvertedArgument(fn_name, pos);
+    const auto source = getArgument(fn_name, pos);
+    const auto lookup = getArgument(fn_name, pos);
+    const auto start_index = getOptionalArgument(fn_name, pos);
+    const auto length = getOptionalArgument(fn_name, pos);
+    const auto occurrence = getOptionalArgument(fn_name, pos);
 
-    if (pos->type == TokenType::Comma)
-    {
-        ++pos;
-        start_index = getConvertedArgument(fn_name, pos);
+    out = std::format(
+        "kql_indexof(kql_tostring({}),kql_tostring({}),{},{},{})",
+        source,
+        lookup,
+        start_index.value_or("0"),
+        length.value_or("-1"),
+        occurrence.value_or("1"));
 
-        if (pos->type == TokenType::Comma)
-        {
-            ++pos;
-            length = getConvertedArgument(fn_name, pos);
-
-            if (pos->type == TokenType::Comma)
-            {
-                ++pos;
-                occurrence = getConvertedArgument(fn_name, pos);
-            }
-        }
-    }
-
-    out = std::format("kql_indexof(kql_tostring({}),kql_tostring({}),{},{},{})", source, lookup, start_index, length, occurrence);
     return true;
+}
+
+bool IndexOfRegex::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "kql_indexof_regex");
 }
 
 bool IsEmpty::convertImpl(String & out, IParser::Pos & pos)

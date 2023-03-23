@@ -37,6 +37,8 @@
    print parse_url("http://[2001:db8:3333:4444:5555:6666:7777:8888]/filepath/index.htm")
    ```
 ## Functions
+- [indexof_regex](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/indexofregexfunction)
+   `print idx1 = indexof_regex("abcabc", "a.c");`
 - [make_string()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/makestringfunction.md)
    `print str = make_string(75, 117, 115, 116, 111)`
 
