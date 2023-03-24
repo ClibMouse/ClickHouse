@@ -4,6 +4,7 @@
 #include <Functions/FunctionFactory.h>
 #include <Functions/FunctionHelpers.h>
 #include <Functions/IFunction.h>
+#include <Common/UTF8Helpers.h>
 
 #include <codecvt>
 #include <format>
@@ -33,38 +34,24 @@ public:
     bool isVariadic() const override { return true; }
     size_t getNumberOfArguments() const override { return 0; }
     bool isSuitableForShortCircuitArgumentsExecution(const DataTypesWithConstInfo & /*arguments*/) const override { return false; }
-    static String UnicodeToUTF8(const unsigned int & codepoint);
+
 
 private:
+    void convertAndAppendCodePoint(int code_point, String & row_str) const;
     ContextPtr context;
 };
 
-
-String FunctionKqlMakeString::UnicodeToUTF8(const unsigned int & codepoint)
+void FunctionKqlMakeString::convertAndAppendCodePoint(const int code_point, String & row_str) const
 {
-    String out;
+    if (code_point < 0 || code_point > 1114111)
+        throw DB::Exception(
+            DB::ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH,
+            "Argument in function {} is out of range, should be between 0 and 1114111",
+            getName());
 
-    if (codepoint <= 0x7f)
-        out.append(1, static_cast<char>(codepoint));
-    else if (codepoint <= 0x7ff)
-    {
-        out.append(1, static_cast<char>(0xc0 | ((codepoint >> 6) & 0x1f)));
-        out.append(1, static_cast<char>(0x80 | (codepoint & 0x3f)));
-    }
-    else if (codepoint <= 0xffff)
-    {
-        out.append(1, static_cast<char>(0xe0 | ((codepoint >> 12) & 0x0f)));
-        out.append(1, static_cast<char>(0x80 | ((codepoint >> 6) & 0x3f)));
-        out.append(1, static_cast<char>(0x80 | (codepoint & 0x3f)));
-    }
-    else
-    {
-        out.append(1, static_cast<char>(0xf0 | ((codepoint >> 18) & 0x07)));
-        out.append(1, static_cast<char>(0x80 | ((codepoint >> 12) & 0x3f)));
-        out.append(1, static_cast<char>(0x80 | ((codepoint >> 6) & 0x3f)));
-        out.append(1, static_cast<char>(0x80 | (codepoint & 0x3f)));
-    }
-    return out;
+    std::array<char, 4> buff;
+    const auto num_chars = UTF8::convertCodePointToUTF8(code_point, buff.data(), buff.size());
+    row_str.append(buff.data(), num_chars);
 }
 
 DataTypePtr FunctionKqlMakeString::getReturnTypeImpl(const DataTypes & arguments) const
@@ -102,6 +89,8 @@ ColumnPtr
 FunctionKqlMakeString::executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr &, const size_t input_rows_count) const
 {
     auto out_col = ColumnString::create();
+
+
     for (size_t j = 0; j < input_rows_count; ++j)
     {
         String row_str;
@@ -111,31 +100,21 @@ FunctionKqlMakeString::executeImpl(const ColumnsWithTypeAndName & arguments, con
             {
                 Field arr_field;
                 arguments[i].column->get(j, arr_field);
-                size_t len = arr_field.get<Array>().size();
+                const auto len = arr_field.get<Array>().size();
                 for (size_t k = 0; k < len; ++k)
                 {
-                    Field val = arr_field.get<Array>().at(k);
-                    long int temp = val.get<Int64>();
-                    if (temp < 0 || temp > 1114111)
-                        throw DB::Exception(
-                            DB::ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH,
-                            "Argument in function {} out of range, should be between 0 and 1114111",
-                            getName());
-                    row_str += UnicodeToUTF8(static_cast<unsigned int>(temp));
+                    const auto & val = arr_field.get<Array>().at(k);
+                    const auto code_point = static_cast<int>(val.get<Int64>());
+                    convertAndAppendCodePoint(code_point, row_str);
                 }
             }
             else
             {
-                long int temp = arguments[i].column->getInt(j);
-                if (temp < 0 || temp > 1114111)
-                    throw DB::Exception(
-                        DB::ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT,
-                        "Argument in function {} out of range, should be between 0 and 1114111",
-                        getName());
-                row_str += UnicodeToUTF8(static_cast<unsigned int>(temp));
+                const auto code_point = static_cast<int>(arguments[i].column->getInt(j));
+                convertAndAppendCodePoint(code_point, row_str);
             }
         }
-        out_col->insert(row_str);
+        out_col->insertData(row_str.c_str(), row_str.size());
     }
     return out_col;
 }
