@@ -1,4 +1,9 @@
-## KQL implemented features  
+## KQL implemented features
+# April XX, 2023
+## Functions
+- [make_string()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/makestringfunction.md)
+   `print str = make_string(75, 117, 115, 116, 111)`
+
 # March XX, 2023
 ## Functions
 - [hash()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/hashfunction)

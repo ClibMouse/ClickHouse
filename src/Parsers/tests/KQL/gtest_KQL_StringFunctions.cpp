@@ -241,5 +241,13 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserTest,
         {
             "print new_guid()",
             "SELECT generateUUIDv4() AS print_0"
+        },
+        {
+            "print str = make_string(dynamic([75, 117, 115, 116, 111]))",
+            "SELECT kql_make_string([75, 117, 115, 116, 111]) AS str"
+        },
+        {
+            "MyTable | project t = make_string(col_arr, col1, col2)",
+            "SELECT kql_make_string(col_arr, col1, col2) AS t\nFROM MyTable"
         }
 })));
