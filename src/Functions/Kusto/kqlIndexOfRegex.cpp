@@ -7,10 +7,11 @@
 #include <Functions/FunctionHelpers.h>
 #include <Functions/IFunction.h>
 
-#include <regex>
+#include <re2/re2.h>
 
 namespace DB::ErrorCodes
 {
+extern const int CANNOT_COMPILE_REGEXP;
 extern const int NUMBER_OF_ARGUMENTS_DOESNT_MATCH;
 }
 
@@ -27,9 +28,10 @@ public:
 
     ColumnPtr
     executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, size_t input_rows_count) const override;
+    ColumnNumbers getArgumentsThatAreAlwaysConstant() const override { return {1, 4}; }
     String getName() const override { return name; }
     size_t getNumberOfArguments() const override { return 0; }
-    DataTypePtr getReturnTypeImpl(const DataTypes &) const override { return makeNullable(std::make_shared<DataTypeInt64>()); }
+    DataTypePtr getReturnTypeImpl(const DataTypes & arguments) const override;
     bool isSuitableForShortCircuitArgumentsExecution(const DataTypesWithConstInfo & /*arguments*/) const override { return false; }
     bool isVariadic() const override { return true; }
 
@@ -66,18 +68,16 @@ private:
 ColumnPtr
 FunctionKqlIndexOfRegex::executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr &, const size_t input_rows_count) const
 {
-    if (const auto argument_count = std::ssize(arguments); argument_count < 2 || 5 < argument_count)
-        throw Exception(
-            ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH,
-            "Number of arguments for function {} doesn't match: passed {}, should be between 2 and 5.",
-            getName(),
-            argument_count);
-
     const auto in_column_haystack = extractArgumentColumnAsString(arguments[0], input_rows_count);
-    const auto in_column_regex = extractArgumentColumnAsString(arguments[1], input_rows_count);
+    const auto in_column_pattern = extractArgumentColumnAsString(arguments[1], input_rows_count);
     const auto in_column_start = extractIntegerArgumentColumn(arguments, 2, 0);
     const auto in_column_length = extractIntegerArgumentColumn(arguments, 3, -1);
     const auto in_column_occurrence = extractIntegerArgumentColumn(arguments, 4, 1);
+
+    const auto pattern = in_column_pattern->getDataAt(0).toView();
+    const RE2 precompiled_pattern(pattern, RE2::Quiet);
+    if (!precompiled_pattern.ok())
+        throw Exception(ErrorCodes::CANNOT_COMPILE_REGEXP, "{}: {}", getName(), precompiled_pattern.error());
 
     auto out_column = ColumnInt64::create(input_rows_count);
     auto out_null_map = ColumnUInt8::create(input_rows_count);
@@ -100,17 +100,32 @@ FunctionKqlIndexOfRegex::executeImpl(const ColumnsWithTypeAndName & arguments, c
         const auto bounded_start = std::min(start, std::max(std::ssize(haystack) - 1, Int64(0)));
         const auto shortened_haystack = haystack.substr(bounded_start, length == -1 ? std::string_view::npos : length);
 
-        const auto regex = in_column_regex->getDataAt(i).toView();
-        const std::regex parsed_regex(regex.data(), regex.length());
-        auto regex_it = std::cregex_iterator(shortened_haystack.cbegin(), shortened_haystack.cend(), parsed_regex);
-        const std::cregex_iterator regex_end_it;
-        for (int j = 1; j < occurrence && regex_it != regex_end_it; ++j, ++regex_it)
-            ;
+        size_t offset = 0;
+        re2::StringPiece partial_match;
+        int pass = 0;
+        while (pass < occurrence
+               && precompiled_pattern.Match(shortened_haystack, offset, shortened_haystack.length(), RE2::UNANCHORED, &partial_match, 1))
+        {
+            offset = std::distance(shortened_haystack.data(), partial_match.data()) + partial_match.length();
+            ++pass;
+        }
 
-        out_column_data[i] = regex_it == regex_end_it ? -1 : regex_it->position() + start;
+        out_column_data[i] = pass == occurrence ? std::distance(haystack.data(), partial_match.data()) : -1;
     }
 
     return ColumnNullable::create(std::move(out_column), std::move(out_null_map));
+}
+
+DataTypePtr FunctionKqlIndexOfRegex::getReturnTypeImpl(const DataTypes & arguments) const
+{
+    if (const auto argument_count = std::ssize(arguments); argument_count < 2 || 5 < argument_count)
+        throw Exception(
+            ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH,
+            "Number of arguments for function {} doesn't match: passed {}, should be between 2 and 5.",
+            getName(),
+            argument_count);
+
+    return makeNullable(std::make_shared<DataTypeInt64>());
 }
 
 REGISTER_FUNCTION(KqlIndexOfRegex)
