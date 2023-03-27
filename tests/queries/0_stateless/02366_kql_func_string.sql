@@ -432,7 +432,14 @@ print now = now() | project indexof_regex(strcat('blabla', now, 'blablabla'), no
 print indexof_regex(dynamic([1, 2, 3]), 2);
 print indexof_regex(true, 'rue');
 print indexof_regex(guid(74be27de-1e4e-49d9-b579-fe0b331d3642), 42);
-print indexof_regex(1d + 1h + 1m + 1s, '1.01:01:01');
+print indexof_regex(1d + 1h + 1m + 1s, '\\d?\\..*:\\d+:\\d{2}');
+print indexof_regex("abcabc", "*a|ab", -1); -- { serverError CANNOT_COMPILE_REGEXP }
+print indexof_regex("abcabc", strcat("a", "b", "c"));
+Customers | project indexof_regex(LastName, Occupation); -- { serverError ILLEGAL_COLUMN }
+Customers | project indexof_regex(LastName, "Diaz", Age, Age, Age); -- { serverError ILLEGAL_COLUMN }
+
+print '-- indexof_regex tabular #1 --';
+Customers | order by LastName asc | project indexof_regex(LastName, "Diaz", Age * 0, -1 * int(Age / Age), 1);
 
 print '-- has --';
 print 'svchost.exe1' has '';
