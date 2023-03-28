@@ -121,5 +121,13 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Aggregate, ParserKQLTest,
         {
             "Customers | summarize varianceif(Age, Age < 30)",
             "SELECT varSampIf(Age, Age < 30) AS varianceif_Age\nFROM Customers"
+        },
+        {
+            "Customers | summarize z=arg_max(Age, FirstName, LastName) by Occupation",
+            "SELECT\n    Occupation,\n    argMax(FirstName, Age) AS FirstName,\n    argMax(LastName, Age) AS LastName,\n    argMax(Age, Age) AS z\nFROM Customers\nGROUP BY Occupation"
+        },
+        {
+            "Customers | summarize z=arg_min(Age, FirstName, LastName) by Occupation",
+            "SELECT\n    Occupation,\n    argMin(FirstName, Age) AS FirstName,\n    argMin(LastName, Age) AS LastName,\n    argMin(Age, Age) AS z\nFROM Customers\nGROUP BY Occupation"
         }
 })));
