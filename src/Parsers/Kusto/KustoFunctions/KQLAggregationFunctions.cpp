@@ -9,12 +9,46 @@ namespace DB
 
 bool ArgMax::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "argMax");
+    String fn_name = getKQLFunctionName(pos);
+
+    if (fn_name.empty())
+        return false;
+    ++pos;
+    String expr_to_maximize = getConvertedArgument(fn_name, pos);
+    while (pos->type == TokenType::Comma)
+    {
+        ++pos;
+        const auto expr_to_return = getConvertedArgument(fn_name, pos);
+        if (expr_to_return == expr_to_maximize)
+        {
+            continue;
+        }
+        out += std::format("argMax({}, {}) as {},", expr_to_return, expr_to_maximize, expr_to_return);
+    }
+    out += std::format("argMax({}, {})", expr_to_maximize, expr_to_maximize);
+    return true;
 }
 
 bool ArgMin::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "argMin");
+    String fn_name = getKQLFunctionName(pos);
+
+    if (fn_name.empty())
+        return false;
+    ++pos;
+    String expr_to_maximize = getConvertedArgument(fn_name, pos);
+    while (pos->type == TokenType::Comma)
+    {
+        ++pos;
+        const auto expr_to_return = getConvertedArgument(fn_name, pos);
+        if (expr_to_return == expr_to_maximize)
+        {
+            continue;
+        }
+        out += std::format("argMin({}, {}) as {},", expr_to_return, expr_to_maximize, expr_to_return);
+    }
+    out += std::format("argMin({}, {})", expr_to_maximize, expr_to_maximize);
+    return true;
 }
 
 bool Avg::convertImpl(String & out, IParser::Pos & pos)
