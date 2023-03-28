@@ -127,7 +127,12 @@ Customers | summarize take_anyif(FirstName, LastName has 'Diaz'), dcount(FirstNa
 print '-- variance/variancep/varianceif --';
 Customers | summarize variance(Age);
 Customers | summarize variancep(Age);
-Customers | summarize varianceif(Age, Age < 30)
--- TODO:
--- arg_max()
--- arg_min()
+Customers | summarize varianceif(Age, Age < 30);
+
+print '-- arg_max --';
+Customers | summarize arg_max(Age, LastName);
+Customers | summarize z=arg_max(Age, FirstName, LastName) by Occupation;
+
+print '-- arg_min --';
+Customers | summarize arg_min(Age, LastName);
+Customers | summarize z=arg_min(Age, FirstName, LastName) by Occupation;
