@@ -16,31 +16,16 @@ using x3::char_;
 using x3::lexeme;
 using x3::lit;
 
-enum pIndex
-{
-    schema,
-    host,
-    port,
-    path,
-    user,
-    pass,
-    args,
-    frag
-};
-
 struct KQLURLstate
 {
-    std::vector<std::pair<std::string, std::string>> p{
-        {"Scheme", ""},
-        {"Host", ""},
-        {"Port", ""},
-        {"Path", ""},
-        {"Username", ""},
-        {"Password", ""},
-        {"Query Parameters", ""},
-        {"Fragment", ""},
-    };
-    std::vector<std::pair<std::string, std::string>> q;
+    std::string schema;
+    std::string user;
+    std::string pass;
+    std::string host;
+    std::string port;
+    std::string path;
+    std::string args = "{";
+    std::string frag;
 };
 
 const auto endschema = lit("://");
@@ -54,27 +39,32 @@ const auto closebracket = lit("]");
 const auto question = lit("?");
 const auto ampersand = lit("&");
 
-const auto endhost = char_(":/?#");
+const auto endhost = char_("/:?#");
+const auto endport = char_("/?#");
 const auto endauth = char_("@/?#");
 const auto endpath = char_("?#");
 const auto endarg = char_("#&");
 
-const auto set_schema = [](auto & ctx) { _val(ctx).p[schema].second = _attr(ctx); };
+const auto set_schema = [](auto & ctx) { _val(ctx).schema = _attr(ctx); };
 const auto set_auth = [](auto & ctx)
 {
     const auto & auth = _attr(ctx);
-    _val(ctx).p[user].second = at_c<0>(auth);
-    _val(ctx).p[pass].second = at_c<1>(auth);
+    _val(ctx).user = at_c<0>(auth);
+    _val(ctx).pass = at_c<1>(auth);
 };
-const auto set_host = [](auto & ctx) { _val(ctx).p[host].second = _attr(ctx); };
-const auto set_port = [](auto & ctx) { _val(ctx).p[port].second = _attr(ctx); };
-const auto set_path = [](auto & ctx) { _val(ctx).p[path].second = _attr(ctx); };
+const auto set_host = [](auto & ctx) { _val(ctx).host = _attr(ctx); };
+const auto set_port = [](auto & ctx) { _val(ctx).port = _attr(ctx); };
+const auto set_path = [](auto & ctx) { _val(ctx).path = _attr(ctx); };
 const auto set_args = [](auto & ctx)
 {
-    const auto & arg_val = _attr(ctx);
-    _val(ctx).q = arg_val;
+    bool first = false;
+    for (auto q_iter = _attr(ctx).begin(); q_iter < _attr(ctx).end(); ++q_iter)
+    {
+        _val(ctx).args.append((first ? ",\"" : "\"") + q_iter->first + "\":\"" + q_iter->second + "\"");
+        first = true;
+    }
 };
-const auto set_frag = [](auto & ctx) { _val(ctx).p[frag].second = _attr(ctx); };
+const auto set_frag = [](auto & ctx) { _val(ctx).frag = _attr(ctx); };
 
 template <typename T>
 auto as = [](auto p) { return x3::rule<struct _, T>{} = as_parser(p); };
@@ -83,7 +73,7 @@ const auto KQL_URL_SCHEMA_def = lexeme[+(char_ - endschema) >> endschema][set_sc
 const auto KQL_URL_AUTH_def = lexeme[(+(char_ - colon) >> &colon) >> colon >> (+(char_ - endauth) >> at)][set_auth];
 const auto KQL_URL_HOST_def
     = lexeme[as<std::string>((openbracket >> +(char_ - closebracket) >> closebracket) | (+(char_ - endhost)))][set_host];
-const auto KQL_URL_PORT_def = lexeme[colon >> +(char_ - endhost)][set_port];
+const auto KQL_URL_PORT_def = lexeme[colon >> +(char_ - endport)][set_port];
 const auto KQL_URL_PATH_def = lexeme[&slash >> +(char_ - endpath)][set_path];
 const auto KQL_URL_ARGS_def = lexeme[as<std::vector<std::pair<std::string, std::string>>>(
     +((question | ampersand) >> (+(char_ - equals) >> equals) >> (+(char_ - endarg))))][set_args];
@@ -136,21 +126,20 @@ FunctionKqlParseURL::executeImpl(const ColumnsWithTypeAndName & arguments, const
         const auto in_str = arguments[0].column->getDataAt(i).toView();
         KQLURLstate url;
         parse(in_str.begin(), in_str.end(), KQL_URL, url);
-        url.p[args].second.append("{");
-        int z = schema;
-        for (auto q_iter = url.q.begin(); q_iter < url.q.end(); ++q_iter, ++z)
-        {
-            url.p[args].second.append((z > schema ? ",\"" : "\"") + q_iter->first + "\":\"" + q_iter->second + "\"");
-        }
-        url.p[args].second.append("}");
-        std::string out_str = "{";
-        z = schema;
-        for (auto p_iter = url.p.begin(); p_iter < url.p.end(); ++p_iter, ++z)
-        {
-            out_str.append(
-                (z > schema ? ",\"" : "\"") + p_iter->first + "\":" + (z == args ? "" : "\"") + p_iter->second + (z == args ? "" : "\""));
-        }
-        out_str.append("}");
+        url.args.append("}");
+        const auto out_str = std::format(
+            "{}\"Scheme\":\"{}\",\"Host\":\"{}\",\"Port\":\"{}\",\"Path\":\"{}\",\"Username\":\"{}\",\"Password\":\"{}\",\"Query "
+            "Parameters\":{},\"Fragment\":\"{}\"{}",
+            "{",
+            url.schema,
+            url.host,
+            url.port,
+            url.path,
+            url.user,
+            url.pass,
+            url.args,
+            url.frag,
+            "}");
         result->insertData(out_str.c_str(), out_str.size());
     }
     return result;
