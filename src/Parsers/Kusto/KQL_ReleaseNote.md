@@ -39,7 +39,7 @@
 - [arg_max()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/arg-max-aggfunction) and [arg_min()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/arg-min-aggfunction)
   support multiple arguments now.
   `Customers | arg_max(Age, FirstName, LastName)`  
-  Note: The wildcard parameter (`*`) does not currently work, and will be implemented in a future build. Additionally, the parameter to maximize or minimize is always the last parameter.
+  Note: The wildcard parameter (`*`) does not currently work, and will be implemented in a future build. Additionally, the parameter to maximize or minimize is always the last parameter in the output.
 ## Functions
 - [indexof_regex](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/indexofregexfunction)
    `print idx1 = indexof_regex("abcabc", "a.c");`
