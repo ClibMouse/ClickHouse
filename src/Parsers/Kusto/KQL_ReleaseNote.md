@@ -47,7 +47,8 @@
    `print idx1 = indexof_regex("abcabc", "a.c");`
 - [make_string()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/makestringfunction.md)
    `print str = make_string(75, 117, 115, 116, 111)`
-
+- [isascii()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/isascii)
+   `print str = isascii('ab১২ufghi🐂🐇🐒')`
 # March XX, 2023
 ## Functions
 - [hash()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/hashfunction)

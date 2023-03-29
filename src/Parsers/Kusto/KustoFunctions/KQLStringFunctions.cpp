@@ -317,6 +317,17 @@ bool IndexOfRegex::convertImpl(String & out, IParser::Pos & pos)
     return directMapping(out, pos, "kql_indexof_regex");
 }
 
+bool IsAscii::convertImpl(String & out, IParser::Pos & pos)
+{
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+    ++pos;
+    String arg = getConvertedArgument(fn_name, pos);
+    out = std::format("not arrayExists(x -> x < 0 or x > 127, arrayMap(x -> ascii(x), splitByRegexp('', assumeNotNull({}))))", arg);
+    return true;
+}
+
 bool IsEmpty::convertImpl(String & out, IParser::Pos & pos)
 {
     const String fn_name = getKQLFunctionName(pos);
