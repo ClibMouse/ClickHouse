@@ -88,6 +88,13 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class IsAscii : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "isascii()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
 class IsEmpty : public IParserKQLFunction
 {
 protected:
@@ -119,8 +126,8 @@ protected:
 class MakeString : public IParserKQLFunction
 {
 protected:
-const char * getName() const override { return "make_string()"; }
-bool convertImpl(String &out,IParser::Pos &pos) override;
+    const char * getName() const override { return "make_string()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
 class NewGuid : public IParserKQLFunction
