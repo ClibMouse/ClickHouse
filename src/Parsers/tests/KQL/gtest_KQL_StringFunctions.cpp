@@ -257,5 +257,9 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         {
             "table | project indexof_regex(A, B, C, D, E)",
             "SELECT kql_indexof_regex(A, B, C, D, E)\nFROM table"
+        },
+        {
+            "Customers | project t = isascii(FirstName)",
+            "SELECT NOT arrayExists(x -> ((x < 0) OR (x > 127)), arrayMap(x -> ascii(x), splitByRegexp('', assumeNotNull(FirstName)))) AS t\nFROM Customers"
         }
 })));
