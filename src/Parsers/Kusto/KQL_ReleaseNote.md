@@ -2,22 +2,39 @@
 # April XX, 2023
 ## Bugfixes
  - Corrected an issue with parse_url in which hostnames and port numbers were not correctly parsed.
-   Notes on differences between ADX and ClickHouse:
    ```
-   ClickHouse includes Path as '/'.
+   parse_url follows the folowing structure.
+
+   Scheme://Username:Password@Host:Port/Path?QueryParameters#Fragment
+
+   '://' is required for further parsing.
+   All other fields are optional and are parsed from left to right.
+   Username and Password are parsed together, require ':' and '@', and will not match if password contains '/', '?', '#'.
+   IPv6 addresses are required to be encapsulated in brackets. 
+   Host ends with '/', ':', '?' or '#'.
+   Port starts with ':' and ends with '/', '?' or '#'.
+   Path requires to start with '/' and ends with '?' or '#'. 
+   Query Parameters is recursive, starts with '?', ends with '#', expected to be in the form of argument=value, and separated by '&'. 
+   Fragment must start with '#'.
+
+   Notes on differences between ADX and ClickHouse:
+
+   ClickHouse will return a formated string. 'extract_json' can be used to convert the string.
+   print x = parse_url("http://[2001:0db8:0000:0000:0000:ff00:0042:8329]?asd=qwe&qwe=asd") | project extract_json("$.Scheme", x); 
+   ClickHouse includes Path as '/' where ADX requires anything after '/' to populate Path.
    print parse_url("http://host:1234/");
-   ClickHouse includes port.
-   print parse_url("http://:1234/");
+   ClickHouse includes Port where ADX requires '/' for Port and without '/' will treat Port as part of Host.
+   print parse_url("http://host:1234?arg=value")
    ClickHouse includes arg value in Query parameters where ADX treats this as host.
    print parse_url("http://?arg=value");
-   ClickHouse includes host and port where ADX treats host and port as host.
-   print parse_url("http://host:1234?arg=value");
    ClickHouse will not parse IPv6 addresses not encapsulated in brackets [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.2) 
    Correct IPv6 
    print parse_url("http://[2001:db8:3333:4444:5555:6666:7777:8888]:1234/filepath/index.htm")
    Incorrect IPv6
    print parse_url("http://2001:db8:3333:4444:5555:6666:7777:8888:1234/filepath/index.htm");
    print parse_url("http://2001:db8:3333:4444:5555:6666:7777:8888/filepath/index.htm");
+   ADX will incorrectly consume part of encapsulated IPv6 Host as Port from last colon to '/'.
+   print parse_url("http://[2001:db8:3333:4444:5555:6666:7777:8888]/filepath/index.htm")
    ```
 # March XX, 2023
 ## Functions

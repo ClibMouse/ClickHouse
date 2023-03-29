@@ -317,8 +317,8 @@ Kusto1
 {"Scheme":"http","Host":"","Port":"","Path":"","Username":"","Password":"","Query Parameters":{"arg":"value"},"Fragment":""}
 {"Scheme":"http","Host":"host","Port":"1234","Path":"","Username":"","Password":"","Query Parameters":{"arg":"value"},"Fragment":""}
 -- parse_url() invalid IPV6
-{"Scheme":"http","Host":"2001","Port":"db8","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
-{"Scheme":"http","Host":"2001","Port":"db8","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"2001","Port":"db8:3333:4444:5555:6666:7777:8888:1234","Path":"/filepath/index.htm","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"2001","Port":"db8:3333:4444:5555:6666:7777:8888","Path":"/filepath/index.htm","Username":"","Password":"","Query Parameters":{},"Fragment":""}
 -- parse_urlquery()
 {"Query Parameters":{"k1":"v1","k2":"v2","k3":"v3"}}
 -- strcat --
