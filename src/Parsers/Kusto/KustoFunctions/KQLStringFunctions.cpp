@@ -324,7 +324,7 @@ bool IsAscii::convertImpl(String & out, IParser::Pos & pos)
         return false;
     ++pos;
     String arg = getConvertedArgument(fn_name, pos);
-    out = std::format("not arrayExists(x -> x < 0 or x > 127, arrayMap(x -> ascii(x), splitByRegexp('', assumeNotNull({}))))", arg);
+    out = std::format("not arrayExists(x -> x < 0 or x > 127, arrayMap(x -> ascii(x), splitByString('', assumeNotNull({}))))", arg);
     return true;
 }
 

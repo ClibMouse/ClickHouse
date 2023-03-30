@@ -260,6 +260,6 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "Customers | project t = isascii(FirstName)",
-            "SELECT NOT arrayExists(x -> ((x < 0) OR (x > 127)), arrayMap(x -> ascii(x), splitByRegexp('', assumeNotNull(FirstName)))) AS t\nFROM Customers"
+            "SELECT NOT arrayExists(x -> ((x < 0) OR (x > 127)), arrayMap(x -> ascii(x), splitByString('', assumeNotNull(FirstName)))) AS t\nFROM Customers"
         }
 })));
