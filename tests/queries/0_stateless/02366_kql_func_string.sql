@@ -282,6 +282,7 @@ print parse_url("http://host:1234");
 print parse_url("http:///this/is/a/path/index.htm");
 print parse_url("http://#fragment");
 print parse_url("http://host:abcd");
+print parse_url('http://host/filepath?arg=:bogus@some');
 print parse_url("http://username:password@");
 print parse_url(1);  -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
 print '-- parse_url() improved over ADX';
