@@ -122,13 +122,13 @@ FunctionKqlParseURL::executeImpl(const ColumnsWithTypeAndName & arguments, const
         KQLURLstate url;
         parse(in_str.begin(), in_str.end(), KQL_URL, url);
         bool first = false;
-	std::string args = "{";
-	for (auto q_iter = url.args.begin(); q_iter < url.args.end(); ++q_iter)
+        std::string args = "{";
+        for (auto q_iter = url.args.begin(); q_iter < url.args.end(); ++q_iter)
         {
             args.append((first ? ",\"" : "\"") + q_iter->first + "\":\"" + q_iter->second + "\"");
             first = true;
         }
-	args.append("}");
+        args.append("}");
         const auto out_str = std::format(
             "{}\"Scheme\":\"{}\",\"Host\":\"{}\",\"Port\":\"{}\",\"Path\":\"{}\",\"Username\":\"{}\",\"Password\":\"{}\",\"Query "
             "Parameters\":{},\"Fragment\":\"{}\"{}",
