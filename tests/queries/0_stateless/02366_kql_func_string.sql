@@ -490,10 +490,6 @@ print str = make_string(range(80, 85), 86, 87, range(88, 90));
 print str = make_string(dynamic([]), 80, 81);
 print str = make_string(123, 1605, 29233 ,128002, 2437);
 
-print '-- new_guid --';
-print t = new_guid(1) -- { clientError NUMBER_OF_ARGUMENTS_DOESNT_MATCH }
-
-print '-- isascii --';
-print t = isascii('ab১২ufghi🐂🐇🐒');
-print t = isascii('abufghi');
-Customers | project t = isascii(FirstName);
+print '-- isutf8 --';
+print t = isutf8('🐂');
+print t = isutf8('؄');
