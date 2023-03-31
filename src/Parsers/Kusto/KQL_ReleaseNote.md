@@ -40,6 +40,8 @@
   support multiple arguments now.
   `Customers | arg_max(Age, FirstName, LastName)`  
   Note: The wildcard parameter (`*`) does not currently work, and will be implemented in a future build. Additionally, the parameter to maximize or minimize is always the last parameter in the output.
+- Corrected an issue with tolong when used with datetime.
+- Corrected an issue with hash when used with datetime.
 ## Functions
 - [indexof_regex](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/indexofregexfunction)
    `print idx1 = indexof_regex("abcabc", "a.c");`
