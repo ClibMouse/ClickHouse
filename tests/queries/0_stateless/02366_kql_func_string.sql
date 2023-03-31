@@ -285,11 +285,16 @@ print parse_url("http://host:abcd");
 print parse_url('http://host/filepath?arg=:bogus@some');
 print parse_url("http://username:password@");
 print parse_url(1);  -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
-print '-- parse_url() improved over ADX';
+print '-- parse_url() differs from ADX';
 print parse_url("http://host:1234/");
 print parse_url("http://:1234/");
 print parse_url("http://?arg=value");
 print parse_url("http://host:1234?arg=value");
+print parse_url("http:///");
+print parse_url("http:///filepath");
+print parse_url("http://:port:/anything?arg=value");
+print parse_url("http://:port:port/anything?arg=value");
+print parse_url("http://host/");
 print '-- parse_url() invalid IPV6';
 print parse_url("http://2001:db8:3333:4444:5555:6666:7777:8888:1234/filepath/index.htm");
 print parse_url("http://2001:db8:3333:4444:5555:6666:7777:8888/filepath/index.htm");
