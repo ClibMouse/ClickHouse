@@ -68,6 +68,7 @@ enum class KQLFunction : uint16_t
     isnan,
     isnotempty,
     isnotnull,
+    isutf8,
     isnull,
     make_string,
     new_guid,
@@ -333,6 +334,7 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"notempty", KQLFunction::isnotempty},
     {"isnotnull", KQLFunction::isnotnull},
     {"notnull", KQLFunction::isnotnull},
+    {"isutf8", KQLFunction::isutf8},
     {"isnull", KQLFunction::isnull},
     {"make_string", KQLFunction::make_string},
     {"new_guid", KQLFunction::new_guid},
@@ -705,6 +707,9 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::isnotnull:
             return std::make_unique<IsNotNull>();
+
+        case KQLFunction::isutf8:
+            return std::make_unique<IsUtf8>();
 
         case KQLFunction::isnull:
             return std::make_unique<IsNull>();

@@ -374,6 +374,11 @@ bool ParseCommandLine::convertImpl(String & out, IParser::Pos & pos)
     return true;
 }
 
+bool IsUtf8::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "isValidUTF8");
+}
+
 bool IsNull::convertImpl(String & out, IParser::Pos & pos)
 {
     return directMapping(out, pos, "isNull");

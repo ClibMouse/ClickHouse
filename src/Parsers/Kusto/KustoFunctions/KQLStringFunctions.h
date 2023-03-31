@@ -116,6 +116,13 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class IsUtf8 : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "isutf8()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
 class IsNull : public IParserKQLFunction
 {
 protected:
