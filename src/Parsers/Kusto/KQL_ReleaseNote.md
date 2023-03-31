@@ -81,6 +81,9 @@
 - Corrected an issue with tolong when used with datetime.
 - Corrected an issue with hash when used with datetime.
 ## Functions
+- [isutf8](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/isutf8)
+   `print t = isutf8('؄');`  
+   *Note -* For hexa strings, need to append extra `0` for each (up to) three characters after `\x`. For example, for input `\xFFF`, need to add one `0` like `\x0FFF`. For input like `\xFFFF`, for the last `F`, needs to add one additional `0` like `\x00FFFF`.
 - [indexof_regex](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/indexofregexfunction)
    `print idx1 = indexof_regex("abcabc", "a.c");`
 - [make_string()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/makestringfunction.md)

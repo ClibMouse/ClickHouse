@@ -506,6 +506,7 @@ $-অ-P-WXY
 PQRSTUVWXYZ
 PQ
 {م爱🐂অ
+<<<<<<< HEAD
 -- new_guid --
 -- isascii --
 0
@@ -514,5 +515,8 @@ PQ
 1
 1
 1
+=======
+-- isutf8 --
+>>>>>>> b5f3edea893 (isutf8 function implemented)
 1
 1
