@@ -9,7 +9,7 @@
 
    '://' is required for further parsing.
    All other fields are optional and are parsed from left to right.
-   Username and Password are parsed together, require ':' and '@', and will not match if password contains '/', '?', '#'.
+   Username and Password are parsed together, require ':' and '@', and will not match if either contains '/', '?', or '#'.
    IPv6 addresses are required to be encapsulated in brackets. 
    Host ends with '/', ':', '?' or '#'.
    Port starts with ':' and ends with '/', '?' or '#'.
