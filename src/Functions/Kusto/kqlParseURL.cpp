@@ -24,8 +24,8 @@ struct KQLURLstate
     std::string host;
     std::string port;
     std::string path;
-    std::string args = "{";
     std::string frag;
+    std::vector<std::pair<std::string, std::string>> args;
 };
 
 const auto endschema = lit("://");
@@ -55,14 +55,10 @@ const auto set_auth = [](auto & ctx)
 const auto set_host = [](auto & ctx) { _val(ctx).host = _attr(ctx); };
 const auto set_port = [](auto & ctx) { _val(ctx).port = _attr(ctx); };
 const auto set_path = [](auto & ctx) { _val(ctx).path = _attr(ctx); };
-const auto set_args = [](auto & ctx)
+const auto set_arg = [](auto & ctx)
 {
-    bool first = false;
-    for (auto q_iter = _attr(ctx).begin(); q_iter < _attr(ctx).end(); ++q_iter)
-    {
-        _val(ctx).args.append((first ? ",\"" : "\"") + q_iter->first + "\":\"" + q_iter->second + "\"");
-        first = true;
-    }
+    const auto & arg = _attr(ctx);
+    _val(ctx).args.emplace_back(at_c<0>(arg), at_c<1>(arg));
 };
 const auto set_frag = [](auto & ctx) { _val(ctx).frag = _attr(ctx); };
 
@@ -70,18 +66,17 @@ template <typename T>
 auto as = [](auto p) { return x3::rule<struct _, T>{} = as_parser(p); };
 
 const auto KQL_URL_SCHEMA_def = lexeme[+(char_ - endschema) >> endschema][set_schema];
-const auto KQL_URL_AUTH_def = lexeme[(+(char_ - endauth)) >> colon >> (+(char_ - endauth) >> at)][set_auth];
+const auto KQL_URL_AUTH_def = lexeme[+(char_ - endauth) >> colon >> +(char_ - endauth) >> at][set_auth];
 const auto KQL_URL_HOST_def
     = lexeme[as<std::string>((openbracket >> +(char_ - closebracket) >> closebracket) | (+(char_ - endhost)))][set_host];
 const auto KQL_URL_PORT_def = lexeme[colon >> +(char_ - endport)][set_port];
 const auto KQL_URL_PATH_def = lexeme[&slash >> +(char_ - endpath)][set_path];
-const auto KQL_URL_ARGS_def = lexeme[as<std::vector<std::pair<std::string, std::string>>>(
-    +((question | ampersand) >> (+(char_ - equals) >> equals) >> (+(char_ - endarg))))][set_args];
+const auto KQL_URL_ARG_def = lexeme[(question | ampersand) >> +(char_ - equals) >> equals >> +(char_ - endarg)][set_arg];
 const auto KQL_URL_FRAG_def = lexeme[fragmark >> +char_][set_frag];
 
 const x3::rule<class KQLURL, KQLURLstate> KQL_URL = "KQL URL";
 const auto KQL_URL_def = KQL_URL_SCHEMA_def >> -KQL_URL_AUTH_def >> -KQL_URL_HOST_def >> -KQL_URL_PORT_def >> -KQL_URL_PATH_def
-    >> -KQL_URL_ARGS_def >> -KQL_URL_FRAG_def;
+    >> *KQL_URL_ARG_def >> -KQL_URL_FRAG_def;
 
 BOOST_SPIRIT_DEFINE(KQL_URL);
 }
@@ -126,7 +121,14 @@ FunctionKqlParseURL::executeImpl(const ColumnsWithTypeAndName & arguments, const
         const auto in_str = arguments[0].column->getDataAt(i).toView();
         KQLURLstate url;
         parse(in_str.begin(), in_str.end(), KQL_URL, url);
-        url.args.append("}");
+        bool first = false;
+	std::string args = "{";
+	for (auto q_iter = url.args.begin(); q_iter < url.args.end(); ++q_iter)
+        {
+            args.append((first ? ",\"" : "\"") + q_iter->first + "\":\"" + q_iter->second + "\"");
+            first = true;
+        }
+	args.append("}");
         const auto out_str = std::format(
             "{}\"Scheme\":\"{}\",\"Host\":\"{}\",\"Port\":\"{}\",\"Path\":\"{}\",\"Username\":\"{}\",\"Password\":\"{}\",\"Query "
             "Parameters\":{},\"Fragment\":\"{}\"{}",
@@ -137,7 +139,7 @@ FunctionKqlParseURL::executeImpl(const ColumnsWithTypeAndName & arguments, const
             url.path,
             url.user,
             url.pass,
-            url.args,
+            args,
             url.frag,
             "}");
         result->insertData(out_str.c_str(), out_str.size());
