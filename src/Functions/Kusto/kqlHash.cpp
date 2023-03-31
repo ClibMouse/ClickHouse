@@ -49,6 +49,11 @@ ColumnPtr FunctionKqlHash::executeImpl(const ColumnsWithTypeAndName & arguments,
         const auto tocast = executeFunctionCall(context, "toInt64", firstarg, input_rows_count);
         args = {asArgument(tocast, name)};
     }
+    else if (which.isDateTime64())
+    {
+        const auto tocast = executeFunctionCall(context, "kql_tolong", firstarg, input_rows_count);
+        args = {asArgument(tocast, name)};
+    }
     else if (which.isFloat32())
     {
         const auto tocast = executeFunctionCall(context, "toFloat64", firstarg, input_rows_count);
