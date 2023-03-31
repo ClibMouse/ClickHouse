@@ -310,6 +310,7 @@ Kusto1
 {"Scheme":"http","Host":"","Port":"","Path":"/this/is/a/path/index.htm","Username":"","Password":"","Query Parameters":{},"Fragment":""}
 {"Scheme":"http","Host":"","Port":"","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":"fragment"}
 {"Scheme":"http","Host":"host","Port":"abcd","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"host","Port":"","Path":"/filepath","Username":"","Password":"","Query Parameters":{"arg":":bogus@some"},"Fragment":""}
 {"Scheme":"http","Host":"","Port":"","Path":"","Username":"username","Password":"password","Query Parameters":{},"Fragment":""}
 -- parse_url() improved over ADX
 {"Scheme":"http","Host":"host","Port":"1234","Path":"/","Username":"","Password":"","Query Parameters":{},"Fragment":""}
