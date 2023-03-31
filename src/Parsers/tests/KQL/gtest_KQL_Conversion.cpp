@@ -26,7 +26,7 @@ INSTANTIATE_TEST_SUITE_P(
         },
         {
             "print tolong(A)",
-            "SELECT intDiv(toInt64OrNull(toString(A)), if(toTypeName(A) = 'IntervalNanosecond', 100, 1)) AS print_0"
+            "SELECT kql_tolong(A) AS print_0"
         },
         {
             "print toreal(A)",
