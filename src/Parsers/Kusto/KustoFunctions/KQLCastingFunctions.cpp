@@ -47,13 +47,7 @@ bool ToInt::convertImpl(String & out, IParser::Pos & pos)
 
 bool ToLong::convertImpl(String & out, IParser::Pos & pos)
 {
-    const auto function_name = getKQLFunctionName(pos);
-    if (function_name.empty())
-        return false;
-
-    const auto param = getArgument(function_name, pos);
-    out = std::format("intDiv(toInt64OrNull(toString({0})), if(toTypeName({0}) = 'IntervalNanosecond', 100, 1))", param);
-    return true;
+    return directMapping(out, pos, "kql_tolong");
 }
 
 bool ToString::convertImpl(String & out, IParser::Pos & pos)
@@ -83,8 +77,18 @@ bool ToDecimal::convertImpl(String & out, IParser::Pos & pos)
     {
         --pos;
         const auto arg = getArgument(fn_name, pos);
-        const auto scale = std::format("if (position({0}::String,'e') = 0,(countSubstrings({0}::String,'.') = 1 ? length(substr({0}::String, position({0}::String,'.') + 1)): 0), toUInt64(multiIf ((position({0}::String,'e+') as x) > 0, substr({0}::String, x + 2),(position({0}::String, 'e-') as y) > 0, substr({0}::String, y + 2), position({0}::String, 'e-') = 0 AND position({0}::String, 'e+') =0 AND position({0}::String, 'e') > 0,substr({0}::String, position({0}::String, 'e') + 1), 0::String)))",arg);
-        out = std::format("toTypeName({0}) = 'String' OR toTypeName({0}) = 'FixedString' ? toDecimal128OrNull({0}::String , ({1}::UInt8)) : toDecimal128OrNull({0}::String , ({1}::UInt8))", arg, scale);
+        const auto scale = std::format(
+            "if (position({0}::String,'e') = 0,(countSubstrings({0}::String,'.') = 1 ? length(substr({0}::String, "
+            "position({0}::String,'.') + 1)): 0), toUInt64(multiIf ((position({0}::String,'e+') as x) > 0, substr({0}::String, x + "
+            "2),(position({0}::String, 'e-') as y) > 0, substr({0}::String, y + 2), position({0}::String, 'e-') = 0 AND "
+            "position({0}::String, 'e+') =0 AND position({0}::String, 'e') > 0,substr({0}::String, position({0}::String, 'e') + 1), "
+            "0::String)))",
+            arg);
+        out = std::format(
+            "toTypeName({0}) = 'String' OR toTypeName({0}) = 'FixedString' ? toDecimal128OrNull({0}::String , ({1}::UInt8)) : "
+            "toDecimal128OrNull({0}::String , ({1}::UInt8))",
+            arg,
+            scale);
     }
     else
     {
