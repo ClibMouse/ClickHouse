@@ -41,7 +41,7 @@ const auto ampersand = lit("&");
 
 const auto endhost = char_("/:?#");
 const auto endport = char_("/?#");
-const auto endauth = char_("@/?#");
+const auto endauth = char_("@:/?#");
 const auto endpath = char_("?#");
 const auto endarg = char_("#&");
 
@@ -70,14 +70,14 @@ template <typename T>
 auto as = [](auto p) { return x3::rule<struct _, T>{} = as_parser(p); };
 
 const auto KQL_URL_SCHEMA_def = lexeme[+(char_ - endschema) >> endschema][set_schema];
-const auto KQL_URL_AUTH_def = lexeme[(+(char_ - colon) >> &colon) >> colon >> (+(char_ - endauth) >> at)][set_auth];
+const auto KQL_URL_AUTH_def = lexeme[(+(char_ - endauth)) >> colon >> (+(char_ - endauth) >> at)][set_auth];
 const auto KQL_URL_HOST_def
     = lexeme[as<std::string>((openbracket >> +(char_ - closebracket) >> closebracket) | (+(char_ - endhost)))][set_host];
 const auto KQL_URL_PORT_def = lexeme[colon >> +(char_ - endport)][set_port];
 const auto KQL_URL_PATH_def = lexeme[&slash >> +(char_ - endpath)][set_path];
 const auto KQL_URL_ARGS_def = lexeme[as<std::vector<std::pair<std::string, std::string>>>(
     +((question | ampersand) >> (+(char_ - equals) >> equals) >> (+(char_ - endarg))))][set_args];
-const auto KQL_URL_FRAG_def = lexeme[fragmark >> +(char_)][set_frag];
+const auto KQL_URL_FRAG_def = lexeme[fragmark >> +char_][set_frag];
 
 const x3::rule<class KQLURL, KQLURLstate> KQL_URL = "KQL URL";
 const auto KQL_URL_def = KQL_URL_SCHEMA_def >> -KQL_URL_AUTH_def >> -KQL_URL_HOST_def >> -KQL_URL_PORT_def >> -KQL_URL_PATH_def
