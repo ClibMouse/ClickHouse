@@ -375,17 +375,7 @@ bool MakeString::convertImpl(String & out, IParser::Pos & pos)
 
 bool NewGuid::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
-    if (fn_name.empty())
-        return false;
-    ++pos;
-    ++pos;
-    if (!pos->isEnd() && pos->type != TokenType::Semicolon && pos->type != TokenType::PipeMark)
-        throw Exception(ErrorCodes::BAD_ARGUMENTS, "Function {} expects 0 argument(s)", fn_name);
-    --pos;
-    --pos;
-    --pos;
-    return directMapping(out, pos, "generateUUIDv4");
+    return directMapping(out, pos, "generateUUIDv4", {0, 0});
 }
 
 bool ParseCSV::convertImpl(String & out, IParser::Pos & pos)
