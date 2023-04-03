@@ -38,7 +38,7 @@ print bin(datetime('1970-05-11 13:45:07.456345672'), 1tick);
 print bin(datetime(2022-09-26 10:13:23.987234128), 100nanosecond);
 print bin(datetime(2022-09-26 10:13:23.987234128), 1tick);
 print bin(datetime(2022-09-26 10:13:23.987234128), 99nanosecond);
-Customers | summarize count() by bin(Age, Age);
+Customers | summarize count() by bin(Age, Age) | sort by Age asc;
 
 print '-- bin_at()';
 print bin_at(6.5, 2.5, 7);
