@@ -264,6 +264,9 @@ String genBetweenOpExpr(std::vector<std::string> & tokens, DB::IParser::Pos & to
 
     if (dot_token.ignore(token_pos) && dot_token.ignore(token_pos))
     {
+        if (dot_token.ignore(token_pos))
+            throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error, number of dots do not match.");
+
         while (!token_pos->isEnd())
         {
             bracket_count.count(token_pos);
