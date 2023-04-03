@@ -50,6 +50,17 @@ create table StringTest
 
 insert into StringTest values ('asdf'), ('asdf.ghkj'), ('asdf.qwer'), ('asdfghkj'), ('qwer'), ('qwerqwer');
 
+DROP TABLE IF EXISTS MyTable;
+CREATE TABLE MyTable
+(    
+    `col_arr` Array(UInt64),
+    `col1` Int8, 
+    `col2` Int16,
+    `col3` Int32,
+    `col4` Int64,
+) ENGINE = Memory;
+
+INSERT INTO MyTable VALUES (array(81,82,83,84), 123, 1605, 29233 ,128002 ), (array(85, 86), 62, 1540 ,25151 , 49856), (array(87,88,89), 36, 2437, 127801, 50509)
 
 set dialect='kusto';
 print '-- test String Functions --';
@@ -395,6 +406,41 @@ print idx12 = indexof('abcdefgabcdefg','cde', -5);
 print idx13 = indexof('abcdefgabcdefg','cde', -105);
 print idx14 = indexof(1d, '.');
 
+print '-- indexof_regex --';
+print idx1 = indexof_regex("abcabc", "a.c");
+print idx2 = indexof_regex("abcabcdefg", "a.c", 0, 9, 2);
+print idx3 = indexof_regex("abcabc", "a.c", 1, -1, 2);
+print idx4 = indexof_regex("ababaa", "a.a", 0, -1, 2);
+print idx5 = indexof_regex("abcabc", "a|ab", -1);
+print indexof_regex('adsasdasasd', 'sas');
+print indexof_regex('adsasdasasd', 'sas', -1);
+print indexof_regex('adsasdasasd', 'sas', 99);
+print indexof_regex('adsasdasasd', 'sas', 0, -1);
+print indexof_regex('adsasdasasd', 'sas', 0, -2);
+print indexof_regex('adsasdasasd', 'sas', 0, 0);
+print indexof_regex('adsasdasasd', 'sas', 0, 4);
+print indexof_regex('adsasdasasd', 'sas', 0, 5);
+print indexof_regex('adsasdasasd', 'sas', 0, 99);
+print indexof_regex('adsasdasasd', 'sas', 0, -1, 1);
+-- the following case differs from ADX, but conforms to the specification (https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/indexofregexfunction#returns)
+print indexof_regex('adsasdasasd', 'sas', 0, -1, 0);
+print indexof_regex('adsasdasasd', 'sas', 0, -1, 2);
+print indexof_regex('adsasdasasd', 'sas', 0, -1, 3);
+print indexof_regex(123456789, '67');
+print indexof_regex(12345.6789, 67);
+print now = now() | project indexof_regex(strcat('blabla', now, 'blablabla'), now);
+print indexof_regex(dynamic([1, 2, 3]), 2);
+print indexof_regex(true, 'rue');
+print indexof_regex(guid(74be27de-1e4e-49d9-b579-fe0b331d3642), 42);
+print indexof_regex(1d + 1h + 1m + 1s, '\\d?\\..*:\\d+:\\d{2}');
+print indexof_regex("abcabc", "*a|ab", -1); -- { serverError CANNOT_COMPILE_REGEXP }
+print indexof_regex("abcabc", strcat("a", "b", "c"));
+Customers | project indexof_regex(LastName, Occupation); -- { serverError ILLEGAL_COLUMN }
+Customers | project indexof_regex(LastName, "Diaz", Age, Age, Age); -- { serverError ILLEGAL_COLUMN }
+
+print '-- indexof_regex tabular #1 --';
+Customers | order by LastName asc | project indexof_regex(LastName, "Diaz", Age * 0, -1 * int(Age / Age), 1);
+
 print '-- has --';
 print 'svchost.exe1' has '';
 print 'svchost.exe1' has 'svchost.exe';
@@ -431,4 +477,18 @@ print t = string_size('⒦⒰⒮⒯⒪');
 
 print '-- to_utf8 --';
 print arr = to_utf8("⒦⒰⒮⒯⒪");
-print arr = to_utf8("קוסטו - Kusto")
+print arr = to_utf8("קוסטו - Kusto");
+
+print '-- make_string --';
+print str = make_string(75, 117, 115, 116, 111);
+print str = make_string(to_utf8("Kusto"));
+print str = make_string(dynamic([75, 117, 115]), 116, 111);
+print str = make_string(dynamic([75, 117, 115, 116, 111]));
+MyTable | project t = make_string(col_arr, col1, col2);
+MyTable | project t = strcat(make_string(col1), '-', make_string(col2), '-', make_string(strlen('abcd') * 20), '-', make_string(col_arr));
+print str = make_string(range(80, 85), 86, 87, range(88, 90));
+print str = make_string(dynamic([]), 80, 81);
+print str = make_string(123, 1605, 29233 ,128002, 2437);
+
+print '-- new_guid --';
+print t = new_guid(1) -- { clientError NUMBER_OF_ARGUMENTS_DOESNT_MATCH }

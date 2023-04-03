@@ -241,9 +241,29 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserTest,
         {
             "print new_guid()",
             "SELECT generateUUIDv4() AS print_0"
-	},
+	      },
         {
             "print parse_url('https://john:123@google.com:1234/this/is/a/path?k1=v1&k2=v2#fragment')",
             "SELECT kql_parseurl('https://john:123@google.com:1234/this/is/a/path?k1=v1&k2=v2#fragment') AS print_0",
+        },
+        {
+            "print str = make_string(dynamic([75, 117, 115, 116, 111]))",
+            "SELECT kql_make_string([75, 117, 115, 116, 111]) AS str"
+        },
+        {
+            "MyTable | project t = make_string(col_arr, col1, col2)",
+            "SELECT kql_make_string(col_arr, col1, col2) AS t\nFROM MyTable"
+        },
+        {
+            "print str = make_string(dynamic([75, 117, 115, 116, 111]))",
+            "SELECT kql_make_string([75, 117, 115, 116, 111]) AS str"
+        },
+        {
+            "MyTable | project t = make_string(col_arr, col1, col2)",
+            "SELECT kql_make_string(col_arr, col1, col2) AS t\nFROM MyTable"
+        },
+        {
+            "table | project indexof_regex(A, B, C, D, E)",
+            "SELECT kql_indexof_regex(A, B, C, D, E)\nFROM table"
         }
 })));

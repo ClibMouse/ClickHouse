@@ -414,6 +414,40 @@ Latoya	Shen	Professional	Graduate Degree	25
 9
 2
 1
+-- indexof_regex --
+0
+3
+-1
+-1
+\N
+2
+\N
+-1
+2
+\N
+-1
+-1
+2
+2
+2
+\N
+7
+-1
+5
+6
+6
+3
+1
+34
+0
+0
+-- indexof_regex tabular #1 --
+-1
+-1
+0
+-1
+-1
+-1
 -- has --
 1
 0
@@ -458,3 +492,18 @@ qwer
 -- to_utf8 --
 [9382,9392,9390,9391,9386]
 [1511,1493,1505,1496,1493,32,45,32,75,117,115,116,111]
+-- make_string --
+Kusto
+Kusto
+Kusto
+Kusto
+QRST{م
+UV>؄
+WXY$অ
+{-م-P-QRST
+>-؄-P-UV
+$-অ-P-WXY
+PQRSTUVWXYZ
+PQ
+{م爱🐂অ
+-- new_guid --

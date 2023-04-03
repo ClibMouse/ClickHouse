@@ -62,11 +62,13 @@ enum class KQLFunction : uint16_t
     extract_json,
     has_any_index,
     indexof,
+    indexof_regex,
     isempty,
     isnan,
     isnotempty,
     isnotnull,
     isnull,
+    make_string,
     new_guid,
     parse_command_line,
     parse_csv,
@@ -318,6 +320,7 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"extractjson", KQLFunction::extract_json},
     {"has_any_index", KQLFunction::has_any_index},
     {"indexof", KQLFunction::indexof},
+    {"indexof_regex", KQLFunction::indexof_regex},
     {"isempty", KQLFunction::isempty},
     {"isnan", KQLFunction::isnan},
     {"isnotempty", KQLFunction::isnotempty},
@@ -325,6 +328,7 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"isnotnull", KQLFunction::isnotnull},
     {"notnull", KQLFunction::isnotnull},
     {"isnull", KQLFunction::isnull},
+    {"make_string", KQLFunction::make_string},
     {"new_guid", KQLFunction::new_guid},
     {"parse_command_line", KQLFunction::parse_command_line},
     {"parse_csv", KQLFunction::parse_csv},
@@ -674,6 +678,9 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
         case KQLFunction::indexof:
             return std::make_unique<IndexOf>();
 
+        case KQLFunction::indexof_regex:
+            return std::make_unique<IndexOfRegex>();
+
         case KQLFunction::isempty:
             return std::make_unique<IsEmpty>();
 
@@ -688,6 +695,9 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::isnull:
             return std::make_unique<IsNull>();
+
+        case KQLFunction::make_string:
+            return std::make_unique<MakeString>();
 
         case KQLFunction::new_guid:
             return std::make_unique<NewGuid>();
