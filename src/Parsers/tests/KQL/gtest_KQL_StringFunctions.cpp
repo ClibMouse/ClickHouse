@@ -241,6 +241,10 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserTest,
         {
             "print new_guid()",
             "SELECT generateUUIDv4() AS print_0"
+	      },
+        {
+            "print parse_url('https://john:123@google.com:1234/this/is/a/path?k1=v1&k2=v2#fragment')",
+            "SELECT kql_parseurl('https://john:123@google.com:1234/this/is/a/path?k1=v1&k2=v2#fragment') AS print_0",
         },
         {
             "print str = make_string(dynamic([75, 117, 115, 116, 111]))",
