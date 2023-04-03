@@ -376,7 +376,7 @@ bool MakeString::convertImpl(String & out, IParser::Pos & pos)
 
 bool NewGuid::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "generateUUIDv4");
+    return directMapping(out, pos, "generateUUIDv4", {0, 0});
 }
 
 bool ParseCSV::convertImpl(String & out, IParser::Pos & pos)
