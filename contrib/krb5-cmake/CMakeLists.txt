@@ -15,10 +15,6 @@ if(NOT AWK_PROGRAM)
     message(FATAL_ERROR "You need the awk program to build ClickHouse with krb5 enabled.")
 endif()
 
-if (NOT (ENABLE_OPENSSL OR ENABLE_OPENSSL_DYNAMIC))
-    add_compile_definitions(USE_BORINGSSL=1)
-endif ()
-
 set(KRB5_SOURCE_DIR "${ClickHouse_SOURCE_DIR}/contrib/krb5/src")
 set(KRB5_ET_BIN_DIR "${CMAKE_CURRENT_BINARY_DIR}/include_private")
 
@@ -226,7 +222,6 @@ set(ALL_SRCS
     # "${KRB5_SOURCE_DIR}/lib/crypto/openssl/enc_provider/des.c"
     "${KRB5_SOURCE_DIR}/lib/crypto/openssl/enc_provider/rc4.c"
     "${KRB5_SOURCE_DIR}/lib/crypto/openssl/enc_provider/des3.c"
-    #"${KRB5_SOURCE_DIR}/lib/crypto/openssl/enc_provider/camellia.c"
     "${KRB5_SOURCE_DIR}/lib/crypto/openssl/cmac.c"
     "${KRB5_SOURCE_DIR}/lib/crypto/openssl/sha256.c"
     "${KRB5_SOURCE_DIR}/lib/crypto/openssl/hmac.c"
@@ -473,6 +468,13 @@ set(ALL_SRCS
     "${KRB5_SOURCE_DIR}/lib/krb5/asn.1/ldap_key_seq.c"
     "${KRB5_SOURCE_DIR}/lib/krb5/krb5_libinit.c"
 )
+
+if (NOT (ENABLE_OPENSSL OR ENABLE_OPENSSL_DYNAMIC))
+    add_compile_definitions(USE_BORINGSSL=1)
+else()
+    list(APPEND ALL_SRCS "${KRB5_SOURCE_DIR}/lib/crypto/openssl/enc_provider/camellia.c")
+    add_compile_definitions(K5_OPENSSL_DES_KEY_PARITY=1 K5_OPENSSL_MD4=1 K5_OPENSSL_RC4=1)
+endif ()
 
 add_custom_command(
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/compile_et"
