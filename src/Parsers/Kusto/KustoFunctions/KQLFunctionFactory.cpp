@@ -63,6 +63,7 @@ enum class KQLFunction : uint16_t
     has_any_index,
     indexof,
     indexof_regex,
+    isascii,
     isempty,
     isnan,
     isnotempty,
@@ -322,6 +323,7 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"indexof", KQLFunction::indexof},
     {"indexof_regex", KQLFunction::indexof_regex},
     {"isempty", KQLFunction::isempty},
+    {"isascii", KQLFunction::isascii},
     {"isnan", KQLFunction::isnan},
     {"isnotempty", KQLFunction::isnotempty},
     {"notempty", KQLFunction::isnotempty},
@@ -680,6 +682,9 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::indexof_regex:
             return std::make_unique<IndexOfRegex>();
+
+        case KQLFunction::isascii:
+            return std::make_unique<IsAscii>();
 
         case KQLFunction::isempty:
             return std::make_unique<IsEmpty>();
