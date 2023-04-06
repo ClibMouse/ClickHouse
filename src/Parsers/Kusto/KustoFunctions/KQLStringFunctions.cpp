@@ -323,7 +323,7 @@ bool IsAscii::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
     ++pos;
-    String arg = getConvertedArgument(fn_name, pos);
+    const auto arg = getConvertedArgument(fn_name, pos);
     out = std::format("not arrayExists(x -> x < 0 or x > 127, arrayMap(x -> ascii(x), splitByString('', assumeNotNull({}))))", arg);
     return true;
 }
