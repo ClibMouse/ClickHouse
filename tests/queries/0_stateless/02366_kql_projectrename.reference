@@ -1,0 +1,6 @@
+1-- rename one column
+Diaz	Skilled Manual	Bachelors	28	Theodore
+2-- rename two columns
+Skilled Manual	Bachelors	28	Theodore	Diaz
+3-- rename printed columns
+Theodore	Diaz
