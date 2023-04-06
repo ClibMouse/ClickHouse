@@ -5,6 +5,8 @@
 #include <Functions/FunctionHelpers.h>
 #include <Functions/IFunction.h>
 
+namespace DB
+{
 class FunctionKqlToLong : public IFunction
 {
 public:
@@ -36,9 +38,11 @@ ColumnPtr FunctionKqlToLong::executeImpl(const ColumnsWithTypeAndName & argument
     if (which.isDateTime64())
     {
         const auto toint64 = executeFunctionCall(context, "toInt64", firstarg, input_rows_count);
+        //Seconds to microseconds
         const ColumnsWithTypeAndName multiplier_args{
             asArgument(toint64, name), createConstColumnWithTypeAndName<DataTypeInt64>(10000000, "multplier")};
-        auto multiplied = executeFunctionCall(context, "multiply", multiplier_args, input_rows_count);
+        const auto multiplied = executeFunctionCall(context, "multiply", multiplier_args, input_rows_count);
+        //ClickHouse is unix epoch. KQL is from year 0. print tolong(datetime('1970-01-01'));
         const ColumnsWithTypeAndName plus_args{
             asArgument(multiplied, name), createConstColumnWithTypeAndName<DataTypeInt64>(621355968000000000, "plus")};
         const auto plused = executeFunctionCall(context, "plus", plus_args, input_rows_count);
