@@ -23,6 +23,7 @@
 #include <Parsers/Kusto/ParserKQLPrint.h>
 #include <Parsers/Kusto/ParserKQLProject.h>
 #include <Parsers/Kusto/ParserKQLProjectAway.h>
+#include <Parsers/Kusto/ParserKQLProjectRename.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLRange.h>
 #include <Parsers/Kusto/ParserKQLSort.h>
@@ -70,7 +71,8 @@ const std::unordered_map<std::string, ParserKQLQuery::KQLOperatorDataFlowState> 
     {"top-nested", {"top-nested", true, true, true, 5}},
     {"range", {"range", false, true, false, 3}},
     {"project-away", {"project-away", true, true, true, 5}},
-    {"getschema", {"getschema", true, true, false, 3}}};
+    {"getschema", {"getschema", true, true, false, 3}},
+    {"project-rename", {"project-rename", true, true, false, 5}}};
 
 bool ParserKQLBase::parseByString(const String expr, ASTPtr & node, const uint32_t max_depth)
 {
@@ -420,6 +422,8 @@ std::unique_ptr<ParserKQLBase> ParserKQLQuery::getOperator(const std::string_vie
         return std::make_unique<ParserKQLRange>();
     else if (op_name == "project-away")
         return std::make_unique<ParserKQLProjectAway>();
+    else if (op_name == "project-rename")
+        return std::make_unique<ParserKQLProjectRename>(kql_context);
 
     throw Exception(ErrorCodes::NOT_IMPLEMENTED, "No such KQL operator exists: {}", op_name);
 }
