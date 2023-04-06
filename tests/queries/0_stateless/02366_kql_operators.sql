@@ -23,6 +23,6 @@ TableWithVariousDataTypes | project JoinDate | where JoinDate !between (datetime
 TableWithVariousDataTypes | project Age | where Age between (10 .. 12) or Age > 30;
 TableWithVariousDataTypes | project Age | where Age between (10 .. 12) or Age between (30 .. 50);
 range x from 1 to 100 step 1 | where x between ( 8 + (4 * 2) / 8 + ((5 * 5 - 20) * 2) .. 20);
-range x from 1 to 100 step 1 | where x between ( 8 + (4 * 2) / 8 + ((5 * 5 - 20) * 2) ... 20); -- {clientError 62. DB::Exception: Syntax error, number of dots do not match. (SYNTAX_ERROR)}
-range x from 1 to 100 step 1 | where x between ( 8 + (4 * 2) / 8 + ((5 * 5 - 20) * 2) . 20); -- {clientError 62. DB::Exception: Syntax error, number of dots do not match. (SYNTAX_ERROR)}
-range x from 1 to 100 step 1 | where x between ( 8 + (4 * 2) / 8 + ((5 * 5 - 20) * 2)  20); -- {clientError 62. DB::Exception: Syntax error, number of dots do not match. (SYNTAX_ERROR)}
+range x from 1 to 100 step 1 | where x between ( 8 + (4 * 2) / 8 + ((5 * 5 - 20) * 2) ... 20); -- { clientError SYNTAX_ERROR }
+range x from 1 to 100 step 1 | where x between ( 8 + (4 * 2) / 8 + ((5 * 5 - 20) * 2) . 20); -- { clientError SYNTAX_ERROR }
+range x from 1 to 100 step 1 | where x between ( 8 + (4 * 2) / 8 + ((5 * 5 - 20) * 2)  20); -- { clientError SYNTAX_ERROR }
