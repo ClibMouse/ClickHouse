@@ -67,6 +67,11 @@
 - [isascii()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/isascii)
    `print str = isascii('ab১২ufghi🐂🐇🐒')`
 
+## Operator
+- [project-rename](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/projectrenameoperator)
+   `print x='First Name', y='Last Name, z=20 | project-rename FirstName=x, LastName=y, Age=z`
+   Note: The output table doesn't preserve the order of the columns.
+
 # March 29, 2023
 ## Bugfixes
 - [arg_max()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/arg-max-aggfunction) and [arg_min()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/arg-min-aggfunction)
