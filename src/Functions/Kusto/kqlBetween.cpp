@@ -31,12 +31,29 @@ public:
     executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, size_t input_rows_count) const override;
     String getName() const override { return name; }
     size_t getNumberOfArguments() const override { return 3; }
-    DataTypePtr getReturnTypeImpl(const DataTypes &) const override { return DataTypeFactory::instance().get("Bool"); }
+    DataTypePtr getReturnTypeImpl(const DataTypes &) const override;
     bool isSuitableForShortCircuitArgumentsExecution(const DataTypesWithConstInfo & /*arguments*/) const override { return false; }
 
 private:
     ContextPtr context;
 };
+
+DataTypePtr FunctionKqlBetween::getReturnTypeImpl(const DataTypes & arguments) const
+{
+    const auto arg_it = std::ranges::find_if(arguments, [](const auto & argument) {
+        
+        return !WhichDataType(argument).isUInt() && !WhichDataType(argument).isInt() && !WhichDataType(argument).isFloat()
+            && !WhichDataType(argument).isInterval() && !WhichDataType(argument).isDateTime64();
+    });
+
+    if (arg_it != arguments.cend())
+        throw DB::Exception(
+            DB::ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT,
+            "Arguments type argument # {} for function {} doesn't match: arguments should be integer, long, real or datetime",
+            std::distance(arguments.cbegin(), arg_it),
+            getName());
+    return DataTypeFactory::instance().get("Bool");
+}
 
 ColumnPtr
 FunctionKqlBetween::executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr &, const size_t input_rows_count) const
