@@ -33,15 +33,31 @@ public:
     size_t getNumberOfArguments() const override { return 3; }
     DataTypePtr getReturnTypeImpl(const DataTypes &) const override;
     bool isSuitableForShortCircuitArgumentsExecution(const DataTypesWithConstInfo & /*arguments*/) const override { return false; }
+    void checkTypeCompatibility(const DB::DataTypePtr arg1, const DB::DataTypePtr arg2) const;
 
 private:
     ContextPtr context;
 };
 
+void FunctionKqlBetween::checkTypeCompatibility(const DB::DataTypePtr arg1, const DB::DataTypePtr arg2) const
+{
+    if (!arg1->getPtr()->equals(*arg2)
+        && !(WhichDataType(arg1).isDateTime64() && (WhichDataType(arg2).isInterval() || WhichDataType(arg2).isDateTime64()))
+        && !(
+            (WhichDataType(arg1).isInt() || WhichDataType(arg1).isUInt() || WhichDataType(arg1).isFloat())
+            && (WhichDataType(arg2).isInt() || WhichDataType(arg2).isUInt() || WhichDataType(arg2).isFloat())))
+        throw DB::Exception(
+            DB::ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT,
+            "Arguments for function {} doesn't match: all arguments should be of same type",
+            getName());
+}
+
 DataTypePtr FunctionKqlBetween::getReturnTypeImpl(const DataTypes & arguments) const
 {
+    checkTypeCompatibility(arguments[0], arguments[1]);
+    checkTypeCompatibility(arguments[1], arguments[2]);
+
     const auto arg_it = std::ranges::find_if(arguments, [](const auto & argument) {
-        
         return !WhichDataType(argument).isUInt() && !WhichDataType(argument).isInt() && !WhichDataType(argument).isFloat()
             && !WhichDataType(argument).isInterval() && !WhichDataType(argument).isDateTime64();
     });
