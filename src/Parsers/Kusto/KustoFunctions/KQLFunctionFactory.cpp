@@ -146,6 +146,10 @@ enum class KQLFunction : uint16_t
     countif,
     dcount,
     dcountif,
+    dcount_hll,
+    hll,
+    hll_if,
+    hll_merge,
     make_bag,
     make_bag_if,
     make_list,
@@ -411,6 +415,10 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"countif", KQLFunction::countif},
     {"dcount", KQLFunction::dcount},
     {"dcountif", KQLFunction::dcountif},
+    {"dcount_hll", KQLFunction::dcount_hll},
+    {"hll", KQLFunction::hll},
+    {"hll_if", KQLFunction::hll_if},
+    {"hll_merge", KQLFunction::hll_merge},
     {"make_bag", KQLFunction::make_bag},
     {"make_bag_if", KQLFunction::make_bag_if},
     {"make_list", KQLFunction::make_list},
@@ -928,6 +936,18 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::dcountif:
             return std::make_unique<DCountIf>();
+
+        case KQLFunction::dcount_hll:
+            return std::make_unique<DCountHll>();
+
+        case KQLFunction::hll:
+            return std::make_unique<Hll>();
+
+        case KQLFunction::hll_if:
+            return std::make_unique<HllIf>();
+
+        case KQLFunction::hll_merge:
+            return std::make_unique<HllMerge>();
 
         case KQLFunction::make_bag:
             return std::make_unique<MakeBag>();

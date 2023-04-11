@@ -6,6 +6,7 @@ namespace DB
 {
 namespace ErrorCodes
 {
+    extern const int NOT_IMPLEMENTED;
     extern const int SYNTAX_ERROR;
 }
 
@@ -189,25 +190,19 @@ bool ArraySum::convertImpl(String & out, IParser::Pos & pos)
     return true;
 }
 
-bool BagKeys::convertImpl(String & out, IParser::Pos & pos)
+bool BagKeys::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
 }
 
-bool BagMerge::convertImpl(String & out, IParser::Pos & pos)
+bool BagMerge::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
 }
 
-bool BagRemoveKeys::convertImpl(String & out, IParser::Pos & pos)
+bool BagRemoveKeys::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
 }
 
 bool JaccardIndex::convertImpl(String & out, IParser::Pos & pos)
@@ -226,18 +221,14 @@ bool JaccardIndex::convertImpl(String & out, IParser::Pos & pos)
     return true;
 }
 
-bool Pack::convertImpl(String & out, IParser::Pos & pos)
+bool Pack::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
 }
 
-bool PackAll::convertImpl(String & out, IParser::Pos & pos)
+bool PackAll::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
 }
 
 bool PackArray::convertImpl(String & out, IParser::Pos & pos)
@@ -307,11 +298,9 @@ bool SetUnion::convertImpl(String & out, IParser::Pos & pos)
     return true;
 }
 
-bool TreePath::convertImpl(String & out, IParser::Pos & pos)
+bool TreePath::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
 }
 
 bool Zip::convertImpl(String & out, IParser::Pos & pos)
