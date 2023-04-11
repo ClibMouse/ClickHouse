@@ -136,3 +136,9 @@ Customers | summarize z=arg_max(Age, FirstName, LastName) by Occupation;
 print '-- arg_min --';
 Customers | summarize arg_min(Age, LastName);
 Customers | summarize z=arg_min(Age, FirstName, LastName) by Occupation;
+
+print '-- hll, hll_if, hll_merge, dcount_hll --';
+Customers | summarize x = hll(Education) | project dcount_hll(x);
+Customers | summarize y = hll(Occupation) | project dcount_hll(y);
+Customers | summarize x = hll(Education), y = hll(Occupation) | project xy = hll_merge(x, y) | project dcount_hll(xy);
+Customers | summarize x = hll(Education), y = hll(Occupation) | summarize xy = hll_merge(x, y) | project dcount_hll(xy);
