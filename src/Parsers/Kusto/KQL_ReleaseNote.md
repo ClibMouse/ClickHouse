@@ -36,6 +36,39 @@
    ADX will incorrectly consume part of encapsulated IPv6 Host as Port from last colon to '/'.
    print parse_url("http://[2001:db8:3333:4444:5555:6666:7777:8888]/filepath/index.htm")
    ```
+
+## Aggregate Functions
+- [hll](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/hll-aggfunction)
+   `Customers | summarize x = hll(Education), y = hll(Occupation);`
+
+   Current implementation of this function seeks to reuse ClickHouse's [`uniqCombined64`](https://clickhouse.com/docs/en/sql-reference/aggregate-functions/reference/uniqcombined64), which has different intermediate values when compared to KQL.
+
+   Please note that only accuracy level 4 is implemented, which becomes the default instead of 0.
+- [hll_merge](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/hll-merge-aggfunction)
+   `Customers | summarize x = hll(Education), y = hll(Occupation) | summarize xy = hll_merge(x, y);`
+
+   Current implementation of this function seeks to reuse ClickHouse's [`uniqCombined64`](https://clickhouse.com/docs/en/sql-reference/aggregate-functions/reference/uniqcombined64), which has different intermediate values when compared to KQL.
+
+   Please note that only accuracy level 4 is implemented, which becomes the default instead of 0.
+
+## Functions
+- [dcount_hll](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/dcount-hllfunction)
+   `Customers | summarize x = hll(Education), y = hll(Occupation) | project xy = hll_merge(x, y) | project dcount_hll(xy);`
+
+   Current implementation of this function seeks to reuse ClickHouse's [`uniqCombined64`](https://clickhouse.com/docs/en/sql-reference/aggregate-functions/reference/uniqcombined64), which has different intermediate values when compared to KQL.
+
+   Please note that only accuracy level 4 is implemented, which becomes the default instead of 0.
+- [hll_merge](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/hllmergefunction)
+   `Customers | summarize x = hll(Education), y = hll(Occupation) | project xy = hll_merge(x, y);`
+
+   Current implementation of this function seeks to reuse ClickHouse's [`uniqCombined64`](https://clickhouse.com/docs/en/sql-reference/aggregate-functions/reference/uniqcombined64), which has different intermediate values when compared to KQL.
+
+   Please note that only accuracy level 4 is implemented, which becomes the default instead of 0.
+- [isascii()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/isascii)
+   `print str = isascii('ab১২ufghi🐂🐇🐒')`
+
+# March 29, 2023
+## Bugfixes
 - [arg_max()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/arg-max-aggfunction) and [arg_min()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/arg-min-aggfunction)
   support multiple arguments now.
   `Customers | arg_max(Age, FirstName, LastName)`  
@@ -47,9 +80,8 @@
    `print idx1 = indexof_regex("abcabc", "a.c");`
 - [make_string()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/makestringfunction.md)
    `print str = make_string(75, 117, 115, 116, 111)`
-- [isascii()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/isascii)
-   `print str = isascii('ab১২ufghi🐂🐇🐒')`
-# March XX, 2023
+
+# March 19, 2023
 ## Functions
 - [hash()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/hashfunction)
    `print hash('World')`
