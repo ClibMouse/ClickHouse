@@ -3,10 +3,24 @@
 #include <Common/StringUtils/StringUtils.h>
 
 #include <format>
+#include <numeric>
+
+namespace DB::ErrorCodes
+{
+extern const int NOT_IMPLEMENTED;
+}
+
+namespace
+{
+void checkAccuracy(const std::optional<std::string> & accuracy)
+{
+    if (accuracy && *accuracy != "4")
+        throw DB::Exception(DB::ErrorCodes::NOT_IMPLEMENTED, "only accuracy of 4 is supported");
+}
+}
 
 namespace DB
 {
-
 bool ArgMax::convertImpl(String & out, IParser::Pos & pos)
 {
     String fn_name = getKQLFunctionName(pos);
@@ -76,11 +90,9 @@ bool BinaryAllXor::convertImpl(String & out, IParser::Pos & pos)
     return directMapping(out, pos, "groupBitXor");
 }
 
-bool BuildSchema::convertImpl(String & out, IParser::Pos & pos)
+bool BuildSchema::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
 }
 
 bool Count::convertImpl(String & out, IParser::Pos & pos)
@@ -133,18 +145,64 @@ bool DCountIf::convertImpl(String & out, IParser::Pos & pos)
     return true;
 }
 
-bool MakeBag::convertImpl(String & out, IParser::Pos & pos)
+bool DCountHll::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    const auto fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const auto expr = getArgument(fn_name, pos);
+    out = std::format("uniqCombined64Merge(18)({})", expr);
+
+    return true;
 }
 
-bool MakeBagIf::convertImpl(String & out, IParser::Pos & pos)
+bool Hll::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    const auto fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const auto expr = getArgument(fn_name, pos);
+    const auto accuracy = getOptionalArgument(fn_name, pos);
+
+    checkAccuracy(accuracy);
+    out = std::format("uniqCombined64State(18)({})", expr);
+
+    return true;
+}
+
+bool HllIf::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
+{
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
+}
+
+bool HllMerge::convertImpl(String & out, IParser::Pos & pos)
+{
+    const auto fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const auto arguments = getArguments(fn_name, pos, ArgumentState::Parsed, {2, 64});
+    const auto arguments_as_string = std::accumulate(
+        arguments.cbegin(),
+        arguments.cend(),
+        std::string(),
+        [](const auto & acc, const auto & argument) { return acc + (acc.empty() ? "" : ", ") + argument; });
+
+    out = std::format("uniqCombined64MergeState(18)(arrayJoin([{}]))", arguments_as_string);
+
+    return true;
+}
+
+bool MakeBag::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
+{
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
+}
+
+bool MakeBagIf::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
+{
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
 }
 
 bool MakeList::convertImpl(String & out, IParser::Pos & pos)
