@@ -8,10 +8,14 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_ProjectRename, ParserTest,
         ::testing::ValuesIn(std::initializer_list<ParserTestCase>{
         {
             "Customers | project-rename FN=FirstName",
-            "SELECT * EXCEPT FirstName, FirstName AS FN FROM Customers"
+            "SELECT\n    * EXCEPT FirstName,\n    FirstName AS FN\nFROM Customers"
         },
         {
             "print FirstName='FN', LastName='LN' | project-rename FN=FirstName, LN=LastName",
-            "SELECT * EXCEPT (FirstName, LastName), FirstName AS FN, LastName AS LN FROM (SELECT 'FN' AS FirstName, 'LN' AS LastName)"
+            "SELECT\n    * EXCEPT (FirstName, LastName),\n    FirstName AS FN,\n    LastName AS LN\nFROM\n(\n    SELECT\n        'FN' AS FirstName,\n        'LN' AS LastName\n)"
+        },
+        {
+            "print FirstName='FN', LastName='LN' | project-rename FN=FirstName, LN=LastName, LastName",
+            "SELECT\n    * EXCEPT (FirstName, LastName),\n    FirstName AS FN,\n    LastName AS LN\nFROM\n(\n    SELECT\n        'FN' AS FirstName,\n        'LN' AS LastName\n)"
         }
 })));
