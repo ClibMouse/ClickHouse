@@ -26,3 +26,9 @@ range x from 1 to 100 step 1 | where x between ( 8 + (4 * 2) / 8 + ((5 * 5 - 20)
 range x from 1 to 100 step 1 | where x between ( 8 + (4 * 2) / 8 + ((5 * 5 - 20) * 2) ... 20); -- { clientError SYNTAX_ERROR }
 range x from 1 to 100 step 1 | where x between ( 8 + (4 * 2) / 8 + ((5 * 5 - 20) * 2) . 20); -- { clientError SYNTAX_ERROR }
 range x from 1 to 100 step 1 | where x between ( 8 + (4 * 2) / 8 + ((5 * 5 - 20) * 2)  20); -- { clientError SYNTAX_ERROR }
+range x from 1 to 100 step 1 | where x between (50 .. '58'); -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
+range x from 1 to 100 step 1 | where x between ('50' .. 58); -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
+range x from 1 to 100 step 1 | where x between ('50' .. '58'); -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
+range x from 0.1 to 1 step 0.1 | where x between (0.4 .. .7);
+range x from 1 to 100 step 1 | where x between (50 .. datetime(2007-07-27)); -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
+range x from 1 to 100 step 1 | where x between (datetime(2007-07-27) .. datetime(2007-07-30)); -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
