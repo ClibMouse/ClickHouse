@@ -7,37 +7,16 @@
 
 #include <format>
 
+
 namespace DB
 {
-namespace ErrorCodes
-{
-    extern const int SYNTAX_ERROR;
-}
 
 bool ParserKQLProjectRename::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
-    auto pos_s = pos;
-    const auto projectrename_expr = getExprFromToken(pos);
+    const auto projectrename_expr = getRenameExprFromToken(pos);
     Tokens ntokens(projectrename_expr.c_str(), projectrename_expr.c_str() + projectrename_expr.size());
     IParser::Pos npos(ntokens, pos.max_depth);
-    auto saw_assignment = false;
-    while (!pos_s->isEnd() && pos_s->type != TokenType::PipeMark && pos_s->type != TokenType::Semicolon)
-    {
-        if (pos_s->type == TokenType::Equals)
-            saw_assignment = true;
 
-        else if (pos_s->type == TokenType::Comma)
-        {
-            if (!saw_assignment)
-                break;
-            saw_assignment = false;
-        }
-        ++pos_s;
-    }
-    if (!saw_assignment)
-    {
-        throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error: rename assignment required");
-    }
     ASTPtr expression_list;
     if (!ParserNotEmptyExpressionList(false).parse(npos, expression_list, expected) || !npos->isEnd())
         return false;
