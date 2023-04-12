@@ -9,25 +9,38 @@
 
 namespace DB
 {
+namespace ErrorCodes
+{
+    extern const int SYNTAX_ERROR;
+}
+
 bool ParserKQLProjectRename::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
+    auto pos_s = pos;
     const auto projectrename_expr = getExprFromToken(pos);
     Tokens ntokens(projectrename_expr.c_str(), projectrename_expr.c_str() + projectrename_expr.size());
     IParser::Pos npos(ntokens, pos.max_depth);
+    auto saw_assignment = false;
+    while (!pos_s->isEnd() && pos_s->type != TokenType::PipeMark && pos_s->type != TokenType::Semicolon)
+    {
+        if (pos_s->type == TokenType::Equals)
+            saw_assignment = true;
 
+        else if (pos_s->type == TokenType::Comma)
+        {
+            if (!saw_assignment)
+                break;
+            saw_assignment = false;
+        }
+        ++pos_s;
+    }
+    if (!saw_assignment)
+    {
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error: rename assignment required");
+    }
     ASTPtr expression_list;
     if (!ParserNotEmptyExpressionList(false).parse(npos, expression_list, expected) || !npos->isEnd())
         return false;
-    
-    std::ranges::for_each(
-        expression_list->children,
-        [this](const ASTPtr & expression)
-        {
-            if (const auto alias = expression->tryGetAlias(); !alias.empty())
-                return;
-
-            expression->setAlias(kql_context.nextDefaultColumnName());
-        });
 
     auto asterisk = std::make_shared<ASTAsterisk>();
     asterisk->transformers = std::make_shared<ASTColumnsTransformerList>();
@@ -37,7 +50,7 @@ bool ParserKQLProjectRename::parseImpl(Pos & pos, ASTPtr & node, Expected & expe
     std::ranges::transform(
         expression_list->children,
         std::back_inserter(columns_except_transformer->children),
-        [](const ASTPtr & child) { return std::make_shared<ASTIdentifier>(child->getID().substr(11)); });
+        [](const ASTPtr & child) { return std::make_shared<ASTIdentifier>(child->getColumnName()); });
 
     expression_list->children.insert(expression_list->children.cbegin(), std::move(asterisk));
 
