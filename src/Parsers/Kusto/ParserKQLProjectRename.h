@@ -26,11 +26,10 @@ private:
         std::vector<String> seen_columns;
         auto last_pos = pos;
         auto rename_assignment = true;
+        size_t bracket_count = 0;
 
         while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
         {
-            size_t bracket_count = 0;
-
             if (pos->type == TokenType::OpeningRoundBracket)
                 ++bracket_count;
             else if (pos->type == TokenType::ClosingRoundBracket)
