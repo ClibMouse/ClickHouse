@@ -92,14 +92,14 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_General, ParserTest,
         },
         {
             "print t = not(strlen('abc'))",
-            "SELECT NOT lengthUTF8('abc') AS t"
+            "SELECT kql_not(lengthUTF8('abc')) AS t"
         },
         {
             "print t = not(1)",
-            "SELECT NOT 1 AS t"
+            "SELECT kql_not(1) AS t"
         },
         {
             "Customers | project not(Age)",
-            "SELECT NOT Age\nFROM Customers"
+            "SELECT kql_not(Age)\nFROM Customers"
         }
 })));

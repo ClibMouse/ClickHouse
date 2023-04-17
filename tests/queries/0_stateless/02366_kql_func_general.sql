@@ -86,7 +86,8 @@ Customers | limit toscalar(Customers | where Age > toscalar(toscalar(print 5, 'a
 
 print '-- not --';
 print t = not(1);
-print t = not(false);
+print t = not(0);
 print t = not(strlen('abc'));
-print t = not(1.1); -- result differs from ADX
 Customers | project not(Age);
+print t = not('hello');
+print t = not(dynamic([1, 2, 3]));
