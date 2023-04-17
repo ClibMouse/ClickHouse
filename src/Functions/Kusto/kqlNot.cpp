@@ -1,14 +1,12 @@
 #include <Columns/ColumnNullable.h>
 #include <DataTypes/DataTypeFactory.h>
+#include <DataTypes/DataTypeString.h>
 #include <DataTypes/DataTypesNumber.h>
 #include <DataTypes/IDataType.h>
 #include <Functions/FunctionFactory.h>
 #include <Functions/FunctionHelpers.h>
 #include <Functions/IFunction.h>
 #include <Parsers/Kusto/ParserKQLTimespan.h>
-
-#include <DataTypes/DataTypeArray.h>
-#include <DataTypes/DataTypeString.h>
 
 #include <format>
 
@@ -51,7 +49,7 @@ DataTypePtr FunctionKqlNot::getReturnTypeImpl(const DataTypes & arguments) const
             "Argument type for function {} doesn't match: argument expected to be a boolean, integer or dynamic expression",
             getName());
 
-    return std::make_shared<DataTypeUInt8>();
+    return DataTypeFactory::instance().get("Bool");
 }
 
 ColumnPtr FunctionKqlNot::executeImpl(
