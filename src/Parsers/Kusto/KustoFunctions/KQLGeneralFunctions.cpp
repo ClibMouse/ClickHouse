@@ -106,7 +106,7 @@ bool ToScalar::convertImpl(String & out, IParser::Pos & pos)
 
 bool Not::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "not");
+    return directMapping(out, pos, "kql_not");
 }
 
 }
