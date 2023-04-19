@@ -196,47 +196,47 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Operators, ParserTest,
         },
         {
             "Customers | project countof('The cat sat on the mat', 'at')",
-            "SELECT countSubstrings('The cat sat on the mat', 'at')\nFROM Customers"
+            "SELECT countSubstrings('The cat sat on the mat', 'at') AS Column1\nFROM Customers"
         },
         {
             "Customers | project countof('The cat sat on the mat', 'at', 'normal')",
-            "SELECT countSubstrings('The cat sat on the mat', 'at')\nFROM Customers"
+            "SELECT countSubstrings('The cat sat on the mat', 'at') AS Column1\nFROM Customers"
         },
         {
             "Customers | project countof('The cat sat on the mat', 'at', 'regex')",
-            "SELECT countMatches('The cat sat on the mat', 'at')\nFROM Customers"
+            "SELECT countMatches('The cat sat on the mat', 'at') AS Column1\nFROM Customers"
         },
         {
             "Customers | project extract('(\\b[A-Z]+\\b).+(\\b\\d+)', 0, 'The price of PINEAPPLE ice cream is 10')",
-            "SELECT kql_extract('The price of PINEAPPLE ice cream is 10', '(\\b[A-Z]+\\b).+(\\b\\\\d+)', 0)\nFROM Customers"
+            "SELECT kql_extract('The price of PINEAPPLE ice cream is 10', '(\\b[A-Z]+\\b).+(\\b\\\\d+)', 0) AS Column1\nFROM Customers"
         },
         {
             "Customers | project extract('(\\b[A-Z]+\\b).+(\\b\\d+)', 1, 'The price of PINEAPPLE ice cream is 20')",
-            "SELECT kql_extract('The price of PINEAPPLE ice cream is 20', '(\\b[A-Z]+\\b).+(\\b\\\\d+)', 1)\nFROM Customers"
+            "SELECT kql_extract('The price of PINEAPPLE ice cream is 20', '(\\b[A-Z]+\\b).+(\\b\\\\d+)', 1) AS Column1\nFROM Customers"
         },
         {
             "Customers | project extract('(\\b[A-Z]+\\b).+(\\b\\d+)', 2, 'The price of PINEAPPLE ice cream is 30')",
-            "SELECT kql_extract('The price of PINEAPPLE ice cream is 30', '(\\b[A-Z]+\\b).+(\\b\\\\d+)', 2)\nFROM Customers"
+            "SELECT kql_extract('The price of PINEAPPLE ice cream is 30', '(\\b[A-Z]+\\b).+(\\b\\\\d+)', 2) AS Column1\nFROM Customers"
         },
         {
             "Customers | project extract('(\\b[A-Z]+\\b).+(\\b\\d+)', 2, 'The price of PINEAPPLE ice cream is 40', typeof(int))",
-            "SELECT accurateCastOrNull(kql_extract('The price of PINEAPPLE ice cream is 40', '(\\b[A-Z]+\\b).+(\\b\\\\d+)', 2), 'Int32')\nFROM Customers"
+            "SELECT accurateCastOrNull(kql_extract('The price of PINEAPPLE ice cream is 40', '(\\b[A-Z]+\\b).+(\\b\\\\d+)', 2), 'Int32') AS Column1\nFROM Customers"
         },
         {
             "Customers | project extract_all('(\\w)(\\w+)(\\w)','The price of PINEAPPLE ice cream is 50')",
-            "SELECT extractAllGroups('The price of PINEAPPLE ice cream is 50', '(\\\\w)(\\\\w+)(\\\\w)')\nFROM Customers"
+            "SELECT extractAllGroups('The price of PINEAPPLE ice cream is 50', '(\\\\w)(\\\\w+)(\\\\w)') AS Column1\nFROM Customers"
         },
         {
-            " Customers | project split('aa_bb', '_')",
-            "SELECT if(empty('_'), splitByString(' ', 'aa_bb'), splitByString('_', 'aa_bb'))\nFROM Customers"
+            "Customers | project split('aa_bb', '_')",
+            "SELECT if(empty('_'), splitByString(' ', 'aa_bb'), splitByString('_', 'aa_bb')) AS Column1\nFROM Customers"
         },
         {
             "Customers | project split('aaa_bbb_ccc', '_', 1)",
-            "SELECT multiIf((length(if(empty('_'), splitByString(' ', 'aaa_bbb_ccc'), splitByString('_', 'aaa_bbb_ccc'))) >= 2) AND (2 > 0), arrayPushBack([], if(empty('_'), splitByString(' ', 'aaa_bbb_ccc'), splitByString('_', 'aaa_bbb_ccc'))[2]), 2 = 0, if(empty('_'), splitByString(' ', 'aaa_bbb_ccc'), splitByString('_', 'aaa_bbb_ccc')), arrayPushBack([], NULL[1]))\nFROM Customers"
+            "SELECT multiIf((length(if(empty('_'), splitByString(' ', 'aaa_bbb_ccc'), splitByString('_', 'aaa_bbb_ccc'))) >= 2) AND (2 > 0), arrayPushBack([], if(empty('_'), splitByString(' ', 'aaa_bbb_ccc'), splitByString('_', 'aaa_bbb_ccc'))[2]), 2 = 0, if(empty('_'), splitByString(' ', 'aaa_bbb_ccc'), splitByString('_', 'aaa_bbb_ccc')), arrayPushBack([], NULL[1])) AS Column1\nFROM Customers"
         },
         {
             "Customers | project strcat_delim('-', '1', '2', 'A')",
-            "SELECT concat(ifNull(kql_tostring('1'), ''), '-', ifNull(kql_tostring('2'), ''), '-', ifNull(kql_tostring('A'), ''))\nFROM Customers"
+            "SELECT concat(ifNull(kql_tostring('1'), ''), '-', ifNull(kql_tostring('2'), ''), '-', ifNull(kql_tostring('A'), '')) AS Column1\nFROM Customers"
         },
         {
             "print x=1, s=strcat('Hello', ', ', 'World!')",
