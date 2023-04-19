@@ -224,7 +224,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "hits | project bin(todatetime(EventTime), 1m)",
-            "SELECT kql_bin(kql_todatetime(EventTime), toIntervalNanosecond(60000000000))\nFROM hits"
+            "SELECT kql_bin(kql_todatetime(EventTime), toIntervalNanosecond(60000000000)) AS Column1\nFROM hits"
         }
 
 })));

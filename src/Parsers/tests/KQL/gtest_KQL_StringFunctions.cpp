@@ -256,7 +256,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "table | project indexof_regex(A, B, C, D, E)",
-            "SELECT kql_indexof_regex(A, B, C, D, E)\nFROM table"
+            "SELECT kql_indexof_regex(A, B, C, D, E) AS Column1\nFROM table"
         },
         {
             "Customers | project t = isascii(FirstName)",

@@ -100,6 +100,6 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_General, ParserTest,
         },
         {
             "Customers | project not(Age)",
-            "SELECT kql_not(Age)\nFROM Customers"
+            "SELECT kql_not(Age) AS Column1\nFROM Customers"
         }
 })));
