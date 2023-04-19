@@ -57,9 +57,6 @@ ColumnPtr FunctionKqlNot::executeImpl(
 {
     const auto & elem = arguments[0];
 
-    if (input_rows_count == 0)
-        return arguments[0].column;
-
     WhichDataType arg_type(*elem.type);
 
     if (arg_type.isString() || arg_type.isArray())
