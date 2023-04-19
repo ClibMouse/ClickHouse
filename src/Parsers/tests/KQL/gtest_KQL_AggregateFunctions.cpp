@@ -132,6 +132,6 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Aggregate, ParserKQLTest,
         },
         {
             "Customers | summarize x = hll(Education), y = hll(Occupation) | project xy = hll_merge(x, y) | project dcount_hll(xy);",
-            "SELECT uniqCombined64Merge(18)(xy)\nFROM\n(\n    SELECT uniqCombined64MergeState(18)(arrayJoin([x, y])) AS xy\n    FROM\n    (\n        SELECT\n            uniqCombined64State(18)(Education) AS x,\n            uniqCombined64State(18)(Occupation) AS y\n        FROM Customers\n    )\n)"
+            "SELECT uniqCombined64Merge(18)(xy) AS Column1\nFROM\n(\n    SELECT uniqCombined64MergeState(18)(arrayJoin([x, y])) AS xy\n    FROM\n    (\n        SELECT\n            uniqCombined64State(18)(Education) AS x,\n            uniqCombined64State(18)(Occupation) AS y\n        FROM Customers\n    )\n)"
         }
 })));

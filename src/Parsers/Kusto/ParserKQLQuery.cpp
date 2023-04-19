@@ -387,7 +387,7 @@ std::unique_ptr<ParserKQLBase> ParserKQLQuery::getOperator(const std::string_vie
     else if (op_name == "limit" || op_name == "take")
         return std::make_unique<ParserKQLLimit>();
     else if (op_name == "project")
-        return std::make_unique<ParserKQLProject>();
+        return std::make_unique<ParserKQLProject>(kql_context);
     else if (op_name == "distinct")
         return std::make_unique<ParserKQLDistinct>();
     else if (op_name == "getschema")
