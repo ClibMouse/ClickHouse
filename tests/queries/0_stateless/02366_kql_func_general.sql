@@ -90,3 +90,5 @@ print t = not(strlen('abc'));
 Customers | project not(Age);
 print t = not('hello');
 print t = not(dynamic([1, 2, 3]));
+print t = not(true);
+print t = not(false);
