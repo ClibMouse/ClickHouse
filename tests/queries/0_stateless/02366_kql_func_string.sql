@@ -493,3 +493,7 @@ print str = make_string(123, 1605, 29233 ,128002, 2437);
 print '-- isutf8 --';
 print t = isutf8('🐂');
 print t = isutf8('؄');
+
+print '-- isascii --';
+print str = isascii('ab১২ufghi🐂🐇🐒');
+print str = isascii('abc');
