@@ -64,17 +64,20 @@ Dalton	Wood	Professional	Partial College	42
 -- toscalar #8 --
 10
 -- not --
-0
+false
 true
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
-0
+false
+false
+false
+false
+false
+false
+false
+false
+false
+false
+false
+NULL
+NULL
+false
+true

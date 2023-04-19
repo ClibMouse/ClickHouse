@@ -35,7 +35,6 @@ CREATE TABLE dictionary_source_table
 ENGINE = Memory;
 INSERT INTO dictionary_source_table VALUES('1', 10, 20, 'First', 'First'), ('2', 11, 21, 'Second', NULL), ('3', 12, 22, 'Third', 'Third');
 
-drop dictionary if exists dictionary_table;
 CREATE DICTIONARY dictionary_table
 (
     key String,
@@ -86,7 +85,10 @@ Customers | limit toscalar(Customers | where Age > toscalar(toscalar(print 5, 'a
 
 print '-- not --';
 print t = not(1);
-print t = not(false);
+print t = not(0);
 print t = not(strlen('abc'));
-print t = not(1.1); -- result differs from ADX
 Customers | project not(Age);
+print t = not('hello');
+print t = not(dynamic([1, 2, 3]));
+print t = not(true);
+print t = not(false);
