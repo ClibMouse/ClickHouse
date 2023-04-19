@@ -509,3 +509,6 @@ PQ
 -- isutf8 --
 1
 1
+-- isascii --
+false
+true
