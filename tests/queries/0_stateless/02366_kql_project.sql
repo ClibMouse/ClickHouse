@@ -12,3 +12,6 @@ print parse_ipv4('1.2.3.4') | project 2 | extend 4 | project 3 | getschema | pro
 
 print '-- #3 --';
 test | extend ipv4_compare(s, '127.0.0.0') | extend Column2 = 'c' | project ipv4_is_in_range(s, '127.1.2.3/8') | getschema | project ColumnName;
+
+print '-- #4 --';
+test | project ipv4_is_in_range(s, '127.1.2.3/8'), s | getschema | project ColumnName;
