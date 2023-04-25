@@ -1,4 +1,10 @@
 ## KQL implemented features  
+
+# May , 2023  
+
+## Bugfixes
+ - Fix core dump when table is missing in pipeline  
+
 # April XX, 2023
 ## Bugfixes
  - Corrected an issue with parse_url in which hostnames and port numbers were not correctly parsed.
