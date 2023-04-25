@@ -137,3 +137,4 @@ Dalton	Wood	Professional	Partial College	42
 Angel	Stewart	Professional	Partial College	46
 -- Complex query with unknown function --
 -- Missing column in front of startsWith --
+-- Missing table in the pipeline --
