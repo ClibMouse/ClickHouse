@@ -16,6 +16,6 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Hash, ParserTest,
         },
         {
             "print hash_sha256('World')",
-            "SELECT lower(hex(SHA256(ifNull(kql_tostring('World'), '')))) AS print_0"
+            "SELECT lower(hex(SHA256(NULLIF(ifNull(kql_tostring('World'), ''), '')))) AS print_0"
         },
 })));
