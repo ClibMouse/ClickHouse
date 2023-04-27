@@ -180,6 +180,7 @@ print '-- tolong()';
 print tolong('123');
 print tolong('abc');
 print tolong(datetime('2023-01-01'));
+print tolong(datetime('2017-10-30 01:02:03.7654321'));
 print '-- todecimal()';
 print todecimal(123.345);
 print todecimal(null);
