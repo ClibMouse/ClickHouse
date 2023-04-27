@@ -16,7 +16,7 @@ bool HashSha256::convertImpl(String & out, IParser::Pos & pos)
         return false;
 
     const auto arg = getArgument(function_name, pos, ArgumentState::Raw);
-    out = "lower(hex(SHA256(" + kqlCallToExpression("tostring", {arg}, pos.max_depth) + ")))";
+    out = "lower(hex(SHA256(NULLIF(" + kqlCallToExpression("tostring", {arg}, pos.max_depth) + ",''))))";
 
     return true;
 }

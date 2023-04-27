@@ -5,8 +5,8 @@
 #include <Poco/String.h>
 
 #include <format>
-#include <regex>
 #include <optional>
+#include <regex>
 #include <unordered_set>
 
 namespace
@@ -71,7 +71,7 @@ bool DatetimeAdd::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
 
-    auto period = getArgument(fn_name, pos);
+    String period = Poco::toUpper(getArgument(fn_name, pos));
     //remove quotes from period.
     trim(period);
     if (period.front() == '\"' || period.front() == '\'')
@@ -84,8 +84,19 @@ bool DatetimeAdd::convertImpl(String & out, IParser::Pos & pos)
     const auto offset = getArgument(fn_name, pos);
     const auto datetime = getArgument(fn_name, pos);
 
-    out = std::format("date_add({}, {}, {})",period,offset,datetime);
-
+    out = std::format("date_add({}, {}, {})", period, offset, datetime);
+    if (period == "MILLISECOND")
+    {
+        out = std::format("toDateTime64(plus(toDecimal128({}, 9), toDecimal128({}/1000, 9)), 9)", datetime, offset);
+    }
+    else if (period == "MICROSECOND")
+    {
+        out = std::format("toDateTime64(plus(toDecimal128({}, 9), toDecimal128({}/1000000, 9)), 9)", datetime, offset);
+    }
+    else if (period == "NANOSECOND")
+    {
+        out = std::format("toDateTime64(plus(toDecimal128({}, 9), toDecimal128({}/1000000000, 9)), 9)", datetime, offset);
+    }
     return true;
 };
 
@@ -111,6 +122,8 @@ bool DatetimePart::convertImpl(String & out, IParser::Pos & pos)
         date = getConvertedArgument(fn_name, pos);
     }
     String format;
+    String head = "";
+    String trail = "";
 
     if (part == "YEAR")
         format = "%G";
@@ -125,15 +138,31 @@ bool DatetimePart::convertImpl(String & out, IParser::Pos & pos)
     else if (part == "DAYOFYEAR")
         format = "%j";
     else if (part == "HOUR")
-        format = "%H";
+        format = "%I";
     else if (part == "MINUTE")
-        format = "%i";
+        format = "%M";
     else if (part == "SECOND")
         format = "%S";
+    else if (part == "MILLISECOND")
+    {
+        format = "%f";
+        head = "intDivOrZero(toInt64(";
+        trail = "), 1000000)";
+    }
+    else if (part == "MICROSECOND")
+    {
+        format = "%f";
+        head = "intDivOrZero(toInt64(";
+        trail = "), 1000)";
+    }
+    else if (part == "NANOSECOND")
+    {
+        format = "%f";
+    }
     else
         throw Exception(ErrorCodes::SYNTAX_ERROR, "Unexpected argument {} for {}", part, fn_name);
 
-    out = std::format("formatDateTime({}, '{}')", date, format);
+    out = std::format("{}formatDateTime({}, '{}'){}", head, date, format, trail);
     return true;
 }
 
@@ -143,11 +172,29 @@ bool DatetimeDiff::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
 
-    const auto period = getArgument(fn_name, pos);
+    String period = Poco::toUpper(getArgument(fn_name, pos));
+    trim(period);
+    if (period.front() == '\"' || period.front() == '\'')
+    {
+        //period.remove
+        period.erase(0, 1); // erase the first quote
+        period.erase(period.size() - 1); // erase the last quote
+    }
     const auto datetime_lhs = getArgument(fn_name, pos);
     const auto datetime_rhs = getArgument(fn_name, pos);
     out = std::format("dateDiff({}, {}, {})", period, datetime_rhs, datetime_lhs);
-
+    if (period == "MILLISECOND")
+    {
+        out = std::format("toInt64(multiply(minus(toDecimal128({}, 3), toDecimal128({}, 3)), 1000))", datetime_lhs, datetime_rhs);
+    }
+    else if (period == "MICROSECOND")
+    {
+        out = std::format("toInt64(multiply(minus(toDecimal128({}, 6), toDecimal128({}, 6)), 1000000))", datetime_lhs, datetime_rhs);
+    }
+    else if (period == "NANOSECOND")
+    {
+        out = std::format("toInt64(multiply(minus(toDecimal128({}, 9), toDecimal128({}, 9)), 1000000000))", datetime_lhs, datetime_rhs);
+    }
     return true;
 }
 
@@ -263,11 +310,15 @@ bool FormatDateTime::convertImpl(String & out, IParser::Pos & pos)
     }
     if (decimal > 0 && formatspecifier.find('.') != String::npos)
     {
-
-    out = std::format("concat("
-        "substring(toString(formatDateTime({0}, '{1}')), 1, position(toString(formatDateTime({0}, '{1}')), '.')) ,"
-        "substring(substring(toString({0}), position(toString({0}),'.')+1),1,{2}),"
-        "substring(toString(formatDateTime({0}, '{1}')), position(toString(formatDateTime({0}, '{1}')), '.') + 1, length(toString(formatDateTime({0}, '{1}')))))", datetime, formatspecifier, decimal);
+        out = std::format(
+            "concat("
+            "substring(toString(formatDateTime({0}, '{1}')), 1, position(toString(formatDateTime({0}, '{1}')), '.')) ,"
+            "substring(substring(toString({0}), position(toString({0}),'.')+1),1,{2}),"
+            "substring(toString(formatDateTime({0}, '{1}')), position(toString(formatDateTime({0}, '{1}')), '.') + 1, "
+            "length(toString(formatDateTime({0}, '{1}')))))",
+            datetime,
+            formatspecifier,
+            decimal);
     }
     else
         out = std::format("formatDateTime({0}, '{1}')", datetime, formatspecifier);
@@ -366,9 +417,9 @@ bool HoursOfDay::convertImpl(String & out, IParser::Pos & pos)
 
 bool MakeTimeSpan::convertImpl(String & out, IParser::Pos & pos)
 {
-     const String fn_name = getKQLFunctionName(pos);
-     if (fn_name.empty())
-         return false;
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
 
     const auto arg1 = getArgument(fn_name, pos);
     const auto arg2 = getArgument(fn_name, pos);
@@ -407,8 +458,10 @@ bool MakeDateTime::convertImpl(String & out, IParser::Pos & pos)
     const auto second = getOptionalArgument(fn_name, pos);
     out = std::format(
         "if({0} between 1900 and 2261 and {1} between 1 and 12 and {3} between 0 and 59 and {4} between 0 and 59 and {5} >= 0 and {5} < 60 "
-        " and isNotNull(toModifiedJulianDayOrNull(concat(leftPad(toString({0}), 4, '0'), '-', leftPad(toString({1}), 2, '0'), '-', leftPad(toString({2}), 2, '0')))), "
-        "toDateTime64OrNull(toString(makeDateTime64({0}, {1}, {2}, {3}, {4}, truncate({5}), ({5} - truncate({5})) * 1e7, 7, 'UTC')), 9), null)",
+        " and isNotNull(toModifiedJulianDayOrNull(concat(leftPad(toString({0}), 4, '0'), '-', leftPad(toString({1}), 2, '0'), '-', "
+        "leftPad(toString({2}), 2, '0')))), "
+        "toDateTime64OrNull(toString(makeDateTime64({0}, {1}, {2}, {3}, {4}, truncate({5}), ({5} - truncate({5})) * 1e7, 7, 'UTC')), 9), "
+        "null)",
         year,
         month,
         day,
