@@ -16,4 +16,5 @@ print ' -- hash_sha256 --';
 print hash_sha256('World');
 print hash_sha256(datetime(2020-01-01));
 print hash_sha256(1);
+print hash_sha256('');
 print hash_sha256(-1);

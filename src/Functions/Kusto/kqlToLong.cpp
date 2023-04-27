@@ -37,14 +37,17 @@ ColumnPtr FunctionKqlToLong::executeImpl(const ColumnsWithTypeAndName & argument
     WhichDataType which(*argument.type);
     if (which.isDateTime64())
     {
-        const auto toint64 = executeFunctionCall(context, "toInt64", firstarg, input_rows_count);
+        const ColumnsWithTypeAndName todec_args{argument, createConstColumnWithTypeAndName<DataTypeUInt8>(9, "precision")};
+        const auto todecimal128 = executeFunctionCall(context, "toDecimal128", todec_args, input_rows_count);
         //Seconds to microseconds
         const ColumnsWithTypeAndName multiplier_args{
-            asArgument(toint64, name), createConstColumnWithTypeAndName<DataTypeInt64>(10000000, "multplier")};
+            asArgument(todecimal128, name), createConstColumnWithTypeAndName<DataTypeInt64>(10000000, "multplier")};
         const auto multiplied = executeFunctionCall(context, "multiply", multiplier_args, input_rows_count);
+        const ColumnsWithTypeAndName int_args{asArgument(multiplied, name)};
+        const auto toint64 = executeFunctionCall(context, "toInt64", int_args, input_rows_count);
         //ClickHouse is unix epoch. KQL is from year 0. print tolong(datetime('1970-01-01'));
         const ColumnsWithTypeAndName plus_args{
-            asArgument(multiplied, name), createConstColumnWithTypeAndName<DataTypeInt64>(621355968000000000, "plus")};
+            asArgument(toint64, name), createConstColumnWithTypeAndName<DataTypeInt64>(621355968000000000, "plus")};
         const auto plused = executeFunctionCall(context, "plus", plus_args, input_rows_count);
         firstarg = {asArgument(plused, name)};
     }
