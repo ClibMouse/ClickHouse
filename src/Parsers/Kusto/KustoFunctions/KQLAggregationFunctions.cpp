@@ -8,6 +8,7 @@
 namespace DB::ErrorCodes
 {
 extern const int NOT_IMPLEMENTED;
+extern const int NUMBER_OF_ARGUMENTS_DOESNT_MATCH;
 }
 
 namespace
@@ -23,15 +24,18 @@ namespace DB
 {
 bool ArgMax::convertImpl(String & out, IParser::Pos & pos)
 {
+    auto arg_count = 0;
     String fn_name = getKQLFunctionName(pos);
 
     if (fn_name.empty())
         return false;
     ++pos;
+    ++arg_count;
     String expr_to_maximize = getConvertedArgument(fn_name, pos);
     while (pos->type == TokenType::Comma)
     {
         ++pos;
+        ++arg_count;
         const auto expr_to_return = getConvertedArgument(fn_name, pos);
         if (expr_to_return == expr_to_maximize)
         {
@@ -39,27 +43,38 @@ bool ArgMax::convertImpl(String & out, IParser::Pos & pos)
         }
         out += std::format("argMax({}, {}) as {},", expr_to_return, expr_to_maximize, expr_to_return);
     }
+    if (arg_count < 2)
+    {
+        throw DB::Exception(DB::ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "{} requires at least two arguments", fn_name);
+    }
     out += std::format("argMax({}, {})", expr_to_maximize, expr_to_maximize);
     return true;
 }
 
 bool ArgMin::convertImpl(String & out, IParser::Pos & pos)
 {
+    auto arg_count = 0;
     String fn_name = getKQLFunctionName(pos);
 
     if (fn_name.empty())
         return false;
     ++pos;
+    ++arg_count;
     String expr_to_maximize = getConvertedArgument(fn_name, pos);
     while (pos->type == TokenType::Comma)
     {
         ++pos;
+        ++arg_count;
         const auto expr_to_return = getConvertedArgument(fn_name, pos);
         if (expr_to_return == expr_to_maximize)
         {
             continue;
         }
         out += std::format("argMin({}, {}) as {},", expr_to_return, expr_to_maximize, expr_to_return);
+    }
+    if (arg_count < 2)
+    {
+        throw DB::Exception(DB::ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "{} requires at least two arguments", fn_name);
     }
     out += std::format("argMin({}, {})", expr_to_maximize, expr_to_maximize);
     return true;
