@@ -1,14 +1,14 @@
 #include "KQLAggregationFunctions.h"
+#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
 
 #include <Common/StringUtils/StringUtils.h>
-
+#include <ranges>
 #include <format>
 #include <numeric>
 
 namespace DB::ErrorCodes
 {
 extern const int NOT_IMPLEMENTED;
-extern const int NUMBER_OF_ARGUMENTS_DOESNT_MATCH;
 }
 
 namespace
@@ -24,59 +24,44 @@ namespace DB
 {
 bool ArgMax::convertImpl(String & out, IParser::Pos & pos)
 {
-    auto arg_count = 0;
     String fn_name = getKQLFunctionName(pos);
 
     if (fn_name.empty())
         return false;
-    ++pos;
-    ++arg_count;
-    String expr_to_maximize = getConvertedArgument(fn_name, pos);
-    while (pos->type == TokenType::Comma)
+
+    const Interval & argument_count_interval = {2, Interval::max_bound};
+    const auto args = getArguments(fn_name, pos, ArgumentState::Parsed, argument_count_interval);
+    
+    for (std::string expr_to_return : args | std::views::drop(1))
     {
-        ++pos;
-        ++arg_count;
-        const auto expr_to_return = getConvertedArgument(fn_name, pos);
-        if (expr_to_return == expr_to_maximize)
+        if (expr_to_return != args[0])
         {
-            continue;
+            out += std::format("argMax({}, {}) as {},", expr_to_return, args[0], expr_to_return);
         }
-        out += std::format("argMax({}, {}) as {},", expr_to_return, expr_to_maximize, expr_to_return);
     }
-    if (arg_count < 2)
-    {
-        throw DB::Exception(DB::ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "{} requires at least two arguments", fn_name);
-    }
-    out += std::format("argMax({}, {})", expr_to_maximize, expr_to_maximize);
+    out += std::format("argMax({}, {})", args[0], args[0]);
+
     return true;
 }
 
 bool ArgMin::convertImpl(String & out, IParser::Pos & pos)
 {
-    auto arg_count = 0;
     String fn_name = getKQLFunctionName(pos);
 
     if (fn_name.empty())
         return false;
-    ++pos;
-    ++arg_count;
-    String expr_to_maximize = getConvertedArgument(fn_name, pos);
-    while (pos->type == TokenType::Comma)
+    
+    const Interval & argument_count_interval = {2, Interval::max_bound};
+    const auto args = getArguments(fn_name, pos, ArgumentState::Parsed, argument_count_interval);
+    for (std::string expr_to_return : args | std::views::drop(1))
     {
-        ++pos;
-        ++arg_count;
-        const auto expr_to_return = getConvertedArgument(fn_name, pos);
-        if (expr_to_return == expr_to_maximize)
+        if (expr_to_return != args[0])
         {
-            continue;
+            out += std::format("argMin({}, {}) as {},", expr_to_return, args[0], expr_to_return);
         }
-        out += std::format("argMin({}, {}) as {},", expr_to_return, expr_to_maximize, expr_to_return);
     }
-    if (arg_count < 2)
-    {
-        throw DB::Exception(DB::ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "{} requires at least two arguments", fn_name);
-    }
-    out += std::format("argMin({}, {})", expr_to_maximize, expr_to_maximize);
+    out += std::format("argMin({}, {})", args[0], args[0]);
+
     return true;
 }
 
