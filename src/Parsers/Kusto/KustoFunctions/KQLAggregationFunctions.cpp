@@ -29,10 +29,9 @@ bool ArgMax::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
 
-    const Interval & argument_count_interval = {2, Interval::max_bound};
-    const auto args = getArguments(fn_name, pos, ArgumentState::Parsed, argument_count_interval);
+    const auto args = getArguments(fn_name, pos, ArgumentState::Parsed, {2, Interval::max_bound});
     
-    for (std::string expr_to_return : args | std::views::drop(1))
+    for (const auto& expr_to_return : args | std::views::drop(1))
     {
         if (expr_to_return != args[0])
         {
@@ -51,9 +50,8 @@ bool ArgMin::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
     
-    const Interval & argument_count_interval = {2, Interval::max_bound};
-    const auto args = getArguments(fn_name, pos, ArgumentState::Parsed, argument_count_interval);
-    for (std::string expr_to_return : args | std::views::drop(1))
+    const auto args = getArguments(fn_name, pos, ArgumentState::Parsed, {2, Interval::max_bound});
+    for (const auto& expr_to_return : args | std::views::drop(1))
     {
         if (expr_to_return != args[0])
         {
