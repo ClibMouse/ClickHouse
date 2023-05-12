@@ -71,7 +71,7 @@ bool DatetimeAdd::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
 
-    String period = Poco::toUpper(getArgument(fn_name, pos));
+    auto period = getArgument(fn_name, pos);
     //remove quotes from period.
     trim(period);
     if (period.front() == '\"' || period.front() == '\'')
@@ -84,19 +84,7 @@ bool DatetimeAdd::convertImpl(String & out, IParser::Pos & pos)
     const auto offset = getArgument(fn_name, pos);
     const auto datetime = getArgument(fn_name, pos);
 
-    out = std::format("date_add({}, {}, {})", period, offset, datetime);
-    if (period == "MILLISECOND")
-    {
-        out = std::format("toDateTime64(plus(toDecimal128({}, 9), toDecimal128({}/1000, 9)), 9)", datetime, offset);
-    }
-    else if (period == "MICROSECOND")
-    {
-        out = std::format("toDateTime64(plus(toDecimal128({}, 9), toDecimal128({}/1000000, 9)), 9)", datetime, offset);
-    }
-    else if (period == "NANOSECOND")
-    {
-        out = std::format("toDateTime64(plus(toDecimal128({}, 9), toDecimal128({}/1000000000, 9)), 9)", datetime, offset);
-    }
+    out = std::format("kql_datetime(date_add({}, {}, {}))", period, offset, datetime);
     return true;
 };
 
@@ -122,8 +110,8 @@ bool DatetimePart::convertImpl(String & out, IParser::Pos & pos)
         date = getConvertedArgument(fn_name, pos);
     }
     String format;
-    String head = "";
-    String trail = "";
+    String head;
+    String trail;
 
     if (part == "YEAR")
         format = "%G";
@@ -460,7 +448,8 @@ bool MakeDateTime::convertImpl(String & out, IParser::Pos & pos)
         "if({0} between 1900 and 2261 and {1} between 1 and 12 and {3} between 0 and 59 and {4} between 0 and 59 and {5} >= 0 and {5} < 60 "
         " and isNotNull(toModifiedJulianDayOrNull(concat(leftPad(toString({0}), 4, '0'), '-', leftPad(toString({1}), 2, '0'), '-', "
         "leftPad(toString({2}), 2, '0')))), "
-        "toDateTime64OrNull(toString(makeDateTime64({0}, {1}, {2}, {3}, {4}, truncate({5}), ({5} - truncate({5})) * 1e7, 7, 'UTC')), 9), "
+        "toDateTime64OrNull(toString(makeDateTime64({0}, {1}, {2}, {3}, {4}, truncate({5}), ({5} - truncate({5})) * 1e7, 7, 'UTC')), 9, "
+        "'UTC'), "
         "null)",
         year,
         month,
