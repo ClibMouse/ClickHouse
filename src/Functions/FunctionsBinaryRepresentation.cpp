@@ -46,6 +46,7 @@ struct HexImpl
     static void executeOneUIntOrInt(T x, char *& out, bool skip_leading_zero = true, bool auto_close = true)
     {
         bool was_nonzero = false;
+
         for (int offset = (sizeof(T) - 1) * 8; offset >= 0; offset -= 8)
         {
             UInt8 byte = x >> offset;
@@ -380,7 +381,8 @@ public:
             {
                 size_t new_offset = in_offsets[i];
 
-                Impl::executeOneString(&in_vec[prev_offset], &in_vec[new_offset - 1], pos);
+                bool reverse_order = (std::endian::native == std::endian::big);
+                Impl::executeOneString(&in_vec[prev_offset], &in_vec[new_offset - 1], pos, reverse_order);
 
                 out_offsets[i] = pos - begin;
 
