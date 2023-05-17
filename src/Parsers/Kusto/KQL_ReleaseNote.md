@@ -3,7 +3,9 @@
 # May , 2023  
 
 ## Bugfixes
- - Fix core dump when table is missing in pipeline  
+ - Fix core dump when table is missing in pipeline
+
+ - produce an exception if `arg_max` or `arg_min` have fewer than 2 arguments
 
 # April XX, 2023
 ## Bugfixes
