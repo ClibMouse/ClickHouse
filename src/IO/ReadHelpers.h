@@ -108,12 +108,22 @@ inline void readChar(char & x, ReadBuffer & buf)
     ++buf.position();
 }
 
-
 /// Read POD-type in native format
 template <typename T>
 inline void readPODBinary(T & x, ReadBuffer & buf)
 {
     buf.readStrict(reinterpret_cast<char *>(&x), sizeof(x)); /// NOLINT
+}
+
+template <typename T>
+inline void readPODBinaryLittleEndian(T & x, ReadBuffer & buf)
+{
+    buf.readStrict(reinterpret_cast<char *>(&x), sizeof(x)); /// NOLINT
+    if constexpr (std::endian::native == std::endian::big && sizeof(T) >= 2 && (std::is_arithmetic_v<T> || is_decimal<T> || is_over_big_int<T>))
+    {
+        char *start = reinterpret_cast<char *>(&x), *end = start + sizeof(T);
+        std::reverse(start, end);
+    }
 }
 
 template <typename T>
