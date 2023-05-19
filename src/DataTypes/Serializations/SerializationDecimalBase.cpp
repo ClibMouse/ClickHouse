@@ -14,14 +14,14 @@ template <typename T>
 void SerializationDecimalBase<T>::serializeBinary(const Field & field, WriteBuffer & ostr, const FormatSettings &) const
 {
     FieldType x = field.get<DecimalField<T>>();
-    writePODBinaryLittleEndian(x, ostr);
+    writeBinaryLittleEndian(x, ostr);
 }
 
 template <typename T>
 void SerializationDecimalBase<T>::serializeBinary(const IColumn & column, size_t row_num, WriteBuffer & ostr, const FormatSettings &) const
 {
     const FieldType & x = assert_cast<const ColumnType &>(column).getElement(row_num);
-    writePODBinaryLittleEndian(x, ostr);
+    writeBinaryLittleEndian(x, ostr);
 }
 
 template <typename T>
@@ -52,7 +52,7 @@ template <typename T>
 void SerializationDecimalBase<T>::deserializeBinary(Field & field, ReadBuffer & istr, const FormatSettings &) const
 {
     typename FieldType::NativeType x;
-    readPODBinaryLittleEndian(x, istr);
+    readBinaryLittleEndian(x, istr);
     field = DecimalField(T(x), this->scale);
 }
 
@@ -60,7 +60,7 @@ template <typename T>
 void SerializationDecimalBase<T>::deserializeBinary(IColumn & column, ReadBuffer & istr, const FormatSettings &) const
 {
     typename FieldType::NativeType x;
-    readPODBinaryLittleEndian(x, istr);
+    readBinaryLittleEndian(x, istr);
     assert_cast<ColumnType &>(column).getData().push_back(FieldType(x));
 }
 
