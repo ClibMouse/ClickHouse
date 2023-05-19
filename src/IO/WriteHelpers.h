@@ -77,21 +77,6 @@ inline void writeChar(char c, size_t n, WriteBuffer & buf)
         buf.position() += count;
     }
 }
-template <typename T>
-inline void writePODBinaryLittleEndian(const T & x, WriteBuffer & buf)
-{
-    if constexpr (std::endian::native == std::endian::big && sizeof(T) >= 2 && (std::is_arithmetic_v<T> || is_decimal<T> || is_over_big_int<T> ))
-    {
-        T tmp(x);
-        char *start = reinterpret_cast<char*>(&tmp);
-        char *end = start + sizeof(T);
-        std::reverse(start, end);
-
-        buf.write(reinterpret_cast<const char *>(&tmp), sizeof(tmp)); /// NOLINT
-    }
-    else
-        buf.write(reinterpret_cast<const char *>(&x), sizeof(x)); /// NOLINT
-}
 
 /// Write POD-type in native format. It's recommended to use only with packed (dense) data types.
 template <typename T>
@@ -1187,14 +1172,30 @@ inline void writeNullTerminatedString(const String & s, WriteBuffer & buffer)
     buffer.write(s.c_str(), s.size() + 1);
 }
 
-
 template <std::endian endian, typename T>
-requires is_arithmetic_v<T> && (sizeof(T) <= 8)
+requires std::is_integral_v<T> && (sizeof(T) <= 8)
 inline void writeBinaryEndian(T x, WriteBuffer & buf)
 {
     if constexpr (std::endian::native != endian)
         x = std::byteswap(x);
     writePODBinary(x, buf);
+}
+
+template <std::endian endian, typename T>
+requires is_decimal<T> || std::is_floating_point_v<T>
+inline void writeBinaryEndian(T x, WriteBuffer & buf)
+{
+    if constexpr (std::endian::native != endian)
+    {
+         T tmp(x);
+        char *start = reinterpret_cast<char*>(&tmp);
+        char *end = start + sizeof(T);
+        std::reverse(start, end);
+
+        buf.write(reinterpret_cast<const char *>(&tmp), sizeof(tmp)); /// NOLINT
+    }
+    else
+        writePODBinary(x, buf);
 }
 
 template <std::endian endian, typename T>
