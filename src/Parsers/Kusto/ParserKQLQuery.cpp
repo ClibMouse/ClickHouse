@@ -430,6 +430,8 @@ std::unique_ptr<ParserKQLBase> ParserKQLQuery::getOperator(const std::string_vie
 
 bool ParserKQLQuery::getOperations(Pos & pos, Expected & expected, OperationsPos & operation_pos)
 {
+    if (pos->isEnd())
+        return false;
     if (String table_name(pos->begin, pos->end); table_name == "print" || table_name == "range")
         operation_pos.emplace_back(table_name, pos);
     else
@@ -506,7 +508,8 @@ bool ParserKQLQuery::pre_process(String & source, Pos & pos)
     }
 
     auto end = pos;
-    --end;
+    if (end != begin)
+        --end;
     source = String(begin->begin, end->end);
 
     auto replace = [&](std::string & str, const std::string & from, const std::string & to)
