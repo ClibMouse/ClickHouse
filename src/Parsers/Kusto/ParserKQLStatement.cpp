@@ -67,28 +67,24 @@ bool ParserKQLTableFunction::parseImpl(Pos & pos, ASTPtr & node, Expected & expe
 
     if (s_lparen.ignore(pos, expected))
     {
-        if (pos->type == TokenType::HereDoc)
+        ++paren_count;
+        auto pos_start = pos;
+        while (!pos->isEnd())
         {
-            kql_statement = String(pos->begin + 2, pos->end - 2);
+            if (pos->type == TokenType::ClosingRoundBracket)
+                --paren_count;
+            if (pos->type == TokenType::OpeningRoundBracket)
+                ++paren_count;
+            if (paren_count == 0)
+                break;
+            ++pos;
         }
-        else
-        {
-            ++paren_count;
-            auto pos_start = pos;
-            while (!pos->isEnd())
-            {
-                if (pos->type == TokenType::ClosingRoundBracket)
-                    --paren_count;
-                if (pos->type == TokenType::OpeningRoundBracket)
-                    ++paren_count;
+        if (pos->isEnd() && paren_count != 0)
+            return false;
 
-                if (paren_count == 0)
-                    break;
-                ++pos;
-            }
-            kql_statement = String(pos_start->begin, (--pos)->end);
-        }
+        kql_statement = String(pos_start->begin, (--pos)->end);
         ++pos;
+
         Tokens token_kql(kql_statement.c_str(), kql_statement.c_str() + kql_statement.size());
         IParser::Pos pos_kql(token_kql, pos.max_depth);
 
