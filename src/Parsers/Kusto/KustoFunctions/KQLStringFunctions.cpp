@@ -99,7 +99,7 @@ bool CountOf::convertImpl(String & out, IParser::Pos & pos)
     assert(kind == "'normal'" || kind == "'regex'");
 
     if (kind == "'normal'")
-        out = "countSubstrings(" + source + ", " + search + ")";
+        out = "kql_count_overlapping_substrings(" + source + ", " + search + ")";
     else
         out = "countMatches(" + source + ", " + search + ")";
     return true;
