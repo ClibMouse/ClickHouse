@@ -1,21 +1,12 @@
-#include <Columns/ColumnArray.h>
-#include <Columns/ColumnDecimal.h>
-#include <Columns/ColumnString.h>
-#include <DataTypes/DataTypeString.h>
-#include <DataTypes/DataTypesNumber.h>
-#include <Functions/FunctionFactory.h>
-#include <Functions/FunctionHelpers.h>
-#include <Functions/IFunction.h>
-#include <Functions/Kusto/KqlFunctionBase.h>
 #include <string>
-#include <iostream>
+#include <Functions/Kusto/KqlFunctionBase.h>
 
 namespace DB
 {
 namespace DB::ErrorCodes
 {
-extern const int NUMBER_OF_ARGUMENTS_DOESNT_MATCH;
-extern const int ILLEGAL_TYPE_OF_ARGUMENT;
+    extern const int NUMBER_OF_ARGUMENTS_DOESNT_MATCH;
+    extern const int ILLEGAL_TYPE_OF_ARGUMENT;
 }
 
 class FunctionKqlCountOverlappingSubstrings : public IFunction
@@ -59,8 +50,10 @@ public:
         return std::make_shared<DataTypeUInt32>();
     }
 
-    ColumnPtr
-    executeImpl(const ColumnsWithTypeAndName & arguments, [[maybe_unused]] const DataTypePtr & result_type, const size_t input_rows_count) const override
+    ColumnPtr executeImpl(
+        const ColumnsWithTypeAndName & arguments,
+        [[maybe_unused]] const DataTypePtr & result_type,
+        const size_t input_rows_count) const override
     {
         auto result = ColumnUInt32::create();
         auto & result_column = result->getData();
