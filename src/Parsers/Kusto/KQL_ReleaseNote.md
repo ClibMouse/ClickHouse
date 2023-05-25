@@ -1,4 +1,8 @@
 ## KQL implemented features  
+# June , 2023
+
+## Bugfixes
+- Corrected an issue with `countof` operator where plain string matches were not correctly counting overlapping strings.
 
 # May , 2023  
 
