@@ -2,7 +2,7 @@
 # docker build -t clickhouse/integration-test .
 ARG FROM_TAG=latest
 ARG DOCKER_REPO=docker.io
-FROM $DOCKER_REPO/clickhouse/stateless-test:$FROM_TAG
+FROM $DOCKER_REPO/clickhouse/test-base:$FROM_TAG
 
 SHELL ["/bin/bash", "-c"]
 

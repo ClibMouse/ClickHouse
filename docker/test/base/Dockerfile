@@ -2,7 +2,7 @@
 # docker build -t clickhouse/test-base .
 ARG FROM_TAG=latest
 ARG DOCKER_REPO=docker.io
-FROM $DOCKER_REPO/clickhouse/stateless-test:$FROM_TAG
+FROM $DOCKER_REPO/clickhouse/test-util:$FROM_TAG
 
 RUN apt-get update \
     && apt-get install \

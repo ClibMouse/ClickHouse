@@ -2,7 +2,7 @@
 # docker build -t clickhouse/upgrade-check .
 ARG FROM_TAG=latest
 ARG DOCKER_REPO=docker.io
-FROM $DOCKER_REPO/clickhouse/stateless-test:$FROM_TAG
+FROM $DOCKER_REPO/clickhouse/stateful-test:$FROM_TAG
 
 RUN apt-get update -y \
     && env DEBIAN_FRONTEND=noninteractive \
