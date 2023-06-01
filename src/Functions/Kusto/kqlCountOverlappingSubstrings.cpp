@@ -32,7 +32,7 @@ public:
         {
             throw Exception(
                 ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH,
-                "Number of arguments for function {} doesn't match: passed {}, should be 2 more.",
+                "Number of arguments for function {} doesn't match: passed {}, should be 2.",
                 getName(),
                 toString(arguments.size()));
         }
