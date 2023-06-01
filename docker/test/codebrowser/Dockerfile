@@ -2,8 +2,7 @@
 # docker build --network=host -t clickhouse/codebrowser .
 # docker run --volume=path_to_repo:/repo_folder --volume=path_to_result:/test_output clickhouse/codebrowser
 ARG FROM_TAG=latest
-ARG DOCKER_REPO=docker.io
-FROM $DOCKER_REPO/clickhouse/binary-builder:$FROM_TAG
+FROM clickhouse/binary-builder:$FROM_TAG
 
 # ARG for quick switch to a given ubuntu mirror
 ARG apt_archive="http://archive.ubuntu.com"

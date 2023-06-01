@@ -1,7 +1,6 @@
 # docker build -t clickhouse/sqllogic-test .
 ARG FROM_TAG=latest
-ARG DOCKER_REPO=docker.io
-FROM $DOCKER_REPO/clickhouse/test-base:$FROM_TAG
+FROM clickhouse/test-base:$FROM_TAG
 
 RUN apt-get update --yes \
     && env DEBIAN_FRONTEND=noninteractive \
