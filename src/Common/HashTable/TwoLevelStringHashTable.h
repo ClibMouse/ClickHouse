@@ -125,7 +125,7 @@ public:
 					if constexpr (std::endian::native == std::endian::little)
 						n[0] >>= s;
 					else
-						n[0] <<=s;
+						n[0] <<= s;
                 }
                 auto res = hash(k8);
                 auto buck = getBucketFromHash(res);
