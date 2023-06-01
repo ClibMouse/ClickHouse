@@ -592,6 +592,16 @@ bool TakeAnyIf::convertImpl(String & out, IParser::Pos & pos)
 
 bool Variance::convertImpl(String & out, IParser::Pos & pos)
 {
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+    const String expr = getArgument(fn_name, pos);
+    --pos;
+    --pos;
+    --pos;
+    if (expr == "null" || expr == "NULL")
+        throw DB::Exception(DB::ErrorCodes::NOT_IMPLEMENTED, "'summarize' operator: Failed to resolve scalar expression named 'null'");
+
     return directMapping(out, pos, "varSamp");
 }
 
@@ -600,8 +610,10 @@ bool VarianceIf::convertImpl(String & out, IParser::Pos & pos)
     const String fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;
-
     const String expr = getArgument(fn_name, pos);
+    if (expr == "null" || expr == "NULL")
+        throw DB::Exception(DB::ErrorCodes::NOT_IMPLEMENTED, "'summarize' operator: Failed to resolve scalar expression named 'null'");
+
     const String predicate = getArgument(fn_name, pos);
     out = std::format("varSampIf({}, {})", expr, predicate);
 
@@ -610,6 +622,16 @@ bool VarianceIf::convertImpl(String & out, IParser::Pos & pos)
 
 bool VarianceP::convertImpl(String & out, IParser::Pos & pos)
 {
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+    const String expr = getArgument(fn_name, pos);
+    if (expr == "null" || expr == "NULL")
+        throw DB::Exception(DB::ErrorCodes::NOT_IMPLEMENTED, "'summarize' operator: Failed to resolve scalar expression named 'null'");
+
+    --pos;
+    --pos;
+    --pos;
     return directMapping(out, pos, "varPop");
 }
 

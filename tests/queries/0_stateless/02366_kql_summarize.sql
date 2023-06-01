@@ -128,6 +128,9 @@ print '-- variance/variancep/varianceif --';
 Customers | summarize variance(Age);
 Customers | summarize variancep(Age);
 Customers | summarize varianceif(Age, Age < 30);
+range x from 1 to 5 step -1 | summarize variance(null); -- { clientError 48 }
+range x from 1 to 5 step -1 | summarize variancep(null); -- { clientError 48 }
+range x from 1 to 5 step -1 | summarize varianceif(null, abs(x) > 0); -- { clientError 48 }
 
 print '-- arg_max --';
 Customers | summarize arg_max(Age, LastName);
