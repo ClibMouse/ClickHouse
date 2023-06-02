@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install zlib1g-dev -y
 # https://github.com/ClickHouse/woboq_codebrowser/commit/37e15eaf377b920acb0b48dbe82471be9203f76b
 RUN git clone --branch=master --depth=1 https://github.com/ClickHouse/woboq_codebrowser /woboq_codebrowser \
   && cd /woboq_codebrowser \
-  && cmake . -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang\+\+-${LLVM_VERSION} -DCMAKE_C_COMPILER=clang-${LLVM_VERSION} -DCLANG_BUILTIN_HEADERS_DIR=/usr/lib/llvm-${LLVM_VERSION}/lib/clang/${LLVM_VERSION}/include \
+  && LLVM_VERSION=14 cmake . -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang\+\+-${LLVM_VERSION} -DCMAKE_C_COMPILER=clang-${LLVM_VERSION} -DCLANG_BUILTIN_HEADERS_DIR=/usr/lib/llvm-${LLVM_VERSION}/lib/clang/${LLVM_VERSION}/include \
   && ninja
 
 COPY build.sh /
