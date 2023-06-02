@@ -6,6 +6,7 @@ FROM $DOCKER_REPO/clickhouse/test-util:$FROM_TAG
 
 RUN apt-get update \
     && apt-get install \
+        wget \    
         brotli \
         expect \
         file \
