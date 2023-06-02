@@ -19,6 +19,9 @@ RUN arch=${TARGETARCH:-amd64} \
         *) exit 1 ;; \
     esac
 
+# Install zlib1g-dev
+RUN apt-get update && apt-get install zlib1g-dev -y
+
 # repo versions doesn't work correctly with C++17
 # also we push reports to s3, so we add index.html to subfolder urls
 # https://github.com/ClickHouse/woboq_codebrowser/commit/37e15eaf377b920acb0b48dbe82471be9203f76b
