@@ -41,7 +41,7 @@ RUN git clone --depth 1 https://github.com/tpoechtrager/cctools-port.git \
 # END COMPILE
 # !!!!!!!!!!!
 
-FROM clickhouse/test-util:$FROM_TAG
+FROM $DOCKER_REPO/clickhouse/test-util:$FROM_TAG
 ENV CC=clang-${LLVM_VERSION}
 ENV CXX=clang++-${LLVM_VERSION}
 
