@@ -26,7 +26,7 @@ RUN pip3 install \
 ARG odbc_repo="https://github.com/ClickHouse/clickhouse-odbc.git"
 
 # Install necessary packages
-RUN apt-get update && apt-get install -y wget git cmake
+RUN apt-get update && apt-get install -y wget git cmake build-essential
 
 RUN git clone --recursive ${odbc_repo} \
     && mkdir -p /clickhouse-odbc/build \
