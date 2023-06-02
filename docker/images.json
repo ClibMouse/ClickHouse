@@ -1,7 +1,9 @@
 {
     "docker/packager/binary": {
         "name": "clickhouse/binary-builder",
-        "dependent": []
+        "dependent": [
+            "docker/test/codebrowser"
+        ]
     },
     "docker/test/compatibility/centos": {
         "name": "clickhouse/test-old-centos",
@@ -114,6 +116,10 @@
         "only_amd64": true,
         "name": "clickhouse/kerberos-kdc",
         "dependent": []
+    },
+    "docker/test/base": {
+         "name": "clickhouse/test-base",
+         "dependent": []
     },
     "docker/test/integration/kerberized_hadoop": {
         "only_amd64": true,
