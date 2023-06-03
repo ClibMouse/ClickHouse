@@ -119,7 +119,13 @@
     },
     "docker/test/base": {
          "name": "clickhouse/test-base",
-         "dependent": []
+         "dependent": [
+            "docker/test/stateless",
+            "docker/test/integration/base",
+            "docker/test/fuzzer",
+            "docker/test/keeper-jepsen",
+            "docker/test/server-jepsen"
+         ]
     },
     "docker/test/integration/kerberized_hadoop": {
         "only_amd64": true,
