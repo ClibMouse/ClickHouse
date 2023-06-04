@@ -85,6 +85,7 @@ def get_images_dict(repo_path: str, image_file_path: str) -> ImagesDict:
     if os.path.exists(path_to_images_file):
         with open(path_to_images_file, "rb") as dict_file:
             images_dict = json.load(dict_file)
+            print(images_dict)
     else:
         logging.info(
             "Image file %s doesn't exist in repo %s", image_file_path, repo_path
@@ -413,85 +414,85 @@ def main():
 
     images_dict = get_images_dict(GITHUB_WORKSPACE, "docker/images.json")
 
-    pr_info = PRInfo()
-    if args.all:
-        pr_info.changed_files = set(images_dict.keys())
-    elif args.image_path:
-        pr_info.changed_files = set(i for i in args.image_path)
-    else:
-        try:
-            pr_info.fetch_changed_files()
-        except TypeError:
-            # If the event does not contain diff, nothing will be built
-            pass
+    # pr_info = PRInfo()
+    # if args.all:
+    #     pr_info.changed_files = set(images_dict.keys())
+    # elif args.image_path:
+    #     pr_info.changed_files = set(i for i in args.image_path)
+    # else:
+    #     try:
+    #         pr_info.fetch_changed_files()
+    #     except TypeError:
+    #         # If the event does not contain diff, nothing will be built
+    #         pass
 
-    changed_images = get_changed_docker_images(pr_info, images_dict, DOCKER_REPO)
-    if changed_images:
-        logging.info(
-            "Has changed images: %s", ", ".join([im.path for im in changed_images])
-        )
+    # changed_images = get_changed_docker_images(pr_info, images_dict, DOCKER_REPO)
+    # if changed_images:
+    #     logging.info(
+    #         "Has changed images: %s", ", ".join([im.path for im in changed_images])
+    #     )
 
-    image_versions, result_version = gen_versions(pr_info, args.suffix)
+    # image_versions, result_version = gen_versions(pr_info, args.suffix)
 
-    result_images = {}
-    test_results = []  # type: TestResults
-    additional_cache = []  # type: List[str]
-    if pr_info.release_pr:
-        logging.info("Use %s as additional cache tag", pr_info.release_pr)
-        additional_cache.append(str(pr_info.release_pr))
-    if pr_info.merged_pr:
-        logging.info("Use %s as additional cache tag", pr_info.merged_pr)
-        additional_cache.append(str(pr_info.merged_pr))
+    # result_images = {}
+    # test_results = []  # type: TestResults
+    # additional_cache = []  # type: List[str]
+    # if pr_info.release_pr:
+    #     logging.info("Use %s as additional cache tag", pr_info.release_pr)
+    #     additional_cache.append(str(pr_info.release_pr))
+    # if pr_info.merged_pr:
+    #     logging.info("Use %s as additional cache tag", pr_info.merged_pr)
+    #     additional_cache.append(str(pr_info.merged_pr))
 
-    for image in changed_images:
-        # If we are in backport PR, then pr_info.release_pr is defined
-        # We use it as tag to reduce rebuilding time
-        test_results += process_image_with_parents(
-            image, image_versions, additional_cache, args.push
-        )
-        result_images[image.repo] = result_version
+    # for image in changed_images:
+    #     # If we are in backport PR, then pr_info.release_pr is defined
+    #     # We use it as tag to reduce rebuilding time
+    #     test_results += process_image_with_parents(
+    #         image, image_versions, additional_cache, args.push
+    #     )
+    #     result_images[image.repo] = result_version
 
-    if changed_images:
-        description = "Updated " + ",".join([im.repo for im in changed_images])
-    else:
-        description = "Nothing to update"
+    # if changed_images:
+    #     description = "Updated " + ",".join([im.repo for im in changed_images])
+    # else:
+    #     description = "Nothing to update"
 
-    description = format_description(description)
+    # description = format_description(description)
 
-    with open(changed_json, "w", encoding="utf-8") as images_file:
-        json.dump(result_images, images_file)
+    # with open(changed_json, "w", encoding="utf-8") as images_file:
+    #     json.dump(result_images, images_file)
 
-    s3_helper = S3Helper()
+    # s3_helper = S3Helper()
 
-    status = "success"
-    if [r for r in test_results if r.status != "OK"]:
-        status = "failure"
+    # status = "success"
+    # if [r for r in test_results if r.status != "OK"]:
+    #     status = "failure"
 
-    url = upload_results(s3_helper, pr_info.number, pr_info.sha, test_results, [], NAME)
+    # url = upload_results(s3_helper, pr_info.number, pr_info.sha, test_results, [], NAME)
 
-    print(f"::notice ::Report url: {url}")
+    # print(f"::notice ::Report url: {url}")
 
-    if not args.reports:
-        return
+    # if not args.reports:
+    #     return
 
-    gh = Github(get_best_robot_token(), per_page=100)
-    commit = get_commit(gh, pr_info.sha)
-    post_commit_status(commit, status, url, description, NAME, pr_info)
+    # gh = Github(get_best_robot_token(), per_page=100)
+    # commit = get_commit(gh, pr_info.sha)
+    # post_commit_status(commit, status, url, description, NAME, pr_info)
 
-    prepared_events = prepare_tests_results_for_clickhouse(
-        pr_info,
-        test_results,
-        status,
-        stopwatch.duration_seconds,
-        stopwatch.start_time_str,
-        url,
-        NAME,
-    )
-    ch_helper = ClickHouseHelper()
-    ch_helper.insert_events_into(db="default", table="checks", events=prepared_events)
+    # prepared_events = prepare_tests_results_for_clickhouse(
+    #     pr_info,
+    #     test_results,
+    #     status,
+    #     stopwatch.duration_seconds,
+    #     stopwatch.start_time_str,
+    #     url,
+    #     NAME,
+    # )
+    # ch_helper = ClickHouseHelper()
+    # ch_helper.insert_events_into(db="default", table="checks", events=prepared_events)
 
-    if status == "failure":
-        sys.exit(1)
+    # if status == "failure":
+    #     sys.exit(1)
 
 
 if __name__ == "__main__":
