@@ -1,6 +1,8 @@
 {
     "docker/test/util": {
         "name": "clickhouse/test-util",
-        "dependent": []
+        "dependent": [
+            "docker/packager/binary"            
+        ]
     }
 }
