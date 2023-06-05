@@ -5,6 +5,10 @@
             "docker/test/codebrowser"
         ]
     },    
+    "docker/test/codebrowser": {
+        "name": "clickhouse/codebrowser",
+        "dependent": []
+    },    
     "docker/test/util": {
         "name": "clickhouse/test-util",
         "dependent": [
