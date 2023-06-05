@@ -16,7 +16,6 @@ RUN apt-get update -y \
             expect \
             golang \
             curl \
-            curl \
             lsof \
             mysql-client=8.0* \
             ncdu \
