@@ -340,6 +340,30 @@ ASTPtr tryParseQuery(
         return nullptr;
     }
 
+    if (String(parser.getName()) == "KQL Statement")
+    {
+        Lexer raw_tokens(query_begin, all_queries_end, max_query_size);
+        bool last_token_exclamationmark = false;
+        Token current_token = raw_tokens.nextToken();
+
+        while (!current_token.isEnd() && current_token.type != TokenType::Semicolon)
+        {
+            if (current_token.type == TokenType::ErrorSingleExclamationMark && String(current_token.begin, current_token.end) == "!")
+                last_token_exclamationmark = true;
+            else
+            {
+                if (last_token_exclamationmark == true && current_token.type == TokenType::Whitespace
+                    && String(current_token.begin, current_token.end) == " ")
+                {
+                    out_error_message = "! can not be followed by whitespace";
+                    return nullptr;
+                }
+                last_token_exclamationmark = false;
+            }
+            current_token = raw_tokens.nextToken();
+        }
+    }
+
     return res;
 }
 

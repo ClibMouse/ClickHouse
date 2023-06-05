@@ -4,6 +4,8 @@
 ## Bugfixes
 - Corrected an issue with `countof` operator where plain string matches were not correctly counting overlapping strings.
 
+- match kusto behavior by producing an exception if `!` is followed by a whitespace 
+
 # May , 2023  
 
 ## Bugfixes

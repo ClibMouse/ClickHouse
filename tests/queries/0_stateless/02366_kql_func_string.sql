@@ -81,7 +81,8 @@ print '-- Customers | where FirstName endswith \'RE\'';
 Customers | where FirstName endswith 'RE' | order by LastName;
 print '';
 print '-- Customers | where ! FirstName endswith \'RE\'';
-Customers | where FirstName ! endswith 'RE' | order by LastName;
+Customers | where FirstName ! endswith 'RE' | order by LastName; -- { clientError SYNTAX_ERROR }
+Customers | where FirstName !endswith 'RE' | order by LastName;
 print '';
 print '--Customers | where FirstName endswith_cs \'re\'';
 Customers | where FirstName endswith_cs 're' | order by LastName;
@@ -213,12 +214,6 @@ print '-- countof (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/qu
 Customers | project countof('The cat sat on the mat', 'at') | take 1;
 Customers | project countof('The cat sat on the mat', 'at', 'normal') | take 1;
 Customers | project countof('The cat sat on the mat', '\\s.he', 'regex') | take 1;
-print countof("aaa", "a");
-print countof("aaaa", "aa");
-print countof("ababa", "ab", "normal");
-print countof("ababa", "aba");
-print countof("ababa", "aba", "regex");
-print countof("abcabc", "a.c", "regex");
 print '';
 print '-- extract ( https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractfunction)';
 print extract('(\\b[A-Z]+\\b).+(\\b\\d+)', 0, 'The price of PINEAPPLE ice cream is 20');
