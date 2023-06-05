@@ -434,67 +434,67 @@ def main():
             "Has changed images: %s", ", ".join([im.path for im in changed_images])
         )
 
-    # image_versions, result_version = gen_versions(pr_info, args.suffix)
+    image_versions, result_version = gen_versions(pr_info, args.suffix)
 
-    # result_images = {}
-    # test_results = []  # type: TestResults
-    # additional_cache = []  # type: List[str]
-    # if pr_info.release_pr:
-    #     logging.info("Use %s as additional cache tag", pr_info.release_pr)
-    #     additional_cache.append(str(pr_info.release_pr))
-    # if pr_info.merged_pr:
-    #     logging.info("Use %s as additional cache tag", pr_info.merged_pr)
-    #     additional_cache.append(str(pr_info.merged_pr))
+    result_images = {}
+    test_results = []  # type: TestResults
+    additional_cache = []  # type: List[str]
+    if pr_info.release_pr:
+        logging.info("Use %s as additional cache tag", pr_info.release_pr)
+        additional_cache.append(str(pr_info.release_pr))
+    if pr_info.merged_pr:
+        logging.info("Use %s as additional cache tag", pr_info.merged_pr)
+        additional_cache.append(str(pr_info.merged_pr))
 
-    # for image in changed_images:
-    #     # If we are in backport PR, then pr_info.release_pr is defined
-    #     # We use it as tag to reduce rebuilding time
-    #     test_results += process_image_with_parents(
-    #         image, image_versions, additional_cache, args.push
-    #     )
-    #     result_images[image.repo] = result_version
+    for image in changed_images:
+        # If we are in backport PR, then pr_info.release_pr is defined
+        # We use it as tag to reduce rebuilding time
+        test_results += process_image_with_parents(
+            image, image_versions, additional_cache, args.push
+        )
+        result_images[image.repo] = result_version
 
-    # if changed_images:
-    #     description = "Updated " + ",".join([im.repo for im in changed_images])
-    # else:
-    #     description = "Nothing to update"
+    if changed_images:
+        description = "Updated " + ",".join([im.repo for im in changed_images])
+    else:
+        description = "Nothing to update"
 
-    # description = format_description(description)
+    description = format_description(description)
 
-    # with open(changed_json, "w", encoding="utf-8") as images_file:
-    #     json.dump(result_images, images_file)
+    with open(changed_json, "w", encoding="utf-8") as images_file:
+        json.dump(result_images, images_file)
 
-    # s3_helper = S3Helper()
+    s3_helper = S3Helper()
 
-    # status = "success"
-    # if [r for r in test_results if r.status != "OK"]:
-    #     status = "failure"
+    status = "success"
+    if [r for r in test_results if r.status != "OK"]:
+        status = "failure"
 
-    # url = upload_results(s3_helper, pr_info.number, pr_info.sha, test_results, [], NAME)
+    url = upload_results(s3_helper, pr_info.number, pr_info.sha, test_results, [], NAME)
 
-    # print(f"::notice ::Report url: {url}")
+    print(f"::notice ::Report url: {url}")
 
-    # if not args.reports:
-    #     return
+    if not args.reports:
+        return
 
-    # gh = Github(get_best_robot_token(), per_page=100)
-    # commit = get_commit(gh, pr_info.sha)
-    # post_commit_status(commit, status, url, description, NAME, pr_info)
+    gh = Github(get_best_robot_token(), per_page=100)
+    commit = get_commit(gh, pr_info.sha)
+    post_commit_status(commit, status, url, description, NAME, pr_info)
 
-    # prepared_events = prepare_tests_results_for_clickhouse(
-    #     pr_info,
-    #     test_results,
-    #     status,
-    #     stopwatch.duration_seconds,
-    #     stopwatch.start_time_str,
-    #     url,
-    #     NAME,
-    # )
-    # ch_helper = ClickHouseHelper()
-    # ch_helper.insert_events_into(db="default", table="checks", events=prepared_events)
+    prepared_events = prepare_tests_results_for_clickhouse(
+        pr_info,
+        test_results,
+        status,
+        stopwatch.duration_seconds,
+        stopwatch.start_time_str,
+        url,
+        NAME,
+    )
+    ch_helper = ClickHouseHelper()
+    ch_helper.insert_events_into(db="default", table="checks", events=prepared_events)
 
-    # if status == "failure":
-    #     sys.exit(1)
+    if status == "failure":
+        sys.exit(1)
 
 
 if __name__ == "__main__":
