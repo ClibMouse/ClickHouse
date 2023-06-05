@@ -81,7 +81,7 @@ def get_packager_cmd(
         cmd += " --additional-pkgs"
 
     cmd += f" --docker-image-version={image_version}"
-    cmd += f" --version={build_version}"  
+    cmd += f" --version={build_version}"
 
     if _can_export_binaries(build_config):
         cmd += " --with-binaries=tests"

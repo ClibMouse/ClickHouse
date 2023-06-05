@@ -142,7 +142,7 @@ def prepare_tests_results_for_clickhouse(
     report_url: str,
     check_name: str,
 ) -> List[dict]:
-    pull_request_url = "https://github.com/{}/commits/master".format(GITHUB_REPOSITORY)
+    pull_request_url = f"https://github.com/{GITHUB_REPOSITORY}/commits/master"
     base_ref = "master"
     head_ref = "master"
     base_repo = pr_info.repo_full_name
