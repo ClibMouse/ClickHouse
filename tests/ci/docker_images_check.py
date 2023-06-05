@@ -95,7 +95,7 @@ def get_images_dict(repo_path: str, image_file_path: str) -> ImagesDict:
 
 
 def get_changed_docker_images(
-    pr_info: PRInfo, images_dict: ImagesDict, DOCKER_REPO
+    pr_info: PRInfo, images_dict: ImagesDict
 ) -> Set[DockerImage]:
     if not images_dict:
         return set()
@@ -114,7 +114,7 @@ def get_changed_docker_images(
     for dockerfile_dir, image_description in images_dict.items():
         for f in files_changed:
             if f.startswith(dockerfile_dir):
-                name = DOCKER_REPO + "/" + image_description["name"]
+                name = image_description["name"]
                 only_amd64 = image_description.get("only_amd64", False)
                 logging.info(
                     "Found changed file '%s' which affects "
@@ -124,6 +124,7 @@ def get_changed_docker_images(
                     dockerfile_dir,
                 )
                 changed_images.append(DockerImage(dockerfile_dir, name, only_amd64))
+                print("Name for testing:", name)
                 break
 
     # The order is important: dependents should go later than bases, so that
@@ -139,8 +140,9 @@ def get_changed_docker_images(
                 image,
             )
             name = images_dict[dependent]["name"]
-            only_amd64 = DOCKER_REPO + "/" + str(images_dict[dependent].get("only_amd64", False))
+            only_amd64 = images_dict[dependent].get("only_amd64", False)
             changed_images.append(DockerImage(dependent, name, only_amd64, image))
+            print("Name for testing 2nd:", name)
         index += 1
         if index > 5 * len(images_dict):
             # Sanity check to prevent infinite loop.
@@ -414,23 +416,23 @@ def main():
 
     images_dict = get_images_dict(GITHUB_WORKSPACE, "docker/images.json")
 
-    # pr_info = PRInfo()
-    # if args.all:
-    #     pr_info.changed_files = set(images_dict.keys())
-    # elif args.image_path:
-    #     pr_info.changed_files = set(i for i in args.image_path)
-    # else:
-    #     try:
-    #         pr_info.fetch_changed_files()
-    #     except TypeError:
-    #         # If the event does not contain diff, nothing will be built
-    #         pass
+    pr_info = PRInfo()
+    if args.all:
+        pr_info.changed_files = set(images_dict.keys())
+    elif args.image_path:
+        pr_info.changed_files = set(i for i in args.image_path)
+    else:
+        try:
+            pr_info.fetch_changed_files()
+        except TypeError:
+            # If the event does not contain diff, nothing will be built
+            pass
 
-    # changed_images = get_changed_docker_images(pr_info, images_dict, DOCKER_REPO)
-    # if changed_images:
-    #     logging.info(
-    #         "Has changed images: %s", ", ".join([im.path for im in changed_images])
-    #     )
+    changed_images = get_changed_docker_images(pr_info, images_dict)
+    if changed_images:
+        logging.info(
+            "Has changed images: %s", ", ".join([im.path for im in changed_images])
+        )
 
     # image_versions, result_version = gen_versions(pr_info, args.suffix)
 
