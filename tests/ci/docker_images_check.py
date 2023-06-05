@@ -95,7 +95,7 @@ def get_images_dict(repo_path: str, image_file_path: str) -> ImagesDict:
 
 
 def get_changed_docker_images(
-    pr_info: PRInfo, images_dict: ImagesDict
+    pr_info: PRInfo, images_dict: ImagesDict, DOCKER_REPO
 ) -> Set[DockerImage]:
     if not images_dict:
         return set()
@@ -114,7 +114,7 @@ def get_changed_docker_images(
     for dockerfile_dir, image_description in images_dict.items():
         for f in files_changed:
             if f.startswith(dockerfile_dir):
-                name = image_description["name"]
+                name = DOCKER_REPO + "/" + image_description["name"]
                 only_amd64 = image_description.get("only_amd64", False)
                 logging.info(
                     "Found changed file '%s' which affects "
@@ -139,7 +139,7 @@ def get_changed_docker_images(
                 dependent,
                 image,
             )
-            name = images_dict[dependent]["name"]
+            name = DOCKER_REPO + "/" + images_dict[dependent]["name"]
             only_amd64 = images_dict[dependent].get("only_amd64", False)
             changed_images.append(DockerImage(dependent, name, only_amd64, image))
             print("Name for testing 2nd:", name)
@@ -428,7 +428,7 @@ def main():
             # If the event does not contain diff, nothing will be built
             pass
 
-    changed_images = get_changed_docker_images(pr_info, images_dict)
+    changed_images = get_changed_docker_images(pr_info, images_dict, DOCKER_REPO)
     if changed_images:
         logging.info(
             "Has changed images: %s", ", ".join([im.path for im in changed_images])
