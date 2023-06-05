@@ -18,7 +18,6 @@ RUN apt-get update -y \
             lsof \
             mysql-client=8.0* \
             ncdu \
-            curl \
             netcat-openbsd \
             nodejs \
             npm \
