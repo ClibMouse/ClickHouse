@@ -1,4 +1,8 @@
-{   
+{
+    "docker/test/base": {
+        "name": "clickhouse/test-base",
+        "dependent": []
+    },    
     "docker/test/util": {
         "name": "clickhouse/test-util",
         "dependent": [
