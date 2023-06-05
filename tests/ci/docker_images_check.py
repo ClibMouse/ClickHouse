@@ -137,7 +137,7 @@ def get_changed_docker_images(
                 dependent,
                 image,
             )
-            name = images_dict[dependent]["name"]
+            name = DOCKER_REPO + "/" + images_dict[dependent]["name"]
             only_amd64 = DOCKER_REPO + "/" + str(images_dict[dependent].get("only_amd64", False))
             changed_images.append(DockerImage(dependent, name, only_amd64, image))
         index += 1
@@ -401,7 +401,7 @@ def main():
 
     if args.push:
         subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
-            "docker login {} --username '{}' --password-stdin".format(DOCKER_REPO, DOCKER_USER),
+            f"docker login {DOCKER_REPO} --username '{DOCKER_USER}' --password-stdin",
             input=get_parameter_from_ssm("dockerhub_robot_password"),
             encoding="utf-8",
             shell=True,
