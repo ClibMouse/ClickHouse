@@ -1,4 +1,10 @@
 {
+    "docker/packager/binary": {
+        "name": "clickhouse/binary-builder",
+        "dependent": [
+            "docker/test/codebrowser"
+        ]
+    },    
     "docker/test/util": {
         "name": "clickhouse/test-util",
         "dependent": [
