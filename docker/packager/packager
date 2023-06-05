@@ -10,7 +10,7 @@ from typing import List, Optional
 
 SCRIPT_PATH = Path(__file__).absolute()
 IMAGE_TYPE = "binary"
-# IMAGE_NAME = f"{args.docker_repo}/clickhouse/{IMAGE_TYPE}-builder"
+IMAGE_NAME = f"clickhouse/{IMAGE_TYPE}-builder"
 
 
 class BuildException(Exception):
@@ -421,16 +421,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--as-root", action="store_true", help="if the container should run as root"
     )
-    parser.add_argument(
-        "--docker-repo", default="docker.io", help="docker repository"
-    )
-    parser.add_argument(
-        "--docker-user", default=argparse.SUPPRESS, help="docker user"
-    )
-    parser.add_argument(
-        "--docker-password", default=argparse.SUPPRESS, help="docker password"
-    )
-
 
     args = parser.parse_args()
 
@@ -459,7 +449,6 @@ def parse_args() -> argparse.Namespace:
 def main():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     args = parse_args()
-    IMAGE_NAME = f"{args.docker_repo}/clickhouse/{IMAGE_TYPE}-builder"
 
     ch_root = args.clickhouse_repo_path
 
@@ -488,13 +477,6 @@ def main():
         args.with_coverage,
         args.with_binaries,
     )
-    if args.docker_user:
-        subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
-            "docker login {} --username '{}' --password-stdin".format(args.docker_repo, args.docker_user),
-            input=args.docker_password,
-            encoding="utf-8",
-            shell=True,
-        )    
 
     pre_build(args.clickhouse_repo_path, env_prepared)
     run_docker_image_with_env(

@@ -23,10 +23,8 @@ from env_helper import (
     S3_BUILDS_BUCKET,
     S3_DOWNLOAD,
     TEMP_PATH,
-    DOCKER_USER,
-    DOCKER_REPO
 )
-from get_robot_token import get_best_robot_token, get_parameter_from_ssm
+from get_robot_token import get_best_robot_token
 from github_helper import GitHub
 from pr_info import PRInfo
 from s3_helper import S3Helper
@@ -38,7 +36,7 @@ from version_helper import (
     update_version_local,
 )
 
-IMAGE_NAME = "{DOCKER_REPO}/clickhouse/binary-builder"
+IMAGE_NAME = "clickhouse/binary-builder"
 BUILD_LOG_NAME = "build_log.log"
 
 
@@ -83,10 +81,7 @@ def get_packager_cmd(
         cmd += " --additional-pkgs"
 
     cmd += f" --docker-image-version={image_version}"
-    cmd += f" --version={build_version}"
-    cmd += f" --docker-repo={DOCKER_REPO}"
-    cmd += f" --docker-user={DOCKER_USER}"
-    cmd += " --docker-password={}".format(get_parameter_from_ssm("dockerhub_robot_password"))    
+    cmd += f" --version={build_version}"  
 
     if _can_export_binaries(build_config):
         cmd += " --with-binaries=tests"
@@ -298,13 +293,6 @@ def main():
     # If this is rerun, then we try to find already created artifacts and just
     # put them as github actions artifact (result)
     check_for_success_run(s3_helper, s3_path_prefix, build_name, build_config)
-
-    subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
-        "docker login {} --username '{}' --password-stdin".format(DOCKER_REPO, DOCKER_USER),
-        input=get_parameter_from_ssm("dockerhub_robot_password"),
-        encoding="utf-8",
-        shell=True,
-    )
 
     # If it's a latter running, we need to mark possible failed status
     mark_failed_reports_pending(build_name, pr_info)

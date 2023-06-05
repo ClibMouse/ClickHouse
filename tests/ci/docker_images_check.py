@@ -85,7 +85,6 @@ def get_images_dict(repo_path: str, image_file_path: str) -> ImagesDict:
     if os.path.exists(path_to_images_file):
         with open(path_to_images_file, "rb") as dict_file:
             images_dict = json.load(dict_file)
-            print(images_dict)
     else:
         logging.info(
             "Image file %s doesn't exist in repo %s", image_file_path, repo_path
@@ -124,7 +123,6 @@ def get_changed_docker_images(
                     dockerfile_dir,
                 )
                 changed_images.append(DockerImage(dockerfile_dir, name, only_amd64))
-                print("Name for testing:", name)
                 break
 
     # The order is important: dependents should go later than bases, so that
@@ -142,7 +140,6 @@ def get_changed_docker_images(
             name = DOCKER_REPO + "/" + images_dict[dependent]["name"]
             only_amd64 = images_dict[dependent].get("only_amd64", False)
             changed_images.append(DockerImage(dependent, name, only_amd64, image))
-            print("Name for testing 2nd:", name)
         index += 1
         if index > 5 * len(images_dict):
             # Sanity check to prevent infinite loop.
@@ -404,7 +401,8 @@ def main():
 
     if args.push:
         subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
-            "docker login {} --username '{}' --password-stdin".format(DOCKER_REPO, DOCKER_USER),
+            # "docker login {} --username '{}' --password-stdin".format(DOCKER_REPO, DOCKER_USER),
+            f"docker login {DOCKER_REPO} --username '{DOCKER_USER}' --password-stdin",
             input=get_parameter_from_ssm("dockerhub_robot_password"),
             encoding="utf-8",
             shell=True,

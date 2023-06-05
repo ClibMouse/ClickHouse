@@ -15,7 +15,6 @@ RUN apt-get update --yes \
             unixodbc \
             unixodbc-dev \
             sudo \
-            curl \
     && apt-get clean
 
 RUN pip3 install \
@@ -24,12 +23,6 @@ RUN pip3 install \
     deepdiff
 
 ARG odbc_repo="https://github.com/ClickHouse/clickhouse-odbc.git"
-
-# Install necessary packages
-RUN apt-get update && apt-get install -y wget git cmake build-essential
-
-# Install dependencies for ICU
-RUN apt-get install -y libicu-dev
 
 RUN git clone --recursive ${odbc_repo} \
     && mkdir -p /clickhouse-odbc/build \
