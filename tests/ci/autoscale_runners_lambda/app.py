@@ -77,12 +77,16 @@ def get_scales(runner_type: str) -> Tuple[int, int]:
 def get_parameter_from_ssm(name, decrypt=True, client=None):
     if VAULT_URL:
         if not client:
-            client = hvac.Client(url=VAULT_URL,token=VAULT_TOKEN)
-        parameter = client.secrets.kv.v2.read_secret_version(mount_point=VAULT_MOUNT_POINT,path=VAULT_PATH)["data"]["data"][name]
+            client = hvac.Client(url=VAULT_URL, token=VAULT_TOKEN)
+        parameter = client.secrets.kv.v2.read_secret_version(
+            mount_point=VAULT_MOUNT_POINT, path=VAULT_PATH
+        )["data"]["data"][name]
     else:
         if not client:
             client = boto3.client("ssm", region_name="us-east-1")
-        parameter = client.get_parameter(Name=name, WithDecryption=decrypt)["Parameter"]["Value"]
+        parameter = client.get_parameter(Name=name, WithDecryption=decrypt)[
+            "Parameter"
+        ]["Value"]
     return parameter
 
 
