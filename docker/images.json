@@ -1,8 +1,15 @@
 {
     "docker/test/stateless": {
         "name": "clickhouse/stateless-test",
-        "dependent": []
+        "dependent": [
+            "docker/test/stateful"
+        ]
     },    
+    "docker/test/stateful": {
+        "name": "clickhouse/stateful-test",
+        "dependent": []
+    },
+
     "docker/test/base": {
         "name": "clickhouse/test-base",
         "dependent": [
