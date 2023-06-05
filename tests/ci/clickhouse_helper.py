@@ -5,6 +5,7 @@ import logging
 import time
 
 import requests  # type: ignore
+
 from get_robot_token import get_parameter_from_ssm
 from env_helper import GITHUB_REPOSITORY
 from pr_info import PRInfo
