@@ -16,7 +16,7 @@ ENV NODES_PASSWORD=""
 ENV TESTS_TO_RUN="30"
 ENV TIME_LIMIT="30"
 
-
+#
 # volumes
 ENV NODES_FILE_PATH="/nodes.txt"
 ENV TEST_OUTPUT="/test_output"
