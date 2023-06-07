@@ -23,8 +23,8 @@ from commit_status_helper import (
     update_mergeable_check,
 )
 from docker_pull_helper import get_image_with_version
-from env_helper import S3_BUILDS_BUCKET, TEMP_PATH
-from get_robot_token import get_best_robot_token
+from env_helper import S3_BUILDS_BUCKET, TEMP_PATH, DOCKER_USER, DOCKER_REPO
+from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from pr_info import FORCE_TESTS_LABEL, PRInfo
 from report import TestResults, read_test_results
 from s3_helper import S3Helper
@@ -106,6 +106,13 @@ def main():
 
     pr_info = PRInfo()
 
+    subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+        f"docker login {DOCKER_REPO} --username '{DOCKER_USER}' --password-stdin",
+        input=get_parameter_from_ssm("dockerhub_robot_password"),
+        encoding="utf-8",
+        shell=True,
+    )
+
     gh = Github(get_best_robot_token(), per_page=100)
     commit = get_commit(gh, pr_info.sha)
 
@@ -119,8 +126,9 @@ def main():
             sys.exit(1)
         sys.exit(0)
 
-    docker_image = get_image_with_version(temp_path, "clickhouse/fasttest")
-
+    docker_image = get_image_with_version(
+        temp_path, f"{DOCKER_REPO}/clickhouse/fasttest"
+    )
     s3_helper = S3Helper()
 
     workspace = os.path.join(temp_path, "fasttest-workspace")
