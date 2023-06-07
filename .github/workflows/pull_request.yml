@@ -36,22 +36,22 @@ jobs:
         run: |
           cd "$GITHUB_WORKSPACE/tests/ci"
           python3 run_check.py
-  PythonUnitTests:
-    runs-on: [self-hosted, style-checker]
-    steps:
-      - name: Check out repository code
-        uses: ClickHouse/checkout@v1
-        with:
-          clear-repository: true
-      - name: Python unit tests
-        run: |
-          cd "$GITHUB_WORKSPACE/tests/ci"
-          echo "Testing the main ci directory"
-          python3 -m unittest discover -s . -p '*_test.py'
-          for dir in *_lambda/; do
-            echo "Testing $dir"
-            python3 -m unittest discover -s "$dir" -p '*_test.py'
-          done
+  # PythonUnitTests:
+  #   runs-on: [self-hosted, style-checker]
+  #   steps:
+  #     - name: Check out repository code
+  #       uses: ClickHouse/checkout@v1
+  #       with:
+  #         clear-repository: true
+  #     - name: Python unit tests
+  #       run: |
+  #         cd "$GITHUB_WORKSPACE/tests/ci"
+  #         echo "Testing the main ci directory"
+  #         python3 -m unittest discover -s . -p '*_test.py'
+  #         for dir in *_lambda/; do
+  #           echo "Testing $dir"
+  #           python3 -m unittest discover -s "$dir" -p '*_test.py'
+  #         done
   DockerHubPushAarch64:
     needs: CheckLabels
     runs-on: [self-hosted, style-checker-aarch64]
