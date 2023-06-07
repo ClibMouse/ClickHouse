@@ -2,7 +2,7 @@
 FROM ubuntu:20.04
 ARG ACT_VERSION=0.2.33
 ARG ACTIONLINT_VERSION=1.6.22
-
+#
 # ARG for quick switch to a given ubuntu mirror
 ARG apt_archive="http://archive.ubuntu.com"
 RUN sed -i "s|http://archive.ubuntu.com|$apt_archive|g" /etc/apt/sources.list
