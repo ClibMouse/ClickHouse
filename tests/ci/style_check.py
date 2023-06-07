@@ -176,7 +176,9 @@ def main():
     if not os.path.exists(temp_path):
         os.makedirs(temp_path)
 
-    docker_image = get_image_with_version(temp_path, f"{DOCKER_REPO}/clickhouse/style-test")
+    docker_image = get_image_with_version(
+        temp_path, f"{DOCKER_REPO}/clickhouse/style-test"
+    )
     s3_helper = S3Helper()
 
     cmd = (
