@@ -22,8 +22,8 @@ from commit_status_helper import (
     update_mergeable_check,
 )
 from docker_pull_helper import get_image_with_version
-from env_helper import GITHUB_WORKSPACE, RUNNER_TEMP
-from get_robot_token import get_best_robot_token
+from env_helper import GITHUB_WORKSPACE, RUNNER_TEMP, DOCKER_USER, DOCKER_REPO
+from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from github_helper import GitHub
 from git_helper import git_runner
 from pr_info import PRInfo
@@ -152,6 +152,13 @@ def main():
     if args.push:
         checkout_head(pr_info)
 
+    subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+        f"docker login {DOCKER_REPO} --username '{DOCKER_USER}' --password-stdin",
+        input=get_parameter_from_ssm("dockerhub_robot_password"),
+        encoding="utf-8",
+        shell=True,
+    )
+
     gh = GitHub(get_best_robot_token(), create_cache_dir=False)
     commit = get_commit(gh, pr_info.sha)
 
@@ -169,7 +176,7 @@ def main():
     if not os.path.exists(temp_path):
         os.makedirs(temp_path)
 
-    docker_image = get_image_with_version(temp_path, "clickhouse/style-test")
+    docker_image = get_image_with_version(temp_path, f"{DOCKER_REPO}/clickhouse/style-test")
     s3_helper = S3Helper()
 
     cmd = (
