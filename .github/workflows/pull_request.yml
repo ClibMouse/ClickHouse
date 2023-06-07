@@ -245,7 +245,7 @@ jobs:
 #################################### ORDINARY BUILDS ####################################
 #########################################################################################
   BuilderDebRelease:
-    # needs: [DockerHubPush, FastTest, StyleCheck]
+    needs: [DockerHubPush, FastTest, StyleCheck]
     runs-on: [self-hosted]
     steps:
       - name: Set envs
