@@ -25,6 +25,7 @@ from commit_status_helper import (
     remove_labels,
     set_mergeable_check,
 )
+
 TRUSTED_ORG_IDS = {
     54801242,  # clickhouse
 }
