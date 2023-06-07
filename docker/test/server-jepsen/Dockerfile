@@ -3,7 +3,7 @@
 ARG FROM_TAG=latest
 ARG DOCKER_REPO=docker.io
 FROM $DOCKER_REPO/clickhouse/test-base:$FROM_TAG
-
+#
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CLOJURE_VERSION=1.10.3.814
 
