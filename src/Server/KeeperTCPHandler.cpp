@@ -187,7 +187,7 @@ struct SocketInterruptablePollWrapper
         if (fd_ready)
         {
             UInt8 dummy;
-            readIntBinary(dummy, response_in);
+            readBinaryLittleEndian(dummy, response_in);
             result.responses_count = 1;
             auto available = response_in.available();
             response_in.ignore(available);

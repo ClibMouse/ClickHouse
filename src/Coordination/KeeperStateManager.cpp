@@ -315,17 +315,18 @@ void KeeperStateManager::save_state(const nuraft::srv_state & state)
     if (std::filesystem::exists(server_state_path))
         std::filesystem::rename(server_state_path, old_path);
 
-    WriteBufferFromFile server_state_file(server_state_path, DBMS_DEFAULT_BUFFER_SIZE, O_TRUNC | O_CREAT | O_WRONLY);
-    auto buf = state.serialize();
-
     // calculate checksum
     SipHash hash;
     hash.update(current_server_state_version);
-    hash.update(reinterpret_cast<const char *>(buf->data_begin()), buf->size());
-    writeIntBinary(hash.get64(), server_state_file);
+    hash.update(state.get_term());
+    hash.update(state.get_voted_for());
+    hash.update(state.is_election_timer_allowed());
 
-    writeIntBinary(static_cast<uint8_t>(current_server_state_version), server_state_file);
+    WriteBufferFromFile server_state_file(server_state_path, DBMS_DEFAULT_BUFFER_SIZE, O_TRUNC | O_CREAT | O_WRONLY);
+    writeBinaryLittleEndian(hash.get64(), server_state_file);
+    writeBinaryLittleEndian(static_cast<uint8_t>(current_server_state_version), server_state_file);
 
+    const auto buf = state.serialize();
     server_state_file.write(reinterpret_cast<const char *>(buf->data_begin()), buf->size());
     server_state_file.sync();
     server_state_file.close();
@@ -348,19 +349,25 @@ nuraft::ptr<nuraft::srv_state> KeeperStateManager::read_state()
                 return nullptr;
 
             uint64_t read_checksum{0};
-            readIntBinary(read_checksum, read_buf);
+            readBinaryLittleEndian(read_checksum, read_buf);
 
             uint8_t version;
-            readIntBinary(version, read_buf);
+            readBinaryLittleEndian(version, read_buf);
 
             auto buffer_size = content_size - sizeof read_checksum - sizeof version;
 
             auto state_buf = nuraft::buffer::alloc(buffer_size);
             read_buf.readStrict(reinterpret_cast<char *>(state_buf->data_begin()), buffer_size);
 
+            auto state = nuraft::srv_state::deserialize(*state_buf);
+            if (!state)
+                throw Exception(ErrorCodes::CORRUPTED_DATA, "Cannot deserialize NuRaft state");
+
             SipHash hash;
             hash.update(version);
-            hash.update(reinterpret_cast<const char *>(state_buf->data_begin()), state_buf->size());
+            hash.update(state->get_term());
+            hash.update(state->get_voted_for());
+            hash.update(state->is_election_timer_allowed());
 
             if (read_checksum != hash.get64())
             {
@@ -373,7 +380,6 @@ nuraft::ptr<nuraft::srv_state> KeeperStateManager::read_state()
 #endif
             }
 
-            auto state = nuraft::srv_state::deserialize(*state_buf);
             LOG_INFO(logger, "Read state from {}", path.generic_string());
             return state;
         }

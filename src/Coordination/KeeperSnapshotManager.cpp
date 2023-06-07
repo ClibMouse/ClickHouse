@@ -49,54 +49,54 @@ namespace
 
     void writeNode(const KeeperStorage::Node & node, SnapshotVersion version, WriteBuffer & out)
     {
-        writeBinary(node.getData(), out);
+        writeBinaryLittleEndian(node.getData(), out);
 
         /// Serialize ACL
-        writeBinary(node.acl_id, out);
-        writeBinary(node.is_sequental, out);
+        writeBinaryLittleEndian(node.acl_id, out);
+        writeBinaryLittleEndian(node.is_sequental, out);
         /// Serialize stat
-        writeBinary(node.stat.czxid, out);
-        writeBinary(node.stat.mzxid, out);
-        writeBinary(node.stat.ctime, out);
-        writeBinary(node.stat.mtime, out);
-        writeBinary(node.stat.version, out);
-        writeBinary(node.stat.cversion, out);
-        writeBinary(node.stat.aversion, out);
-        writeBinary(node.stat.ephemeralOwner, out);
-        writeBinary(node.stat.dataLength, out);
-        writeBinary(node.stat.numChildren, out);
-        writeBinary(node.stat.pzxid, out);
+        writeBinaryLittleEndian(node.stat.czxid, out);
+        writeBinaryLittleEndian(node.stat.mzxid, out);
+        writeBinaryLittleEndian(node.stat.ctime, out);
+        writeBinaryLittleEndian(node.stat.mtime, out);
+        writeBinaryLittleEndian(node.stat.version, out);
+        writeBinaryLittleEndian(node.stat.cversion, out);
+        writeBinaryLittleEndian(node.stat.aversion, out);
+        writeBinaryLittleEndian(node.stat.ephemeralOwner, out);
+        writeBinaryLittleEndian(node.stat.dataLength, out);
+        writeBinaryLittleEndian(node.stat.numChildren, out);
+        writeBinaryLittleEndian(node.stat.pzxid, out);
 
-        writeBinary(node.seq_num, out);
+        writeBinaryLittleEndian(node.seq_num, out);
 
         if (version >= SnapshotVersion::V4)
         {
-            writeBinary(node.size_bytes, out);
+            writeBinaryLittleEndian(node.size_bytes, out);
         }
     }
 
     void readNode(KeeperStorage::Node & node, ReadBuffer & in, SnapshotVersion version, ACLMap & acl_map)
     {
         String new_data;
-        readBinary(new_data, in);
+        readBinaryLittleEndian(new_data, in);
         node.setData(std::move(new_data));
 
         if (version >= SnapshotVersion::V1)
         {
-            readBinary(node.acl_id, in);
+            readBinaryLittleEndian(node.acl_id, in);
         }
         else if (version == SnapshotVersion::V0)
         {
             /// Deserialize ACL
             size_t acls_size;
-            readBinary(acls_size, in);
+            readBinaryLittleEndian(acls_size, in);
             Coordination::ACLs acls;
             for (size_t i = 0; i < acls_size; ++i)
             {
                 Coordination::ACL acl;
-                readBinary(acl.permissions, in);
-                readBinary(acl.scheme, in);
-                readBinary(acl.id, in);
+                readBinaryLittleEndian(acl.permissions, in);
+                readBinaryLittleEndian(acl.scheme, in);
+                readBinaryLittleEndian(acl.id, in);
                 acls.push_back(acl);
             }
             node.acl_id = acl_map.convertACLs(acls);
@@ -108,39 +108,39 @@ namespace
 
         acl_map.addUsage(node.acl_id);
 
-        readBinary(node.is_sequental, in);
+        readBinaryLittleEndian(node.is_sequental, in);
 
         /// Deserialize stat
-        readBinary(node.stat.czxid, in);
-        readBinary(node.stat.mzxid, in);
-        readBinary(node.stat.ctime, in);
-        readBinary(node.stat.mtime, in);
-        readBinary(node.stat.version, in);
-        readBinary(node.stat.cversion, in);
-        readBinary(node.stat.aversion, in);
-        readBinary(node.stat.ephemeralOwner, in);
-        readBinary(node.stat.dataLength, in);
-        readBinary(node.stat.numChildren, in);
-        readBinary(node.stat.pzxid, in);
-        readBinary(node.seq_num, in);
+        readBinaryLittleEndian(node.stat.czxid, in);
+        readBinaryLittleEndian(node.stat.mzxid, in);
+        readBinaryLittleEndian(node.stat.ctime, in);
+        readBinaryLittleEndian(node.stat.mtime, in);
+        readBinaryLittleEndian(node.stat.version, in);
+        readBinaryLittleEndian(node.stat.cversion, in);
+        readBinaryLittleEndian(node.stat.aversion, in);
+        readBinaryLittleEndian(node.stat.ephemeralOwner, in);
+        readBinaryLittleEndian(node.stat.dataLength, in);
+        readBinaryLittleEndian(node.stat.numChildren, in);
+        readBinaryLittleEndian(node.stat.pzxid, in);
+        readBinaryLittleEndian(node.seq_num, in);
 
         if (version >= SnapshotVersion::V4)
         {
-            readBinary(node.size_bytes, in);
+            readBinaryLittleEndian(node.size_bytes, in);
         }
     }
 
     void serializeSnapshotMetadata(const SnapshotMetadataPtr & snapshot_meta, WriteBuffer & out)
     {
         auto buffer = snapshot_meta->serialize();
-        writeVarUInt(buffer->size(), out);
+        writeBinaryLittleEndian(buffer->size(), out);
         out.write(reinterpret_cast<const char *>(buffer->data_begin()), buffer->size());
     }
 
     SnapshotMetadataPtr deserializeSnapshotMetadata(ReadBuffer & in)
     {
         size_t data_size;
-        readVarUInt(data_size, in);
+        readBinaryLittleEndian(data_size, in);
         auto buffer = nuraft::buffer::alloc(data_size);
         in.readStrict(reinterpret_cast<char *>(buffer->data_begin()), data_size);
         buffer->pos(0);
@@ -150,42 +150,42 @@ namespace
 
 void KeeperStorageSnapshot::serialize(const KeeperStorageSnapshot & snapshot, WriteBuffer & out, KeeperContextPtr keeper_context)
 {
-    writeBinary(static_cast<uint8_t>(snapshot.version), out);
+    writeBinaryLittleEndian(static_cast<uint8_t>(snapshot.version), out);
     serializeSnapshotMetadata(snapshot.snapshot_meta, out);
 
     if (snapshot.version >= SnapshotVersion::V5)
     {
-        writeBinary(snapshot.zxid, out);
+        writeBinaryLittleEndian(snapshot.zxid, out);
         if (keeper_context->digest_enabled)
         {
-            writeBinary(static_cast<uint8_t>(KeeperStorage::CURRENT_DIGEST_VERSION), out);
-            writeBinary(snapshot.nodes_digest, out);
+            writeBinaryLittleEndian(static_cast<uint8_t>(KeeperStorage::CURRENT_DIGEST_VERSION), out);
+            writeBinaryLittleEndian(snapshot.nodes_digest, out);
         }
         else
-            writeBinary(static_cast<uint8_t>(KeeperStorage::NO_DIGEST), out);
+            writeBinaryLittleEndian(static_cast<uint8_t>(KeeperStorage::NO_DIGEST), out);
     }
 
-    writeBinary(snapshot.session_id, out);
+    writeBinaryLittleEndian(snapshot.session_id, out);
 
     /// Better to sort before serialization, otherwise snapshots can be different on different replicas
     std::vector<std::pair<int64_t, Coordination::ACLs>> sorted_acl_map(snapshot.acl_map.begin(), snapshot.acl_map.end());
     ::sort(sorted_acl_map.begin(), sorted_acl_map.end());
     /// Serialize ACLs map
-    writeBinary(sorted_acl_map.size(), out);
+    writeBinaryLittleEndian(sorted_acl_map.size(), out);
     for (const auto & [acl_id, acls] : sorted_acl_map)
     {
-        writeBinary(acl_id, out);
-        writeBinary(acls.size(), out);
+        writeBinaryLittleEndian(acl_id, out);
+        writeBinaryLittleEndian(acls.size(), out);
         for (const auto & acl : acls)
         {
-            writeBinary(acl.permissions, out);
-            writeBinary(acl.scheme, out);
-            writeBinary(acl.id, out);
+            writeBinaryLittleEndian(acl.permissions, out);
+            writeBinaryLittleEndian(acl.scheme, out);
+            writeBinaryLittleEndian(acl.id, out);
         }
     }
 
     /// Serialize data tree
-    writeBinary(snapshot.snapshot_container_size - child_system_paths_with_data.size(), out);
+    writeBinaryLittleEndian(snapshot.snapshot_container_size - child_system_paths_with_data.size(), out);
     size_t counter = 0;
     for (auto it = snapshot.begin; counter < snapshot.snapshot_container_size; ++counter)
     {
@@ -209,7 +209,7 @@ void KeeperStorageSnapshot::serialize(const KeeperStorageSnapshot & snapshot, Wr
         if (node.stat.mzxid > snapshot.zxid)
             break;
 
-        writeBinary(path, out);
+        writeBinaryLittleEndian(path, out);
         writeNode(node, snapshot.version, out);
 
         /// Last iteration: check and exit here without iterator increment. Otherwise
@@ -229,21 +229,21 @@ void KeeperStorageSnapshot::serialize(const KeeperStorageSnapshot & snapshot, Wr
     /// Serialize sessions
     size_t size = sorted_session_and_timeout.size();
 
-    writeBinary(size, out);
+    writeBinaryLittleEndian(size, out);
     for (const auto & [session_id, timeout] : sorted_session_and_timeout)
     {
-        writeBinary(session_id, out);
-        writeBinary(timeout, out);
+        writeBinaryLittleEndian(session_id, out);
+        writeBinaryLittleEndian(timeout, out);
 
         KeeperStorage::AuthIDs ids;
         if (snapshot.session_and_auth.contains(session_id))
             ids = snapshot.session_and_auth.at(session_id);
 
-        writeBinary(ids.size(), out);
+        writeBinaryLittleEndian(ids.size(), out);
         for (const auto & [scheme, id] : ids)
         {
-            writeBinary(scheme, out);
-            writeBinary(id, out);
+            writeBinaryLittleEndian(scheme, out);
+            writeBinaryLittleEndian(id, out);
         }
     }
 
@@ -251,7 +251,7 @@ void KeeperStorageSnapshot::serialize(const KeeperStorageSnapshot & snapshot, Wr
     if (snapshot.cluster_config)
     {
         auto buffer = snapshot.cluster_config->serialize();
-        writeVarUInt(buffer->size(), out);
+        writeBinaryLittleEndian(buffer->size(), out);
         out.write(reinterpret_cast<const char *>(buffer->data_begin()), buffer->size());
     }
 }
@@ -259,7 +259,7 @@ void KeeperStorageSnapshot::serialize(const KeeperStorageSnapshot & snapshot, Wr
 void KeeperStorageSnapshot::deserialize(SnapshotDeserializationResult & deserialization_result, ReadBuffer & in, KeeperContextPtr keeper_context)
 {
     uint8_t version;
-    readBinary(version, in);
+    readBinaryLittleEndian(version, in);
     SnapshotVersion current_version = static_cast<SnapshotVersion>(version);
     if (current_version > CURRENT_SNAPSHOT_VERSION)
         throw Exception(ErrorCodes::UNKNOWN_FORMAT_VERSION, "Unsupported snapshot version {}", version);
@@ -270,13 +270,13 @@ void KeeperStorageSnapshot::deserialize(SnapshotDeserializationResult & deserial
     bool recalculate_digest = keeper_context->digest_enabled;
     if (version >= SnapshotVersion::V5)
     {
-        readBinary(storage.zxid, in);
+        readBinaryLittleEndian(storage.zxid, in);
         uint8_t digest_version;
-        readBinary(digest_version, in);
+        readBinaryLittleEndian(digest_version, in);
         if (digest_version != KeeperStorage::DigestVersion::NO_DIGEST)
         {
             uint64_t nodes_digest;
-            readBinary(nodes_digest, in);
+            readBinaryLittleEndian(nodes_digest, in);
             if (digest_version == KeeperStorage::CURRENT_DIGEST_VERSION)
             {
                 storage.nodes_digest = nodes_digest;
@@ -293,7 +293,7 @@ void KeeperStorageSnapshot::deserialize(SnapshotDeserializationResult & deserial
     }
 
     int64_t session_id;
-    readBinary(session_id, in);
+    readBinaryLittleEndian(session_id, in);
 
     storage.session_id_counter = session_id;
 
@@ -302,22 +302,22 @@ void KeeperStorageSnapshot::deserialize(SnapshotDeserializationResult & deserial
     {
         size_t acls_map_size;
 
-        readBinary(acls_map_size, in);
+        readBinaryLittleEndian(acls_map_size, in);
         size_t current_map_size = 0;
         while (current_map_size < acls_map_size)
         {
             uint64_t acl_id;
-            readBinary(acl_id, in);
+            readBinaryLittleEndian(acl_id, in);
 
             size_t acls_size;
-            readBinary(acls_size, in);
+            readBinaryLittleEndian(acls_size, in);
             Coordination::ACLs acls;
             for (size_t i = 0; i < acls_size; ++i)
             {
                 Coordination::ACL acl;
-                readBinary(acl.permissions, in);
-                readBinary(acl.scheme, in);
-                readBinary(acl.id, in);
+                readBinaryLittleEndian(acl.permissions, in);
+                readBinaryLittleEndian(acl.scheme, in);
+                readBinaryLittleEndian(acl.id, in);
                 acls.push_back(acl);
             }
             storage.acl_map.addMapping(acl_id, acls);
@@ -326,7 +326,7 @@ void KeeperStorageSnapshot::deserialize(SnapshotDeserializationResult & deserial
     }
 
     size_t snapshot_container_size;
-    readBinary(snapshot_container_size, in);
+    readBinaryLittleEndian(snapshot_container_size, in);
 
     if (recalculate_digest)
         storage.nodes_digest = 0;
@@ -339,7 +339,7 @@ void KeeperStorageSnapshot::deserialize(SnapshotDeserializationResult & deserial
     for (size_t nodes_read = 0; nodes_read < snapshot_container_size; ++nodes_read)
     {
         std::string path;
-        readBinary(path, in);
+        readBinaryLittleEndian(path, in);
         KeeperStorage::Node node{};
         readNode(node, in, current_version, storage.acl_map);
 
@@ -421,28 +421,28 @@ void KeeperStorageSnapshot::deserialize(SnapshotDeserializationResult & deserial
 
 
     size_t active_sessions_size;
-    readBinary(active_sessions_size, in);
+    readBinaryLittleEndian(active_sessions_size, in);
 
     size_t current_session_size = 0;
     while (current_session_size < active_sessions_size)
     {
         int64_t active_session_id, timeout;
-        readBinary(active_session_id, in);
-        readBinary(timeout, in);
+        readBinaryLittleEndian(active_session_id, in);
+        readBinaryLittleEndian(timeout, in);
         storage.addSessionID(active_session_id, timeout);
 
         if (current_version >= SnapshotVersion::V1)
         {
             size_t session_auths_size;
-            readBinary(session_auths_size, in);
+            readBinaryLittleEndian(session_auths_size, in);
 
             KeeperStorage::AuthIDs ids;
             size_t session_auth_counter = 0;
             while (session_auth_counter < session_auths_size)
             {
                 String scheme, id;
-                readBinary(scheme, in);
-                readBinary(id, in);
+                readBinaryLittleEndian(scheme, in);
+                readBinaryLittleEndian(id, in);
                 ids.emplace_back(KeeperStorage::AuthID{scheme, id});
 
                 session_auth_counter++;
@@ -458,7 +458,7 @@ void KeeperStorageSnapshot::deserialize(SnapshotDeserializationResult & deserial
     if (!in.eof())
     {
         size_t data_size;
-        readVarUInt(data_size, in);
+        readBinaryLittleEndian(data_size, in);
         auto buffer = nuraft::buffer::alloc(data_size);
         in.readStrict(reinterpret_cast<char *>(buffer->data_begin()), data_size);
         buffer->pos(0);

@@ -161,7 +161,7 @@ KeeperStorage::RequestForSession KeeperStateMachine::parseRequest(nuraft::buffer
 {
     ReadBufferFromNuraftBuffer buffer(data);
     KeeperStorage::RequestForSession request_for_session;
-    readIntBinary(request_for_session.session_id, buffer);
+    readBinaryLittleEndian(request_for_session.session_id, buffer);
 
     int32_t length;
     Coordination::read(length, buffer);
@@ -178,20 +178,20 @@ KeeperStorage::RequestForSession KeeperStateMachine::parseRequest(nuraft::buffer
     request_for_session.request->readImpl(buffer);
 
     if (!buffer.eof())
-        readIntBinary(request_for_session.time, buffer);
+        readBinaryLittleEndian(request_for_session.time, buffer);
     else /// backward compatibility
         request_for_session.time
             = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
     if (!buffer.eof())
-        readIntBinary(request_for_session.zxid, buffer);
+        readBinaryLittleEndian(request_for_session.zxid, buffer);
 
     if (!buffer.eof())
     {
         request_for_session.digest.emplace();
-        readIntBinary(request_for_session.digest->version, buffer);
+        readBinaryLittleEndian(request_for_session.digest->version, buffer);
         if (request_for_session.digest->version != KeeperStorage::DigestVersion::NO_DIGEST)
-            readIntBinary(request_for_session.digest->value, buffer);
+            readBinaryLittleEndian(request_for_session.digest->value, buffer);
     }
 
     return request_for_session;
