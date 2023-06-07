@@ -1,12 +1,19 @@
 ## KQL implemented features  
-
-# May , 2023  
-
-## Bugfixes
+# June , 2023
  - Fix core dump when table is missing in pipeline  
  - Corrected issues related to fractional seconds in tolong, datetime_add, datetime_part and datetime_diff.
  - Corrected an issue with timezone conversion in make_datetime.
  - Corrected an issue with hash_sha256 when an empty string is used.
+ 
+## Bugfixes
+- Corrected an issue with `countof` operator where plain string matches were not correctly counting overlapping strings.
+
+# May , 2023  
+
+## Bugfixes
+ - Fix core dump when table is missing in pipeline
+
+ - produce an exception if `arg_max` or `arg_min` have fewer than 2 arguments
 
 # April XX, 2023
 ## Bugfixes

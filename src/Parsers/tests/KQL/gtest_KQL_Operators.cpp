@@ -196,11 +196,11 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Operators, ParserTest,
         },
         {
             "Customers | project countof('The cat sat on the mat', 'at')",
-            "SELECT countSubstrings('The cat sat on the mat', 'at') AS Column1\nFROM Customers"
+            "SELECT kql_count_overlapping_substrings('The cat sat on the mat', 'at') AS Column1\nFROM Customers"
         },
         {
             "Customers | project countof('The cat sat on the mat', 'at', 'normal')",
-            "SELECT countSubstrings('The cat sat on the mat', 'at') AS Column1\nFROM Customers"
+            "SELECT kql_count_overlapping_substrings('The cat sat on the mat', 'at') AS Column1\nFROM Customers"
         },
         {
             "Customers | project countof('The cat sat on the mat', 'at', 'regex')",

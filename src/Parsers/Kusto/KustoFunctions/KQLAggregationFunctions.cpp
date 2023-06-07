@@ -1,7 +1,8 @@
 #include "KQLAggregationFunctions.h"
+#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
 
 #include <Common/StringUtils/StringUtils.h>
-
+#include <ranges>
 #include <format>
 #include <numeric>
 
@@ -27,19 +28,16 @@ bool ArgMax::convertImpl(String & out, IParser::Pos & pos)
 
     if (fn_name.empty())
         return false;
-    ++pos;
-    String expr_to_maximize = getConvertedArgument(fn_name, pos);
-    while (pos->type == TokenType::Comma)
+
+    const auto args = getArguments(fn_name, pos, ArgumentState::Parsed, {2, Interval::max_bound});
+
+    for (const auto & expr_to_return :
+         args | std::views::drop(1) | std::views::filter([args](const auto & expr_to_return) { return expr_to_return != args[0]; }))
     {
-        ++pos;
-        const auto expr_to_return = getConvertedArgument(fn_name, pos);
-        if (expr_to_return == expr_to_maximize)
-        {
-            continue;
-        }
-        out += std::format("argMax({}, {}) as {},", expr_to_return, expr_to_maximize, expr_to_return);
+        out += std::format("argMax({}, {}) as {},", expr_to_return, args[0], expr_to_return);
     }
-    out += std::format("argMax({}, {})", expr_to_maximize, expr_to_maximize);
+    out += std::format("argMax({}, {})", args[0], args[0]);
+
     return true;
 }
 
@@ -49,19 +47,15 @@ bool ArgMin::convertImpl(String & out, IParser::Pos & pos)
 
     if (fn_name.empty())
         return false;
-    ++pos;
-    String expr_to_maximize = getConvertedArgument(fn_name, pos);
-    while (pos->type == TokenType::Comma)
+
+    const auto args = getArguments(fn_name, pos, ArgumentState::Parsed, {2, Interval::max_bound});
+    for (const auto & expr_to_return :
+         args | std::views::drop(1) | std::views::filter([args](const auto & expr_to_return) { return expr_to_return != args[0]; }))
     {
-        ++pos;
-        const auto expr_to_return = getConvertedArgument(fn_name, pos);
-        if (expr_to_return == expr_to_maximize)
-        {
-            continue;
-        }
-        out += std::format("argMin({}, {}) as {},", expr_to_return, expr_to_maximize, expr_to_return);
+        out += std::format("argMin({}, {}) as {},", expr_to_return, args[0], expr_to_return);
     }
-    out += std::format("argMin({}, {})", expr_to_maximize, expr_to_maximize);
+    out += std::format("argMin({}, {})", args[0], args[0]);
+
     return true;
 }
 
