@@ -241,9 +241,6 @@ jobs:
   #         docker ps --quiet | xargs --no-run-if-empty docker kill ||:
   #         docker ps --all --quiet | xargs --no-run-if-empty docker rm -f ||:
   #         sudo rm -fr "$TEMP_PATH"
-#########################################################################################
-#################################### ORDINARY BUILDS ####################################
-#########################################################################################
   BuilderDebRelease:
     needs: [DockerHubPush, FastTest, StyleCheck]
     runs-on: [self-hosted, style-checker]

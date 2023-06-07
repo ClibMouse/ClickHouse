@@ -8,9 +8,9 @@ import time
 from pathlib import Path
 from typing import Any, Callable, List
 
+import get_robot_token as grt  # we need an updated ROBOT_TOKEN
 import requests  # type: ignore
 
-import get_robot_token as grt  # we need an updated ROBOT_TOKEN
 from ci_config import CI_CONFIG
 
 DOWNLOAD_RETRIES_COUNT = 5
