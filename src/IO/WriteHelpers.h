@@ -1179,6 +1179,25 @@ inline void writeBinaryEndian(T x, WriteBuffer & buf)
     writePODBinary(x, buf);
 }
 
+template <std::endian endian>
+inline void writeBinaryEndian(std::string_view sv, WriteBuffer & buf)
+{
+    writeBinaryEndian<endian>(sv.size(), buf);
+    buf.write(sv.data(), sv.size());
+}
+
+template <std::endian endian>
+inline void writeBinaryEndian(StringRef sr, WriteBuffer & buf)
+{
+    writeBinaryEndian<endian>(sr.toView(), buf);
+}
+
+template <std::endian endian>
+inline void writeBinaryEndian(const std::string & str, WriteBuffer & buf)
+{
+    writeBinaryEndian<endian>(std::string_view(str.c_str(), str.size()), buf);
+}
+
 template <typename T>
 inline void writeBinaryLittleEndian(const T & x, WriteBuffer & buf)
 {

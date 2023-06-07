@@ -1100,6 +1100,19 @@ inline void readBinaryEndian(T & x, ReadBuffer & buf)
     transformEndianness<endian>(x);
 }
 
+template <std::endian endian>
+inline void readBinaryEndian(std::string & str, ReadBuffer & buf)
+{
+    size_t size = 0;
+    readBinaryEndian<endian>(size, buf);
+
+    if (size > DEFAULT_MAX_STRING_SIZE)
+        throw Exception(ErrorCodes::TOO_LARGE_STRING_SIZE, "Too large string size.");
+
+    str.resize(size);
+    buf.readStrict(str.data(), size);
+}
+
 template <typename T>
 inline void readBinaryLittleEndian(T & x, ReadBuffer & buf)
 {
