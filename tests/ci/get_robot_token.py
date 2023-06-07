@@ -2,7 +2,7 @@
 import logging
 from dataclasses import dataclass
 from typing import Optional
-#
+
 import boto3  # type: ignore
 import hvac
 from github import Github
