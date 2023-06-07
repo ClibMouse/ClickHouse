@@ -6,8 +6,8 @@ from typing import Tuple
 from github import Github
 
 from docs_check import NAME as DOCS_NAME
-from env_helper import GITHUB_REPOSITORY, GITHUB_SERVER_URL
 from get_robot_token import get_best_robot_token
+from env_helper import GITHUB_REPOSITORY, GITHUB_SERVER_URL
 from pr_info import FORCE_TESTS_LABEL, PRInfo
 from lambda_shared_package.lambda_shared.pr import (
     CATEGORY_TO_LABEL,
