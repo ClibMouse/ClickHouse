@@ -51,7 +51,7 @@ jobs:
   #         for dir in *_lambda/; do
   #           echo "Testing $dir"
   #           python3 -m unittest discover -s "$dir" -p '*_test.py'
-          # done
+  #         done
   DockerHubPushAarch64:
     needs: CheckLabels
     runs-on: [self-hosted, style-checker]
