@@ -265,6 +265,7 @@ def build_and_push_one_image(
         f"{push_arg}"
         f"--progress plain {image.full_path}"
     )
+    print("GITHUB_REPOSITORY:", GITHUB_REPOSITORY)
     logging.info("Docker command to run: %s", cmd)
     with TeePopen(cmd, build_log) as proc:
         retcode = proc.wait()
