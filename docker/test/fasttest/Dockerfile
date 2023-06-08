@@ -42,4 +42,5 @@ ENV PULL_REQUEST_NUMBER=''
 ENV COPY_CLICKHOUSE_BINARY_TO_OUTPUT=0
 
 COPY run.sh /
-CMD ["/bin/bash", "/run.sh"]
+CMD ["/bin/bash", "/run.sh", "$GITHUB_REPOSITORY"]
+# CMD ["/bin/bash", "/run.sh"]
