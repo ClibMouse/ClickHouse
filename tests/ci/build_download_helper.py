@@ -8,9 +8,9 @@ import time
 from pathlib import Path
 from typing import Any, Callable, List
 
-import get_robot_token as grt  # we need an updated ROBOT_TOKEN
 import requests  # type: ignore
 
+# import get_robot_token as grt  # we need an updated ROBOT_TOKEN
 from ci_config import CI_CONFIG
 
 DOWNLOAD_RETRIES_COUNT = 5
@@ -53,6 +53,8 @@ def get_gh_api(
     It sets auth automatically when ROBOT_TOKEN is already set by get_best_robot_token
     """
 
+    import get_robot_token as grt
+    
     def set_auth_header():
         if "headers" in kwargs:
             if "Authorization" not in kwargs["headers"]:

@@ -22,8 +22,8 @@ from commit_status_helper import (
     update_mergeable_check,
 )
 from docker_pull_helper import get_image_with_version
-from get_robot_token import get_best_robot_token, get_parameter_from_ssm, GITHUB_WORKSPACE, RUNNER_TEMP, DOCKER_USER, DOCKER_REPO
-# from env_helper import GITHUB_WORKSPACE, RUNNER_TEMP, DOCKER_USER, DOCKER_REPO
+from get_robot_token import get_best_robot_token, get_parameter_from_ssm
+from env_helper import GITHUB_WORKSPACE, RUNNER_TEMP, DOCKER_USER, DOCKER_REPO
 from github_helper import GitHub
 from git_helper import git_runner
 from pr_info import PRInfo
