@@ -1,20 +1,33 @@
 ## KQL implemented features  
-# June , 2023
-
+# June, 2023
 ## Bugfixes
-- Corrected an issue with `countof` operator where plain string matches were not correctly counting overlapping strings.
-
-# May , 2023  
-
-## Bugfixes
- - Fix core dump when table is missing in pipeline
+ - Fix core dump when table is missing in pipeline  
  - Corrected issues related to fractional seconds in tolong, datetime_add, datetime_part and datetime_diff.
  - Corrected an issue with timezone conversion in make_datetime.
  - Corrected an issue with hash_sha256 when an empty string is used.
 
+# May, 2023  
+## New Features
+- Save intervals to tables 
+   ```
+   INSERT INTO t1 WITH toDateTime64('2023-01-01 00:00:00.000000001', 9, 'US/Eastern') AS c
+   SELECT toMinute(c + toIntervalSecond(number * 60))
+   FROM numbers(2)
+   so , enabled the kql timespane to be stored:
+   CREATE TABLE kql_table1 ENGINE = Memory AS select *, now() as new_column From kql(print days=2d*3 | take 1)
+   ```
+- Add ability to ignore skippings indexes for a query :
+   ```
+   SELECT * FROM data WHERE x = 1 AND y = 2 SETTINGS ignore_data_skipping_indices='xy_idx';
+   ```
+## Bugfixes
+ - Fix core dump when table is missing in pipeline
+- Corrected an issue with `countof` operator where plain string matches were not correctly counting overlapping strings.
  - produce an exception if `arg_max` or `arg_min` have fewer than 2 arguments
+ - core dump if there is no closing parenthesis in kql function
 
-# April XX, 2023
+
+# April,  2023
 ## Bugfixes
  - Corrected an issue with parse_url in which hostnames and port numbers were not correctly parsed.
    ```
