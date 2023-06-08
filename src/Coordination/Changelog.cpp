@@ -185,14 +185,14 @@ public:
         }
 
         auto & write_buffer = getBuffer();
-        writeIntBinary(computeRecordChecksum(record), write_buffer);
+        writeBinaryLittleEndian(computeRecordChecksum(record), write_buffer);
 
-        writeIntBinary(record.header.version, write_buffer);
+        writeBinaryLittleEndian(record.header.version, write_buffer);
 
-        writeIntBinary(record.header.index, write_buffer);
-        writeIntBinary(record.header.term, write_buffer);
-        writeIntBinary(record.header.value_type, write_buffer);
-        writeIntBinary(record.header.blob_size, write_buffer);
+        writeBinaryLittleEndian(record.header.index, write_buffer);
+        writeBinaryLittleEndian(record.header.term, write_buffer);
+        writeBinaryLittleEndian(record.header.value_type, write_buffer);
+        writeBinaryLittleEndian(record.header.blob_size, write_buffer);
 
         if (record.header.blob_size != 0)
             write_buffer.write(reinterpret_cast<char *>(record.blob->data_begin()), record.blob->size());
@@ -430,15 +430,15 @@ public:
                 result.last_position = read_buf->count();
                 /// Read checksum
                 Checksum record_checksum;
-                readIntBinary(record_checksum, *read_buf);
+                readBinaryLittleEndian(record_checksum, *read_buf);
 
                 /// Read header
                 ChangelogRecord record;
-                readIntBinary(record.header.version, *read_buf);
-                readIntBinary(record.header.index, *read_buf);
-                readIntBinary(record.header.term, *read_buf);
-                readIntBinary(record.header.value_type, *read_buf);
-                readIntBinary(record.header.blob_size, *read_buf);
+                readBinaryLittleEndian(record.header.version, *read_buf);
+                readBinaryLittleEndian(record.header.index, *read_buf);
+                readBinaryLittleEndian(record.header.term, *read_buf);
+                readBinaryLittleEndian(record.header.value_type, *read_buf);
+                readBinaryLittleEndian(record.header.blob_size, *read_buf);
 
                 if (record.header.version > CURRENT_CHANGELOG_VERSION)
                     throw Exception(
