@@ -37,11 +37,6 @@ export FASTTEST_BUILD
 export FASTTEST_DATA
 export FASTTEST_OUT
 export PATH
-export GITHUB_REPOSITORY
-
-echo "GITHUB_REPOSITORY: $1"
-GITHUB_REPOSITORY=$1
-
 
 function ccache_status
 {
