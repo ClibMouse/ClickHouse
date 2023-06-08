@@ -24,7 +24,7 @@ from env_helper import (
     S3_DOWNLOAD,
     TEMP_PATH,
     DOCKER_USER,
-    DOCKER_REPO,    
+    DOCKER_REPO,
 )
 from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from github_helper import GitHub
@@ -86,7 +86,7 @@ def get_packager_cmd(
     cmd += f" --version={build_version}"
     cmd += f" --docker-repo={DOCKER_REPO}"
     cmd += f" --docker-user={DOCKER_USER}"
-    cmd += " --docker-password={}".format(get_parameter_from_ssm("dockerhub_robot_password"))    
+    cmd += f" --docker-password={get_parameter_from_ssm('dockerhub_robot_password')}"
 
     if _can_export_binaries(build_config):
         cmd += " --with-binaries=tests"

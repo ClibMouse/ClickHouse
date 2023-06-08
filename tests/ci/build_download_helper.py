@@ -52,7 +52,7 @@ def get_gh_api(
     "403 rate limit exceeded" error
     It sets auth automatically when ROBOT_TOKEN is already set by get_best_robot_token
     """
-    
+
     def set_auth_header():
         if "headers" in kwargs:
             if "Authorization" not in kwargs["headers"]:

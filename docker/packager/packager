@@ -423,15 +423,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--as-root", action="store_true", help="if the container should run as root"
     )
-    parser.add_argument(
-        "--docker-repo", default="docker.io", help="docker repository"
-    )
-    parser.add_argument(
-        "--docker-user", default=argparse.SUPPRESS, help="docker user"
-    )
-    parser.add_argument(
-        "--docker-password", default=argparse.SUPPRESS, help="docker password"
-    )    
+    parser.add_argument("--docker-repo", default="docker.io", help="docker repository")
+    parser.add_argument("--docker-user", default=argparse.SUPPRESS, help="docker user")
+    parser.add_argument("--docker-password", default=argparse.SUPPRESS, help="docker password")   
 
     args = parser.parse_args()
 
@@ -492,7 +486,7 @@ def main():
     )
     if args.docker_user:
         subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
-            "docker login {} --username '{}' --password-stdin".format(args.docker_repo, args.docker_user),
+            f"docker login {args.docker_repo} --username '{args.docker_user}' --password-stdin",
             input=args.docker_password,
             encoding="utf-8",
             shell=True,
