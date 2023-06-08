@@ -178,7 +178,7 @@ jobs:
           docker ps --quiet | xargs --no-run-if-empty docker kill ||:
           docker ps --all --quiet | xargs --no-run-if-empty docker rm -f ||:
           sudo rm -fr "$TEMP_PATH" "$CACHES_PATH"
-#   CompatibilityCheckX86:
+##   CompatibilityCheckX86:
 #     needs: [BuilderDebRelease]
 #     runs-on: [self-hosted, style-checker]
 #     steps:
