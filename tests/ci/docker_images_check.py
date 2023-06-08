@@ -21,6 +21,7 @@ from env_helper import (
     GITHUB_RUN_URL,
     DOCKER_USER,
     DOCKER_REPO,
+    GITHUB_REPOSITORY,
 )
 from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from pr_info import PRInfo
@@ -255,6 +256,7 @@ def build_and_push_one_image(
         f"--label build-url={GITHUB_RUN_URL} "
         f"{from_tag_arg}"
         f"--build-arg DOCKER_REPO={DOCKER_REPO} "
+        f"--build-arg GITHUB_REPOSITORY={GITHUB_REPOSITORY} "
         # A hack to invalidate cache, grep for it in docker/ dir
         f"--build-arg CACHE_INVALIDATOR={GITHUB_RUN_URL} "
         f"--tag {image.repo}:{version_string} "

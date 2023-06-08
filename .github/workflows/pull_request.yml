@@ -23,19 +23,19 @@ on:  # yamllint disable-line rule:truthy
 ##################################### SMALL CHECKS #######################################
 ##########################################################################################
 jobs:
-  CheckLabels:
-    runs-on: [self-hosted, style-checker]
-    # Run the first check always, even if the CI is cancelled
-    if: ${{ always() }}
-    steps:
-      - name: Check out repository code
-        uses: ClickHouse/checkout@v1
-        with:
-          clear-repository: true
-      - name: Labels check
-        run: |
-          cd "$GITHUB_WORKSPACE/tests/ci"
-          python3 run_check.py
+  # CheckLabels:
+  #   runs-on: [self-hosted, style-checker]
+  #   # Run the first check always, even if the CI is cancelled
+  #   if: ${{ always() }}
+  #   steps:
+  #     - name: Check out repository code
+  #       uses: ClickHouse/checkout@v1
+  #       with:
+  #         clear-repository: true
+  #     - name: Labels check
+  #       run: |
+  #         cd "$GITHUB_WORKSPACE/tests/ci"
+  #         python3 run_check.py
   # PythonUnitTests:
   #   runs-on: [self-hosted, style-checker]
   #   steps:
@@ -53,7 +53,7 @@ jobs:
   #           python3 -m unittest discover -s "$dir" -p '*_test.py'
   #         done
   DockerHubPushAarch64:
-    needs: CheckLabels
+    # needs: CheckLabels
     runs-on: [self-hosted, style-checker]
     steps:
       - name: Check out repository code
@@ -70,7 +70,7 @@ jobs:
           name: changed_images_aarch64
           path: ${{ runner.temp }}/docker_images_check/changed_images_aarch64.json
   DockerHubPushAmd64:
-    needs: CheckLabels
+    # needs: CheckLabels
     runs-on: [self-hosted, style-checker]
     steps:
       - name: Check out repository code
