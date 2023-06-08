@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 import boto3  # type: ignore
-import hvac
+import hvac   # type: ignore
 from github import Github
 from github.AuthenticatedUser import AuthenticatedUser
 
