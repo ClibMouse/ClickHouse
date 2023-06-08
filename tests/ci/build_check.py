@@ -300,7 +300,7 @@ def main():
     check_for_success_run(s3_helper, s3_path_prefix, build_name, build_config)
 
     subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
-        "docker login {} --username '{}' --password-stdin".format(DOCKER_REPO, DOCKER_USER),
+        f"docker login {DOCKER_REPO} --username '{DOCKER_USER}' --password-stdin",
         input=get_parameter_from_ssm("dockerhub_robot_password"),
         encoding="utf-8",
         shell=True,
