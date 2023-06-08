@@ -37,6 +37,7 @@ export FASTTEST_BUILD
 export FASTTEST_DATA
 export FASTTEST_OUT
 export PATH
+export GITHUB_REPOSITORY
 
 function ccache_status
 {
@@ -81,7 +82,7 @@ function start_server
 function clone_root
 {
     git config --global --add safe.directory "$FASTTEST_SOURCE"
-    git clone --depth 1 https://github.com/$GITHUB_REPOSITORY.git -- "$FASTTEST_SOURCE" 2>&1 | ts '%Y-%m-%d %H:%M:%S' | tee "$FASTTEST_OUTPUT/clone_log.txt"
+    git clone --depth 1 https://github.com/"$GITHUB_REPOSITORY".git -- "$FASTTEST_SOURCE" 2>&1 | ts '%Y-%m-%d %H:%M:%S' | tee "$FASTTEST_OUTPUT/clone_log.txt"
 
     (
         cd "$FASTTEST_SOURCE"
