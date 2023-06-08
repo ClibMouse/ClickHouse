@@ -38,6 +38,7 @@ export FASTTEST_DATA
 export FASTTEST_OUT
 export PATH
 export GITHUB_REPOSITORY
+echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
 
 function ccache_status
 {
