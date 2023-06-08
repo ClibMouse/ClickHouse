@@ -29,8 +29,6 @@ FASTTEST_DATA=$(readlink -f "${FASTTEST_DATA:-$FASTTEST_WORKSPACE/db-fasttest}")
 FASTTEST_OUTPUT=$(readlink -f "${FASTTEST_OUTPUT:-$FASTTEST_WORKSPACE}")
 PATH="$FASTTEST_BUILD/programs:$FASTTEST_SOURCE/tests:$PATH"
 
-GITHUB_REPOSITORY=$1
-
 # Export these variables, so that all subsequent invocations of the script
 # use them, and not try to guess them anew, which leads to weird effects.
 export FASTTEST_WORKSPACE
@@ -39,7 +37,11 @@ export FASTTEST_BUILD
 export FASTTEST_DATA
 export FASTTEST_OUT
 export PATH
-echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
+export GITHUB_REPOSITORY
+
+echo "GITHUB_REPOSITORY: $1"
+GITHUB_REPOSITORY=$1
+
 
 function ccache_status
 {
