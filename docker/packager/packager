@@ -425,7 +425,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--docker-repo", default="docker.io", help="docker repository")
     parser.add_argument("--docker-user", default=argparse.SUPPRESS, help="docker user")
-    parser.add_argument("--docker-password", default=argparse.SUPPRESS, help="docker password")   
+    parser.add_argument(
+        "--docker-password", default=argparse.SUPPRESS, help="docker password"
+    )
 
     args = parser.parse_args()
 
