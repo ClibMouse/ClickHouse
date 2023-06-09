@@ -5,6 +5,7 @@ env:
   PYTHONUNBUFFERED: 1
 
 on:  # yamllint disable-line rule:truthy
+  push:
   pull_request:
     types:
       - synchronize
