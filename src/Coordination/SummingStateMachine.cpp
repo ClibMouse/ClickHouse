@@ -10,9 +10,7 @@ static constexpr int MAX_SNAPSHOTS = 3;
 static int64_t deserializeValue(nuraft::buffer & buffer)
 {
     nuraft::buffer_serializer bs(buffer);
-    int64_t result;
-    memcpy(&result, bs.get_raw(buffer.size()), sizeof(result));
-    return result;
+    return bs.get_i64();
 }
 
 SummingStateMachine::SummingStateMachine()

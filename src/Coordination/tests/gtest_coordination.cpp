@@ -191,7 +191,7 @@ nuraft::ptr<nuraft::buffer> getBuffer(int64_t number)
 {
     nuraft::ptr<nuraft::buffer> ret = nuraft::buffer::alloc(sizeof(number));
     nuraft::buffer_serializer bs(ret);
-    bs.put_raw(&number, sizeof(number));
+    bs.put_i64(number);
     return ret;
 }
 
