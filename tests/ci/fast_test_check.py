@@ -23,7 +23,7 @@ from commit_status_helper import (
     update_mergeable_check,
 )
 from docker_pull_helper import get_image_with_version
-from env_helper import S3_BUILDS_BUCKET, TEMP_PATH, DOCKER_USER, DOCKER_REPO
+from env_helper import S3_BUILDS_BUCKET, TEMP_PATH, DOCKER_USER, DOCKER_REPO, S3_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from pr_info import FORCE_TESTS_LABEL, PRInfo
 from report import TestResults, read_test_results
@@ -48,6 +48,9 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
         f"-e PULL_REQUEST_NUMBER={pr_number} -e COMMIT_SHA={commit_sha} "
         f"-e COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1 "
         f"-e SCCACHE_BUCKET={S3_BUILDS_BUCKET} -e SCCACHE_S3_KEY_PREFIX=ccache/sccache "
+        f"-e AWS_ACCESS_KEY_ID={AWS_ACCESS_KEY_ID} "
+        f"-e AWS_SECRET_ACCESS_KEY={AWS_SECRET_ACCESS_KEY} "
+        f"-e AWS_DEFAULT_REGION={S3_REGION} "   
         f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "
         f"--volume={output_path}:/test_output {image}"
     )
