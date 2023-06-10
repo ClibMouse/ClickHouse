@@ -58,7 +58,7 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
         f"-e COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1 "
         f"-e SCCACHE_BUCKET={S3_BUILDS_BUCKET} -e SCCACHE_S3_KEY_PREFIX=ccache/sccache "
         # f"-e AWS_ACCESS_KEY_ID = {AWS_ACCESS_KEY_ID} "
-        f"-e IBM_CLOUD_API_KEY = {IBM_CLOUD_API_KEY} "
+        f"-e IBM_CLOUD_API_KEY={IBM_CLOUD_API_KEY} "
         f"-e IBM_CLOUD_REGION={S3_REGION} "
         f"-e S3_ENDPOINT={S3_ENDPOINT} "
         f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "
