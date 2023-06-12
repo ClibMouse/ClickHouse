@@ -22,7 +22,7 @@ def get_parameter_from_ssm(name, decrypt=True, client=None):
     if VAULT_URL:
         if not client:
             client = hvac.Client(url=VAULT_URL, token=VAULT_TOKEN)
-        parameter = client.secrets.kv.v4.read_secret_version(
+        parameter = client.secrets.kv.v1.read_secret_version(
             mount_point=VAULT_MOUNT_POINT, path=VAULT_PATH
         )["data"]["data"][name]
     else:
@@ -47,7 +47,7 @@ def get_best_robot_token(token_prefix_env_name="github_robot_token_"):
 
     if VAULT_URL:
         client = hvac.Client(url=VAULT_URL, token=VAULT_TOKEN)
-        parameters = client.secrets.kv.v4.read_secret_version(
+        parameters = client.secrets.kv.v1.read_secret_version(
             mount_point=VAULT_MOUNT_POINT, path=VAULT_PATH
         )["data"]["data"]
         parameters = {
