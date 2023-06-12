@@ -31,7 +31,7 @@ from env_helper import (
     S3_REGION,
     IBM_COS_INSTANCE_CRN,
     IBM_COS_API_KEY,
-    S3_ENDPOINT,
+    S3_URL,
 )
 from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from pr_info import FORCE_TESTS_LABEL, PRInfo
@@ -55,11 +55,12 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
         f"-e FASTTEST_CMAKE_FLAGS='-DCOMPILER_CACHE=sccache' "
         f"-e PULL_REQUEST_NUMBER={pr_number} -e COMMIT_SHA={commit_sha} "
         f"-e COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1 "
+        f"-e SCCACHE_S3_USE_SSL=true "
         f"-e SCCACHE_BUCKET={S3_BUILDS_BUCKET} -e SCCACHE_S3_KEY_PREFIX=ccache/sccache "
-        f"-e IBM_COS_API_KEY={IBM_COS_API_KEY} "
-        f"-e IBM_COS_INSTANCE_CRN={IBM_COS_INSTANCE_CRN} "
-        f"-e IBM_COS_REGION={S3_REGION} "
-        # f"-e S3_ENDPOINT={S3_ENDPOINT} "
+        # f"-e IBM_COS_API_KEY={IBM_COS_API_KEY} "
+        # f"-e IBM_COS_INSTANCE_CRN={IBM_COS_INSTANCE_CRN} "
+        f"-e SCCACHE_REGION={S3_REGION} "
+        f"-e SCCACHE_ENDPOINT={S3_URL} "
         f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "
         f"--volume={output_path}:/test_output {image}"
     )
