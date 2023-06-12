@@ -50,6 +50,7 @@ csv.field_size_limit(sys.maxsize)
 def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, image):
     return (
         f"docker run --cap-add=SYS_PTRACE "
+        "--network=host "  # required to get access to IAM credentials
         f"-e FASTTEST_WORKSPACE=/fasttest-workspace -e FASTTEST_OUTPUT=/test_output "
         f"-e FASTTEST_SOURCE=/ClickHouse --cap-add=SYS_PTRACE "
         f"-e FASTTEST_CMAKE_FLAGS='-DCOMPILER_CACHE=sccache' "
