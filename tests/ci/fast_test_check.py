@@ -49,7 +49,7 @@ csv.field_size_limit(sys.maxsize)
 
 def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, image):
     return (
-        f"docker run --cap-add=SYS_PTRACE "
+        f"docker run --cap-add=SYS_PTRACE --timeout 10800 "
         "--network=host "  # required to get access to IAM credentials
         f"-e FASTTEST_WORKSPACE=/fasttest-workspace -e FASTTEST_OUTPUT=/test_output "
         f"-e FASTTEST_SOURCE=/ClickHouse --cap-add=SYS_PTRACE "
@@ -58,8 +58,8 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
         f"-e COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1 "
         f"-e SCCACHE_S3_USE_SSL=true "
         f"-e SCCACHE_BUCKET={S3_BUILDS_BUCKET} -e SCCACHE_S3_KEY_PREFIX=ccache/sccache "
-        # f"-e AWS_ACCESS_KEY_ID={AWS_ACCESS_KEY_ID} "
-        # f"-e AWS_SECRET_ACCESS_KEY={AWS_SECRET_ACCESS_KEY} "
+        f"-e AWS_ACCESS_KEY_ID={AWS_ACCESS_KEY_ID} "
+        f"-e AWS_SECRET_ACCESS_KEY={AWS_SECRET_ACCESS_KEY} "
         f"-e SCCACHE_REGION={S3_REGION} "
         f"-e SCCACHE_ENDPOINT={S3_URL} "
         f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "
