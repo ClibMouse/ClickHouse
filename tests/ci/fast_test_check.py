@@ -46,6 +46,9 @@ NAME = "Fast test"
 # Will help to avoid errors like _csv.Error: field larger than field limit (131072)
 csv.field_size_limit(sys.maxsize)
 
+# getting values from vault
+aws_access_key_id = get_parameter_from_ssm("AWS_ACCESS_KEY_ID")
+aws_secret_access_key = get_parameter_from_ssm("AWS_SECRET_ACCESS_KEY")
 
 def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, image):
     return (
@@ -58,8 +61,8 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
         f"-e COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1 "
         f"-e SCCACHE_S3_USE_SSL=true "
         f"-e SCCACHE_BUCKET={S3_BUILDS_BUCKET} -e SCCACHE_S3_KEY_PREFIX=ccache/sccache "
-        f"-e AWS_ACCESS_KEY_ID={AWS_ACCESS_KEY_ID} "
-        f"-e AWS_SECRET_ACCESS_KEY={AWS_SECRET_ACCESS_KEY} "
+        f"-e AWS_ACCESS_KEY_ID={aws_access_key_id} "
+        f"-e AWS_SECRET_ACCESS_KEY={aws_secret_access_key} "
         f"-e SCCACHE_REGION={S3_REGION} "
         f"-e SCCACHE_ENDPOINT={S3_URL} "
         f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "
