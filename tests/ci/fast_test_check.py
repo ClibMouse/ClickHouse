@@ -29,8 +29,8 @@ from env_helper import (
     DOCKER_USER,
     DOCKER_REPO,
     S3_REGION,
-    IBM_COS_INSTANCE_CRN,
-    IBM_COS_API_KEY,
+    AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY,
     S3_URL,
 )
 from get_robot_token import get_best_robot_token, get_parameter_from_ssm
@@ -59,8 +59,8 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
         f"-e SCCACHE_S3_USE_SSL=true "
         f"-e SCCACHE_BUCKET={S3_BUILDS_BUCKET} -e SCCACHE_S3_KEY_PREFIX=ccache/sccache "
         f"-e SCCACHE_S3_NO_CREDENTIALS=true "
-        # f"-e IBM_COS_API_KEY={IBM_COS_API_KEY} "
-        # f"-e IBM_COS_INSTANCE_CRN={IBM_COS_INSTANCE_CRN} "
+        f"-e AWS_ACCESS_KEY_ID={AWS_ACCESS_KEY_ID} "
+        f"-e AWS_SECRET_ACCESS_KEY={AWS_SECRET_ACCESS_KEY} "
         f"-e SCCACHE_REGION={S3_REGION} "
         f"-e SCCACHE_ENDPOINT={S3_URL} "
         f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "

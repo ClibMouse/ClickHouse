@@ -11,9 +11,9 @@ CI = bool(os.getenv("CI"))
 TEMP_PATH = os.getenv("TEMP_PATH", p.abspath(p.join(module_dir, "./tmp")))
 
 
-IBM_COS_INSTANCE_CRN = os.getenv("IBM_COS_INSTANCE_CRN", "")
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "")
-IBM_COS_API_KEY = os.getenv("IBM_CLOUD_API_KEY", "")
+IBM_COS_INSTANCE_CRN = os.getenv("IBM_COS_INSTANCE_CRN", "secret")
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "secret")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "secret")
 CACHES_PATH = os.getenv("CACHES_PATH", TEMP_PATH)
 CLOUDFLARE_TOKEN = os.getenv("CLOUDFLARE_TOKEN")
 GITHUB_EVENT_PATH = os.getenv("GITHUB_EVENT_PATH", "")
