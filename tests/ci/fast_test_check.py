@@ -53,56 +53,81 @@ aws_secret_access_key = get_parameter_from_ssm("AWS_SECRET_ACCESS_KEY")
 
 
 def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, image):
-#     return (
-#         f"timeout 3h docker run --cap-add=SYS_PTRACE "
-#         "--network=host "  # required to get access to IAM credentials
-#         f"-e FASTTEST_WORKSPACE=/fasttest-workspace -e FASTTEST_OUTPUT=/test_output "
-#         f"-e FASTTEST_SOURCE=/ClickHouse --cap-add=SYS_PTRACE "
-#         f"-e FASTTEST_CMAKE_FLAGS='-DCOMPILER_CACHE=sccache' "
-#         f"-e PULL_REQUEST_NUMBER={pr_number} -e COMMIT_SHA={commit_sha} "
-#         f"-e COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1 "
-#         f"-e SCCACHE_S3_USE_SSL=true "
-#         f"-e SCCACHE_BUCKET={S3_BUILDS_BUCKET} -e SCCACHE_S3_KEY_PREFIX=ccache/sccache "
-#         # f"-e AWS_ACCESS_KEY_ID={aws_access_key_id} "
-#         # f"-e AWS_SECRET_ACCESS_KEY={aws_secret_access_key} "
-#         f"-e SCCACHE_REGION={S3_REGION} "
-#         f"-e SCCACHE_ENDPOINT={S3_URL} "
-#         f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "
-#         f"--volume={output_path}:/test_output {image}"
-#     )
-
-    env_vars = {
-        "AWS_ACCESS_KEY_ID": "***",
-        "AWS_SECRET_ACCESS_KEY": "***"
-    }
+    # return (
+    #     f"timeout 3h docker run --cap-add=SYS_PTRACE "
+    #     "--network=host "  # required to get access to IAM credentials
+    #     f"-e FASTTEST_WORKSPACE=/fasttest-workspace -e FASTTEST_OUTPUT=/test_output "
+    #     f"-e FASTTEST_SOURCE=/ClickHouse --cap-add=SYS_PTRACE "
+    #     f"-e FASTTEST_CMAKE_FLAGS='-DCOMPILER_CACHE=sccache' "
+    #     f"-e PULL_REQUEST_NUMBER={pr_number} -e COMMIT_SHA={commit_sha} "
+    #     f"-e COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1 "
+    #     f"-e SCCACHE_S3_USE_SSL=true "
+    #     f"-e SCCACHE_BUCKET={S3_BUILDS_BUCKET} -e SCCACHE_S3_KEY_PREFIX=ccache/sccache "
+    #     # f"-e AWS_ACCESS_KEY_ID={aws_access_key_id} "
+    #     # f"-e AWS_SECRET_ACCESS_KEY={aws_secret_access_key} "
+    #     f"-e SCCACHE_REGION={S3_REGION} "
+    #     f"-e SCCACHE_ENDPOINT={S3_URL} "
+    #     f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "
+    #     f"--volume={output_path}:/test_output {image}"
+    # )
 
     cmd = [
-        "timeout", "3h", "docker", "run", "--cap-add=SYS_PTRACE",
-        "--network=host",
-        "-e", "FASTTEST_WORKSPACE=/fasttest-workspace",
-        "-e", "FASTTEST_OUTPUT=/test_output",
-        "-e", "FASTTEST_SOURCE=/ClickHouse",
-        "--cap-add=SYS_PTRACE",
-        "-e", "FASTTEST_CMAKE_FLAGS='-DCOMPILER_CACHE=sccache'",
-        "-e", f"PULL_REQUEST_NUMBER={pr_number}",
-        "-e", f"COMMIT_SHA={commit_sha}",
-        "-e", "COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1",
-        "-e", "SCCACHE_S3_USE_SSL=true",
-        "-e", f"SCCACHE_BUCKET={S3_BUILDS_BUCKET}",
-        "-e", "SCCACHE_S3_KEY_PREFIX=ccache/sccache",
-        "-e", f"SCCACHE_REGION={S3_REGION}",
-        "-e", f"SCCACHE_ENDPOINT={S3_URL}",
-        "--volume", f"{workspace}:/fasttest-workspace",
-        "--volume", f"{repo_path}:/ClickHouse",
-        "--volume", f"{output_path}:/test_output",
-        f"{image}"
+        f"timeout 3h docker run --cap-add=SYS_PTRACE "
+        "--network=host "  # required to get access to IAM credentials
+        f"-e FASTTEST_WORKSPACE=/fasttest-workspace -e FASTTEST_OUTPUT=/test_output "
+        f"-e FASTTEST_SOURCE=/ClickHouse --cap-add=SYS_PTRACE "
+        f"-e FASTTEST_CMAKE_FLAGS='-DCOMPILER_CACHE=sccache' "
+        f"-e PULL_REQUEST_NUMBER={pr_number} -e COMMIT_SHA={commit_sha} "
+        f"-e COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1 "
+        f"-e SCCACHE_S3_USE_SSL=true "
+        f"-e SCCACHE_BUCKET={S3_BUILDS_BUCKET} -e SCCACHE_S3_KEY_PREFIX=ccache/sccache "
+        f"-e AWS_ACCESS_KEY_ID={aws_access_key_id} "
+        f"-e AWS_SECRET_ACCESS_KEY={aws_secret_access_key} "
+        f"-e SCCACHE_REGION={S3_REGION} "
+        f"-e SCCACHE_ENDPOINT={S3_URL} "
+        f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "
+        f"--volume={output_path}:/test_output {image}"
     ]
 
-    for key, value in env_vars.items():
-        cmd.insert(-1, "-e")
-        cmd.insert(-1, f"{key}={value}")
+    # Generate a masked version of the command for printing
+    masked_cmd = list(cmd)
+    for i, arg in enumerate(masked_cmd):
+        if arg.startswith("-e") and ("AWS_ACCESS_KEY_ID" in arg or "AWS_SECRET_ACCESS_KEY" in arg):
+            masked_cmd[i + 1] = "***"    
 
     return " ".join(cmd)
+    # env_vars = {
+    #     "AWS_ACCESS_KEY_ID": "***",
+    #     "AWS_SECRET_ACCESS_KEY": "***"
+    # }
+
+    # cmd = [
+    #     "timeout", "3h", "docker", "run", "--cap-add=SYS_PTRACE",
+    #     "--network=host",
+    #     "-e", "FASTTEST_WORKSPACE=/fasttest-workspace",
+    #     "-e", "FASTTEST_OUTPUT=/test_output",
+    #     "-e", "FASTTEST_SOURCE=/ClickHouse",
+    #     "--cap-add=SYS_PTRACE",
+    #     "-e", "FASTTEST_CMAKE_FLAGS='-DCOMPILER_CACHE=sccache'",
+    #     "-e", f"PULL_REQUEST_NUMBER={pr_number}",
+    #     "-e", f"COMMIT_SHA={commit_sha}",
+    #     "-e", "COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1",
+    #     "-e", "SCCACHE_S3_USE_SSL=true",
+    #     "-e", f"SCCACHE_BUCKET={S3_BUILDS_BUCKET}",
+    #     "-e", "SCCACHE_S3_KEY_PREFIX=ccache/sccache",
+    #     "-e", f"SCCACHE_REGION={S3_REGION}",
+    #     "-e", f"SCCACHE_ENDPOINT={S3_URL}",
+    #     "--volume", f"{workspace}:/fasttest-workspace",
+    #     "--volume", f"{repo_path}:/ClickHouse",
+    #     "--volume", f"{output_path}:/test_output",
+    #     f"{image}"
+    # ]
+
+    # for key, value in env_vars.items():
+    #     cmd.insert(-1, "-e")
+    #     cmd.insert(-1, f"{key}={value}")
+
+    # return " ".join(cmd)
 
 def process_results(result_folder: str) -> Tuple[str, str, TestResults, List[str]]:
     test_results = []  # type: TestResults
