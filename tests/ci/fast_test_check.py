@@ -46,7 +46,6 @@ NAME = "Fast test"
 # Will help to avoid errors like _csv.Error: field larger than field limit (131072)
 csv.field_size_limit(sys.maxsize)
 
-# getting values from vault
 
 # aws_access_key_id = get_parameter_from_ssm("AWS_ACCESS_KEY_ID")
 # aws_secret_access_key = get_parameter_from_ssm("AWS_SECRET_ACCESS_KEY")
