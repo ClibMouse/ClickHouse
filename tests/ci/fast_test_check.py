@@ -54,6 +54,7 @@ csv.field_size_limit(sys.maxsize)
 ACCESS_KEY_ID = os.environ.get("ACCESS_KEY_ID")
 SECRET_ACCESS_KEY = os.environ.get("SECRET_ACCESS_KEY")
 
+
 def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, image):
     return (
         f"timeout 3h docker run --cap-add=SYS_PTRACE "
