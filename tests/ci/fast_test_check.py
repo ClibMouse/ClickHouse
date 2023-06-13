@@ -51,8 +51,8 @@ csv.field_size_limit(sys.maxsize)
 # aws_access_key_id = get_parameter_from_ssm("AWS_ACCESS_KEY_ID")
 # aws_secret_access_key = get_parameter_from_ssm("AWS_SECRET_ACCESS_KEY")
 
-ACCESS_KEY_ID = os.environ.get('ACCESS_KEY_ID')
-SECRET_ACCESS_KEY = os.environ.get('SECRET_ACCESS_KEY')
+ACCESS_KEY_ID = os.environ.get("ACCESS_KEY_ID")
+SECRET_ACCESS_KEY = os.environ.get("SECRET_ACCESS_KEY")
 
 def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, image):
     return (
@@ -98,7 +98,6 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
 
     # return " ".join(masked_cmd)
 
-
     # env_vars = {
     #     "AWS_ACCESS_KEY_ID": "***",
     #     "AWS_SECRET_ACCESS_KEY": "***"
@@ -131,6 +130,7 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
     #     cmd.insert(-1, f"{key}={value}")
 
     # return " ".join(cmd)
+
 
 def process_results(result_folder: str) -> Tuple[str, str, TestResults, List[str]]:
     test_results = []  # type: TestResults
