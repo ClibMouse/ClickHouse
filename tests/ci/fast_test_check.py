@@ -28,7 +28,6 @@ from env_helper import (
     TEMP_PATH,
     DOCKER_USER,
     DOCKER_REPO,
-    S3_REGION,
     S3_URL,
 )
 from get_robot_token import get_best_robot_token, get_parameter_from_ssm
