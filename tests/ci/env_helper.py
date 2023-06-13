@@ -11,7 +11,7 @@ CI = bool(os.getenv("CI"))
 TEMP_PATH = os.getenv("TEMP_PATH", p.abspath(p.join(module_dir, "./tmp")))
 
 
-IBM_COS_INSTANCE_CRN = os.getenv("IBM_COS_INSTANCE_CRN", "secret")
+IBM_COS_INSTANCE_CRN = os.getenv("IBM_COS_INSTANCE_CRN", "")
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "secret")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "secret")
 CACHES_PATH = os.getenv("CACHES_PATH", TEMP_PATH)
@@ -38,10 +38,6 @@ S3_ARTIFACT_DOWNLOAD_TEMPLATE = (
     f"{S3_DOWNLOAD}/{S3_BUILDS_BUCKET}/"
     "{pr_or_release}/{commit}/{build_name}/{artifact}"
 )
-VAULT_PATH = os.getenv("VAULT_PATH")
-VAULT_TOKEN = os.getenv("VAULT_TOKEN")
-VAULT_URL = os.getenv("VAULT_URL")
-VAULT_MOUNT_POINT = os.getenv("VAULT_MOUNT_POINT", "secret")
 
 # These parameters are set only on demand, and only once
 _GITHUB_JOB_ID = ""
