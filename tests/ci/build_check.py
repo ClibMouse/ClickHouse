@@ -66,7 +66,7 @@ def get_packager_cmd(
     cmake_flags = "-DENABLE_CLICKHOUSE_SELF_EXTRACTING=1"
     cmd = (
         f"cd {packager_path} && CMAKE_FLAGS='{cmake_flags}' ./packager --output-dir={output_path} "
-        f"-e SCCACHE_ENDPOINT={S3_URL} "        
+        f"SCCACHE_ENDPOINT={S3_URL} "        
         f"--package-type={package_type} --compiler={comp}"
     )
 
