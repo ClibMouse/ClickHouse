@@ -72,8 +72,8 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
 #     )
 
     env_vars = {
-        "AWS_ACCESS_KEY_ID": aws_access_key_id,
-        "AWS_SECRET_ACCESS_KEY": aws_secret_access_key
+        "AWS_ACCESS_KEY_ID": "***",
+        "AWS_SECRET_ACCESS_KEY": "***"
     }
 
     cmd = [
