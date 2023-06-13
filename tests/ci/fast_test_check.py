@@ -90,10 +90,10 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
     ]
 
     # Generate a masked version of the command for printing
-    masked_cmd = list(cmd)
+    masked_cmd = cmd.copy()  # Create a copy of the cmd list
     for i, arg in enumerate(masked_cmd):
         if arg.startswith("-e") and ("AWS_ACCESS_KEY_ID" in arg or "AWS_SECRET_ACCESS_KEY" in arg):
-            masked_cmd[i + 1] = "***"    
+            masked_cmd[i] = arg.split("=")[0] + "=***"    
 
     return " ".join(cmd)
 
