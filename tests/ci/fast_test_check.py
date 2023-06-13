@@ -63,7 +63,6 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
         f"-e FASTTEST_CMAKE_FLAGS='-DCOMPILER_CACHE=sccache' "
         f"-e PULL_REQUEST_NUMBER={pr_number} -e COMMIT_SHA={commit_sha} "
         f"-e COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1 "
-        # f"-e SCCACHE_S3_USE_SSL=true "
         f"-e SCCACHE_BUCKET={S3_BUILDS_BUCKET} -e SCCACHE_S3_KEY_PREFIX=ccache/sccache "
         f"-e AWS_ACCESS_KEY_ID={ACCESS_KEY_ID} "
         f"-e AWS_SECRET_ACCESS_KEY={SECRET_ACCESS_KEY} "
