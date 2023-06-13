@@ -63,8 +63,8 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
         f"-e COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1 "
         f"-e SCCACHE_S3_USE_SSL=true "
         f"-e SCCACHE_BUCKET={S3_BUILDS_BUCKET} -e SCCACHE_S3_KEY_PREFIX=ccache/sccache "
-        f"-e SCCACHE_REGION={S3_REGION} "
-        f"-e SCCACHE_ENDPOINT={S3_URL} "
+        # f"-e SCCACHE_REGION={S3_REGION} "
+        # f"-e SCCACHE_ENDPOINT={S3_URL} "
         f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "
         f"--volume={output_path}:/test_output {image}"
     )
