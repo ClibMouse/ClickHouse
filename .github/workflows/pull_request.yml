@@ -151,7 +151,7 @@ jobs:
           sudo rm -fr "$TEMP_PATH"
   FastTest:
     needs: DockerHubPush
-    runs-on: [self-hosted, style-checker, build]
+    runs-on: [self-hosted, style-checker]
     steps:
       - name: Set envs
         run: |
