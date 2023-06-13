@@ -47,28 +47,61 @@ NAME = "Fast test"
 csv.field_size_limit(sys.maxsize)
 
 # getting values from vault
+
 aws_access_key_id = get_parameter_from_ssm("AWS_ACCESS_KEY_ID")
 aws_secret_access_key = get_parameter_from_ssm("AWS_SECRET_ACCESS_KEY")
 
 def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, image):
-    return (
+#     return (
+#         f"timeout 3h docker run --cap-add=SYS_PTRACE "
+#         "--network=host "  # required to get access to IAM credentials
+#         f"-e FASTTEST_WORKSPACE=/fasttest-workspace -e FASTTEST_OUTPUT=/test_output "
+#         f"-e FASTTEST_SOURCE=/ClickHouse --cap-add=SYS_PTRACE "
+#         f"-e FASTTEST_CMAKE_FLAGS='-DCOMPILER_CACHE=sccache' "
+#         f"-e PULL_REQUEST_NUMBER={pr_number} -e COMMIT_SHA={commit_sha} "
+#         f"-e COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1 "
+#         f"-e SCCACHE_S3_USE_SSL=true "
+#         f"-e SCCACHE_BUCKET={S3_BUILDS_BUCKET} -e SCCACHE_S3_KEY_PREFIX=ccache/sccache "
+#         # f"-e AWS_ACCESS_KEY_ID={aws_access_key_id} "
+#         # f"-e AWS_SECRET_ACCESS_KEY={aws_secret_access_key} "
+#         f"-e SCCACHE_REGION={S3_REGION} "
+#         f"-e SCCACHE_ENDPOINT={S3_URL} "
+#         f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "
+#         f"--volume={output_path}:/test_output {image}"
+#     )
+
+    env_vars = {
+        "AWS_ACCESS_KEY_ID": aws_access_key_id,
+        "AWS_SECRET_ACCESS_KEY": aws_secret_access_key
+    }
+
+    cmd = (
         f"timeout 3h docker run --cap-add=SYS_PTRACE "
-        "--network=host "  # required to get access to IAM credentials
-        f"-e FASTTEST_WORKSPACE=/fasttest-workspace -e FASTTEST_OUTPUT=/test_output "
-        f"-e FASTTEST_SOURCE=/ClickHouse --cap-add=SYS_PTRACE "
+        f"--network=host "
+        f"-e FASTTEST_WORKSPACE=/fasttest-workspace "
+        f"-e FASTTEST_OUTPUT=/test_output "
+        f"-e FASTTEST_SOURCE=/ClickHouse "
+        f"--cap-add=SYS_PTRACE "
         f"-e FASTTEST_CMAKE_FLAGS='-DCOMPILER_CACHE=sccache' "
-        f"-e PULL_REQUEST_NUMBER={pr_number} -e COMMIT_SHA={commit_sha} "
+        f"-e PULL_REQUEST_NUMBER={pr_number} "
+        f"-e COMMIT_SHA={commit_sha} "
         f"-e COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1 "
         f"-e SCCACHE_S3_USE_SSL=true "
-        f"-e SCCACHE_BUCKET={S3_BUILDS_BUCKET} -e SCCACHE_S3_KEY_PREFIX=ccache/sccache "
-        f"-e AWS_ACCESS_KEY_ID={aws_access_key_id} "
-        f"-e AWS_SECRET_ACCESS_KEY={aws_secret_access_key} "
+        f"-e SCCACHE_BUCKET={S3_BUILDS_BUCKET} "
+        f"-e SCCACHE_S3_KEY_PREFIX=ccache/sccache "
         f"-e SCCACHE_REGION={S3_REGION} "
         f"-e SCCACHE_ENDPOINT={S3_URL} "
-        f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "
-        f"--volume={output_path}:/test_output {image}"
+        f"--volume={workspace}:/fasttest-workspace "
+        f"--volume={repo_path}:/ClickHouse "
+        f"--volume={output_path}:/test_output "
+        f"{image}"
     )
 
+    for key, value in env_vars.items():
+        cmd.insert(-1, "-e")
+        cmd.insert(-1, f"{key}={value}")
+
+    return " ".join(cmd)
 
 def process_results(result_folder: str) -> Tuple[str, str, TestResults, List[str]]:
     test_results = []  # type: TestResults
