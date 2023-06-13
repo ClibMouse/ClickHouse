@@ -96,38 +96,6 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
             masked_cmd[i + 1] = "***"    
 
     return " ".join(cmd)
-    # env_vars = {
-    #     "AWS_ACCESS_KEY_ID": "***",
-    #     "AWS_SECRET_ACCESS_KEY": "***"
-    # }
-
-    # cmd = [
-    #     "timeout", "3h", "docker", "run", "--cap-add=SYS_PTRACE",
-    #     "--network=host",
-    #     "-e", "FASTTEST_WORKSPACE=/fasttest-workspace",
-    #     "-e", "FASTTEST_OUTPUT=/test_output",
-    #     "-e", "FASTTEST_SOURCE=/ClickHouse",
-    #     "--cap-add=SYS_PTRACE",
-    #     "-e", "FASTTEST_CMAKE_FLAGS='-DCOMPILER_CACHE=sccache'",
-    #     "-e", f"PULL_REQUEST_NUMBER={pr_number}",
-    #     "-e", f"COMMIT_SHA={commit_sha}",
-    #     "-e", "COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1",
-    #     "-e", "SCCACHE_S3_USE_SSL=true",
-    #     "-e", f"SCCACHE_BUCKET={S3_BUILDS_BUCKET}",
-    #     "-e", "SCCACHE_S3_KEY_PREFIX=ccache/sccache",
-    #     "-e", f"SCCACHE_REGION={S3_REGION}",
-    #     "-e", f"SCCACHE_ENDPOINT={S3_URL}",
-    #     "--volume", f"{workspace}:/fasttest-workspace",
-    #     "--volume", f"{repo_path}:/ClickHouse",
-    #     "--volume", f"{output_path}:/test_output",
-    #     f"{image}"
-    # ]
-
-    # for key, value in env_vars.items():
-    #     cmd.insert(-1, "-e")
-    #     cmd.insert(-1, f"{key}={value}")
-
-    # return " ".join(cmd)
 
 def process_results(result_folder: str) -> Tuple[str, str, TestResults, List[str]]:
     test_results = []  # type: TestResults
