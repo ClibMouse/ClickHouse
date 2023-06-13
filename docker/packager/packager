@@ -124,6 +124,7 @@ def parse_env_variables(
     package_type: str,
     cache: str,
     s3_bucket: str,
+    s3_endpoint: str,
     s3_directory: str,
     s3_rw_access: bool,
     clang_tidy: bool,
@@ -275,6 +276,7 @@ def parse_env_variables(
         cmake_flags.append("-DCOMPILER_CACHE=sccache")
         # see https://github.com/mozilla/sccache/blob/main/docs/S3.md
         result.append(f"SCCACHE_BUCKET={s3_bucket}")
+        result.append(f"SCCACHE_BUCKET={s3_endpoint}")
         sccache_dir = "sccache"
         if s3_directory:
             sccache_dir = f"{s3_directory}/{sccache_dir}"
@@ -401,6 +403,11 @@ def parse_args() -> argparse.Namespace:
         help="an S3 bucket used for sscache and clang-tidy-cache",
     )
     parser.add_argument(
+        "--s3-endpoint", 
+        default="https://s3.amazonaws.com", 
+        help="the custom endpoint URL for the S3-compatible object storage service"
+    )      
+    parser.add_argument(
         "--s3-directory",
         default="ccache",
         help="an S3 directory prefix used for sscache and clang-tidy-cache",
@@ -428,7 +435,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--docker-user", default=argparse.SUPPRESS, help="docker user")
     parser.add_argument(
         "--docker-password", default=argparse.SUPPRESS, help="docker password"
-    )
+    )  
+
 
     args = parser.parse_args()
 
@@ -478,6 +486,7 @@ def main():
         args.package_type,
         args.cache,
         args.s3_bucket,
+        args.s3_endpoint,
         args.s3_directory,
         args.s3_rw_access,
         args.clang_tidy,

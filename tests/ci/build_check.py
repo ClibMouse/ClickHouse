@@ -79,6 +79,7 @@ def get_packager_cmd(
     cmd += " --cache=sccache"
     cmd += " --s3-rw-access"
     cmd += f" --s3-bucket={S3_BUILDS_BUCKET}"
+    cmd += f" --s3-endpoint={S3_URL}"
 
     if "additional_pkgs" in build_config and build_config["additional_pkgs"]:
         cmd += " --additional-pkgs"
