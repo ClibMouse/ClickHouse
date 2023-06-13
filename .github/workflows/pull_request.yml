@@ -170,9 +170,6 @@ jobs:
           name: changed_images
           path: ${{ env.TEMP_PATH }}
       - name: Fast Test
-        env:
-          ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
-          SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
         run: |
           cp -r "$GITHUB_WORKSPACE" "$TEMP_PATH"
           cd "$REPO_COPY/tests/ci" && python3 fast_test_check.py
