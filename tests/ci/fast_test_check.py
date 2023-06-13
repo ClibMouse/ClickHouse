@@ -60,7 +60,7 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
         # f"-e SCCACHE_REGION={S3_REGION} "
         # f"-e SCCACHE_ENDPOINT={S3_URL} "
         f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "
-        f"--volume=/home/ubuntu/.aws:/root/.aws "  # Mount .aws directory for creds
+        f"--volume=/home/ubuntu/.aws:/root/.aws "  # Mount .aws directory
         f"--volume={output_path}:/test_output {image}"
     )
 
