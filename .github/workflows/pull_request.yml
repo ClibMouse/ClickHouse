@@ -56,8 +56,6 @@ jobs:
     # needs: CheckLabels
     runs-on: [self-hosted, style-checker]
     steps:
-      - name: test
-        run: env    
       - name: Check out repository code
         uses: ClickHouse/checkout@v1
         with:
