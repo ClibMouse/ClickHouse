@@ -103,7 +103,7 @@ def run_docker_image_with_env(
 
     cmd = (
         f"docker run --network=host --user={user} --rm {ccache_mount}"
-        f"--volume=/home/ubuntu/.aws/credentials:/root/.aws/credentials "  # Mount .aws directory        
+        # f"--volume=/home/ubuntu/.aws/credentials:/root/.aws/credentials "  # Mount .aws directory        
         f"--volume={output_dir}:/output --volume={ch_root}:/build {env_part} "
         f"{interactive} {image_name}"
     )
@@ -125,6 +125,8 @@ def parse_env_variables(
     cache: str,
     s3_bucket: str,
     s3_endpoint: str,
+    aws_access_key: str,
+    aws_secret_access_key: str,
     s3_directory: str,
     s3_rw_access: bool,
     clang_tidy: bool,
@@ -275,8 +277,10 @@ def parse_env_variables(
     if cache == "sccache":
         cmake_flags.append("-DCOMPILER_CACHE=sccache")
         # see https://github.com/mozilla/sccache/blob/main/docs/S3.md
-        result.append(f"SCCACHE_BUCKET={s3_bucket}")
-        result.append(f"SCCACHE_ENDPOINT={s3_endpoint}")
+        result.append(f"SCCACHE_BUCKET={s3_bucket} ")
+        result.append(f"SCCACHE_ENDPOINT={s3_endpoint} ")
+        result.append(f"AWS_ACCESS_KEY_ID={aws_access_key} ")
+        result.append(f"AWS_SECRET_ACCESS_KEY={aws_secret_access_key} ")                
         sccache_dir = "sccache"
         if s3_directory:
             sccache_dir = f"{s3_directory}/{sccache_dir}"
@@ -406,7 +410,15 @@ def parse_args() -> argparse.Namespace:
         "--s3-endpoint", 
         default="https://s3.amazonaws.com", 
         help="the custom endpoint URL for the S3-compatible object storage service"
-    )      
+    )
+    parser.add_argument(
+        "--aws-access-key",
+        help="an S3 directory prefix used for sscache and clang-tidy-cache",
+    )
+    parser.add_argument(
+        "--aws-secret-access-key",
+        help="an S3 directory prefix used for sscache and clang-tidy-cache",
+    )              
     parser.add_argument(
         "--s3-directory",
         default="ccache",
@@ -487,6 +499,8 @@ def main():
         args.cache,
         args.s3_bucket,
         args.s3_endpoint,
+        args.aws_access_key
+        args.aws_secret_access_key        
         args.s3_directory,
         args.s3_rw_access,
         args.clang_tidy,
