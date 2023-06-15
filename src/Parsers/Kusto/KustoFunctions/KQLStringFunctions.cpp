@@ -196,12 +196,11 @@ bool ExtractAll::convertImpl(String & out, IParser::Pos & pos)
     {
         ++pos;
         third_arg = getConvertedArgument(fn_name, pos);
+        out = "arrayMap(x -> arrayFilter((y, i) -> i in " + second_arg + ", x, arrayEnumerate(x)), extractAllGroups(" + third_arg + ", "
+            + regex + "))";
     }
-
-    if (!third_arg.empty()) // currently the captureGroups not supported
-        return false;
-
-    out = "extractAllGroups(" + second_arg + ", " + regex + ")";
+    else
+        out = "extractAllGroups(" + second_arg + ", " + regex + ")";
     return true;
 }
 
