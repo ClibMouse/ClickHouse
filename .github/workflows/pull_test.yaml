@@ -23,7 +23,7 @@ on:  # yamllint disable-line rule:truthy
   #     - 'utils/check-style/aspell-ignore/**'  
 jobs:
   DockerHubPushAarch64:
-    runs-on: [self-hosted, test-only]
+    runs-on: [self-hosted, builder]
     steps:
       - name: test
         run: env    
