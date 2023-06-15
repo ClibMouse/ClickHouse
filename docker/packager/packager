@@ -125,7 +125,6 @@ def parse_env_variables(
     cache: str,
     s3_bucket: str,
     s3_endpoint: str,
-    s3_region: str,
     s3_directory: str,
     s3_rw_access: bool,
     clang_tidy: bool,
@@ -277,8 +276,7 @@ def parse_env_variables(
         cmake_flags.append("-DCOMPILER_CACHE=sccache")
         # see https://github.com/mozilla/sccache/blob/main/docs/S3.md
         result.append(f"SCCACHE_BUCKET={s3_bucket} ")
-        result.append(f"SCCACHE_ENDPOINT={s3_endpoint} ")
-        # result.append(f"SCCACHE_REGION={s3_region} ")              
+        result.append(f"SCCACHE_ENDPOINT={s3_endpoint} ")         
         sccache_dir = "sccache"
         if s3_directory:
             sccache_dir = f"{s3_directory}/{sccache_dir}"
@@ -410,11 +408,6 @@ def parse_args() -> argparse.Namespace:
         help="the custom endpoint URL for the S3-compatible object storage service"
     )
     parser.add_argument(
-        "--s3-region", 
-        default="us-east-1", 
-        help="the custom endpoint URL for the S3-compatible object storage service"
-    )    
-    parser.add_argument(
         "--aws-access-key",
         help="an S3 directory prefix used for sscache and clang-tidy-cache",
     )
@@ -501,8 +494,7 @@ def main():
         args.package_type,
         args.cache,
         args.s3_bucket,
-        args.s3_endpoint,
-        args.s3_region,        
+        args.s3_endpoint,        
         args.s3_directory,
         args.s3_rw_access,
         args.clang_tidy,

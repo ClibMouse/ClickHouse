@@ -26,7 +26,6 @@ from env_helper import (
     DOCKER_USER,
     DOCKER_REPO,
     S3_URL,
-    S3_REGION,
 )
 from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from github_helper import GitHub
@@ -81,7 +80,6 @@ def get_packager_cmd(
     cmd += " --s3-rw-access"
     cmd += f" --s3-bucket={S3_BUILDS_BUCKET}"
     cmd += f" --s3-endpoint={S3_URL}"
-    cmd += f" --s3-region={S3_REGION}"
 
 
     if "additional_pkgs" in build_config and build_config["additional_pkgs"]:
