@@ -504,8 +504,6 @@ def main():
         args.with_binaries,
     )
     if args.docker_user:
-        print(f"docker_repo: {args.docker_repo}")
-        print(f"docker_user: {args.docker_user}")
         subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
             f"docker login {args.docker_repo} --username '{args.docker_user}' --password-stdin",
             input=args.docker_password,
