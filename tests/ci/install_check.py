@@ -37,8 +37,8 @@ from tee_popen import TeePopen
 from upload_result_helper import upload_results
 
 
-RPM_IMAGE = "{DOCKER_REPO}/clickhouse/install-rpm-test"
-DEB_IMAGE = "{DOCKER_REPO}/clickhouse/install-deb-test"
+RPM_IMAGE = f"{DOCKER_REPO}/clickhouse/install-rpm-test"
+DEB_IMAGE = f"{DOCKER_REPO}/clickhouse/install-deb-test"
 TEMP_PATH = Path(TEMP)
 LOGS_PATH = TEMP_PATH / "tests_logs"
 SUCCESS = "success"
