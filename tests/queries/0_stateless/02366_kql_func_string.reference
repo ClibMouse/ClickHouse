@@ -259,8 +259,9 @@ PINEAPPLE
 45.6
 alert
 
--- extract_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractallfunction); TODO: captureGroups not supported yet
+-- extract_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractallfunction)
 [['T','h','e'],['p','ric','e'],['P','INEAPPL','E'],['i','c','e'],['c','rea','m']]
+[['8','d'],['d','7'],['4','1'],['8','3'],['2','9']]
 
 -- extract_json (https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/extractjsonfunction)
 
