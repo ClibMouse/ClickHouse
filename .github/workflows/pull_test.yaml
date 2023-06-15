@@ -126,7 +126,7 @@ jobs:
           docker ps --all --quiet | xargs --no-run-if-empty docker rm -f ||:
           sudo rm -fr "$TEMP_PATH"
   BuilderDebAarch64:
-    needs: [DockerHubPush, FastTest, StyleCheck]
+    needs: [DockerHubPush]
     runs-on: [self-hosted, builder]
     steps:
       - name: Set envs
