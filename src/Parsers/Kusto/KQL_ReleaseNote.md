@@ -5,6 +5,7 @@
  - Corrected issues related to fractional seconds in tolong, datetime_add, datetime_part and datetime_diff.
  - Corrected an issue with timezone conversion in make_datetime.
  - Corrected an issue with hash_sha256 when an empty string is used.
+ - Corrected an issue with extract_all not accepting the capture group argument.
 
 # May, 2023  
 ## New Features
