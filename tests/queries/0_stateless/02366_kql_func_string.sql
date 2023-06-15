@@ -235,8 +235,9 @@ print extract("x=([0-9.]+)", 1, "hello x=45.6|wo" , typeof(real));
 print extract("x=([0-9.]+)", 1, "hello x=45.6|wo" , typeof(decimal));
 print extract(".*Action=(\\w+)",1, "dstPostNATPort=80 proto=tcp Action=alert");
 print '';
-print '-- extract_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractallfunction); TODO: captureGroups not supported yet';
+print '-- extract_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractallfunction)';
 Customers | project extract_all('(\\w)(\\w+)(\\w)','The price of PINEAPPLE ice cream is 20') | take 1;
+print extract_all("(\\w)(\\w+)(\\w)", dynamic([1,3]), "82b8be2d-dfa7-4bd1-8f63-24ad26d31449");
 print '';
 print '-- extract_json (https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/extractjsonfunction)';
 print extract_json('', ''); -- { serverError BAD_ARGUMENTS }
