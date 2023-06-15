@@ -3,6 +3,7 @@ FROM centos:8
 # The Dockerfile is nicely borrowed from
 # https://github.com/lionelnicolas/docker-ubuntu-systemd/blob/83aa3249146f5df264fe45353f79fc76eb1e42d7/Dockerfile
 
+
 ENV \
   LANG=C.UTF-8 \
   container=docker \
