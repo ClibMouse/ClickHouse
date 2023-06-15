@@ -3,7 +3,6 @@ FROM ubuntu:22.04
 # The Dockerfile is nicely borrowed from
 # https://github.com/lionelnicolas/docker-ubuntu-systemd/blob/83aa3249146f5df264fe45353f79fc76eb1e42d7/Dockerfile
 
-
 ENV \
   DEBIAN_FRONTEND=noninteractive \
   LANG=C.UTF-8 \
