@@ -25,6 +25,8 @@ jobs:
   DockerHubPushAarch64:
     runs-on: [self-hosted, test-only]
     steps:
+      - name: test
+        run: env    
       - name: Check out repository code
         uses: ClickHouse/checkout@v1
         with:
