@@ -12,7 +12,7 @@ stage=${stage:-}
 export LLVM_VERSION=${LLVM_VERSION:-16}
 
 # Access the GITHUB_REPOSITORY environment variable
-github_repository=${GITHUB_REPOSITORY}
+export github_repository=${GITHUB_REPOSITORY}
 
 # A variable to pass additional flags to CMake.
 # Here we explicitly default it to nothing so that bash doesn't complain about
@@ -90,7 +90,7 @@ function start_server
 function clone_root
 {
     git config --global --add safe.directory "$FASTTEST_SOURCE"
-    git clone --depth 1 https://github.com/${github_repository}.git -- "$FASTTEST_SOURCE" 2>&1 | ts '%Y-%m-%d %H:%M:%S' | tee "$FASTTEST_OUTPUT/clone_log.txt"
+    git clone --depth 1 https://github.com/"${github_repository}".git -- "$FASTTEST_SOURCE" 2>&1 | ts '%Y-%m-%d %H:%M:%S' | tee "$FASTTEST_OUTPUT/clone_log.txt"
 
     (
         cd "$FASTTEST_SOURCE"

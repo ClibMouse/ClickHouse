@@ -20,7 +20,7 @@ class Token:
 
 def get_parameter_from_ssm(name, decrypt=True, client=None):
     if VAULT_URL:
-        import hvac
+        import hvac # type: ignore
 
         if not client:
             client = hvac.Client(url=VAULT_URL, token=VAULT_TOKEN)
@@ -45,8 +45,8 @@ def get_best_robot_token(token_prefix_env_name="github_robot_token_"):
         return ROBOT_TOKEN.value
 
     def get_vault_robot_tokens():
-        import hvac
-        
+        import hvac # type: ignore
+
         client = hvac.Client(url=VAULT_URL, token=VAULT_TOKEN)
         parameters = client.secrets.kv.v2.read_secret_version(
             mount_point=VAULT_MOUNT_POINT, path=VAULT_PATH
