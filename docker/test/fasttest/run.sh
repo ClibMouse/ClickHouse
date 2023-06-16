@@ -11,6 +11,9 @@ stage=${stage:-}
 # Compiler version, normally set by Dockerfile
 export LLVM_VERSION=${LLVM_VERSION:-16}
 
+# Access the GITHUB_REPOSITORY environment variable
+github_repository=${GITHUB_REPOSITORY}
+
 # A variable to pass additional flags to CMake.
 # Here we explicitly default it to nothing so that bash doesn't complain about
 # it being undefined. Also read it as array so that we can pass an empty list
@@ -61,8 +64,8 @@ function start_server
     clickhouse-server "${opts[@]}" &>> "$FASTTEST_OUTPUT/server.log" &
     set +m
 
-    # Add a log message to indicate the server startup process has begun
-    echo "$(date '+%Y-%m-%d %H:%M:%S'): ClickHouse server startup initiated" >> "$FASTTEST_OUTPUT/server.log"
+    # # Add a log message to indicate the server startup process has begun
+    # echo "$(date '+%Y-%m-%d %H:%M:%S'): ClickHouse server startup initiated" >> "$FASTTEST_OUTPUT/server.log"
 
     for _ in {1..60}; do
         if clickhouse-client --query "select 1"; then
@@ -81,13 +84,13 @@ function start_server
     echo "ClickHouse server pid '$server_pid' started and responded"
 
     # Add a log message to indicate the server startup process has completed
-    echo "$(date '+%Y-%m-%d %H:%M:%S'): ClickHouse server startup completed" >> "$FASTTEST_OUTPUT/server.log"    
+    # echo "$(date '+%Y-%m-%d %H:%M:%S'): ClickHouse server startup completed" >> "$FASTTEST_OUTPUT/server.log"    
 }
 
 function clone_root
 {
     git config --global --add safe.directory "$FASTTEST_SOURCE"
-    git clone --depth 1 https://github.com/ClibMouse/ClickHouse.git -- "$FASTTEST_SOURCE" 2>&1 | ts '%Y-%m-%d %H:%M:%S' | tee "$FASTTEST_OUTPUT/clone_log.txt"
+    git clone --depth 1 https://github.com/${github_repository}/ClickHouse.git -- "$FASTTEST_SOURCE" 2>&1 | ts '%Y-%m-%d %H:%M:%S' | tee "$FASTTEST_OUTPUT/clone_log.txt"
 
     (
         cd "$FASTTEST_SOURCE"
