@@ -20,7 +20,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         },
         {
             "print res = base64_decode_tostring('S3VzdG8====')",
-            "SELECT IF((length('S3VzdG8====') % 4) != 0, NULL, IF(countMatches(substring('S3VzdG8====', 1, length('S3VzdG8====') - 2), '=') > 0, NULL, tryBase64Decode('S3VzdG8===='))) AS res"
+            "SELECT IF((length('S3VzdG8====') % 4) != 0, NULL, IF(countMatches(substring('S3VzdG8====', 1, length('S3VzdG8====') - 2), '=') > 0, NULL, IF(isValidUTF8(tryBase64Decode('S3VzdG8====') AS decoded_str), decoded_str, NULL))) AS res"
         },
         {
             "print replace_regex('Hello, World!', '.', '\\0\\0')",
