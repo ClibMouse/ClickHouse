@@ -10,7 +10,6 @@ from typing import List, Optional
 
 SCRIPT_PATH = Path(__file__).absolute()
 IMAGE_TYPE = "binary"
-# IMAGE_NAME = f"{args.docker_repo}/clickhouse/{IMAGE_TYPE}-builder"
 
 
 class BuildException(Exception):
@@ -81,6 +80,7 @@ def run_docker_image_with_env(
     env_variables: List[str],
     ch_root: Path,
     ccache_dir: Optional[Path],
+    docker_repo: str,
 ):
     output_dir.mkdir(parents=True, exist_ok=True)
     env_part = " -e ".join(env_variables)
@@ -104,7 +104,7 @@ def run_docker_image_with_env(
     cmd = (
         f"docker run --network=host --user={user} --rm {ccache_mount}"
         f"--volume={output_dir}:/output --volume={ch_root}:/build {env_part} "
-        f"--volume=/home/ubuntu/.aws/credentials:/.aws/credentials "  # Mount .aws directory
+        f"--volume=/home/ubuntu/.aws/credentials:/.aws/credentials " if docker_repo != "docker.io" else 'echo "No need to mount .aws directory"'
         f"{interactive} {image_name}"
     )
 
@@ -275,8 +275,8 @@ def parse_env_variables(
     if cache == "sccache":
         cmake_flags.append("-DCOMPILER_CACHE=sccache")
         # see https://github.com/mozilla/sccache/blob/main/docs/S3.md
-        result.append(f"SCCACHE_BUCKET={s3_bucket} ")
-        result.append(f"SCCACHE_ENDPOINT={s3_endpoint} ")
+        result.append(f"SCCACHE_BUCKET={s3_bucket}")
+        result.append(f"SCCACHE_ENDPOINT={s3_endpoint}")
         sccache_dir = "sccache"
         if s3_directory:
             sccache_dir = f"{s3_directory}/{sccache_dir}"
@@ -518,6 +518,7 @@ def main():
         env_prepared,
         ch_root,
         args.ccache_dir,
+        args.docker_repo,
     )
     logging.info("Output placed into %s", args.output_dir)
 
