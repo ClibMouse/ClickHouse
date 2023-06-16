@@ -309,6 +309,7 @@ S3VzdG8x
 
 Kusto1
 \N
+\N
 -- parse_url() same as ADX
 {"Scheme":"scheme","Host":"host","Port":"1234","Path":"/this/is/a/path","Username":"username","Password":"password","Query Parameters":{"k1":"v1","k2":"v2"},"Fragment":"fragment"}
 {"Scheme":"","Host":"","Port":"","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
