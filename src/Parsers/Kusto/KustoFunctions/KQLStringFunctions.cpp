@@ -42,9 +42,8 @@ bool Base64DecodeToString::convertImpl(String & out, IParser::Pos & pos)
     const String str = getConvertedArgument(fn_name, pos);
 
     out = std::format(
-        "IF ((length({0}) % 4) != 0, NULL, IF (countMatches(substring({0}, 1, length({0}) - 2), '=') > 0, NULL, IF(isValidUTF8(tryBase64Decode({0}) AS decoded_str_{1}),decoded_str_{1}, NULL)))",
-        str,
-        generateUniqueIdentifier());
+        "IF ((length({0}) % 4) != 0, NULL, IF (countMatches(substring({0}, 1, length({0}) - 2), '=') > 0, NULL, IF(isValidUTF8(tryBase64Decode({0}) AS decoded_str),decoded_str, NULL)))",
+        str);
 
     return true;
 }
