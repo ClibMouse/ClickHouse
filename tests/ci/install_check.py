@@ -272,7 +272,7 @@ def main():
         input=get_parameter_from_ssm("dockerhub_robot_password"),
         encoding="utf-8",
         shell=True,
-    )    
+    )
 
     if CI:
         gh = Github(get_best_robot_token(), per_page=100)
