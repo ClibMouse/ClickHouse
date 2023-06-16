@@ -57,9 +57,8 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
         f"-e SCCACHE_ENDPOINT={S3_URL} "
         f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "
         f"--volume=/home/ubuntu/.aws/credentials:/root/.aws/credentials "
-        if DOCKER_REPO != "docker.io"
-        else 'echo "No need to mount .aws directory"'  # Mount .aws directory
-        f"--volume={output_path}:/test_output {image}"
+        f"--volume={output_path}:/test_output "
+        f"{image}" if DOCKER_REPO != "docker.io" else 'echo "No need to mount .aws directory"'
     )
 
 
