@@ -2,7 +2,17 @@
 
 #include <Parsers/Kusto/ParserKQLStatement.h>
 
-INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
+INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_IP, ParserRegexTest,
+    ::testing::Combine(
+        ::testing::Values(std::make_shared<DB::ParserKQLStatement>()),
+        ::testing::ValuesIn(std::initializer_list<ParserTestCase>{
+        {
+            "print res = base64_decode_tostring('S3VzdG8====')",
+            R"(SELECT IF\(\(length\(\'S3VzdG8====\'\) % 4\) != 0, NULL, IF\(countMatches\(substring\(\'S3VzdG8====\', 1, length\(\'S3VzdG8====\'\) - 2\), \'=\'\) > 0, NULL, IF\(isValidUTF8\(tryBase64Decode\(\'S3VzdG8====\'\) AS decoded_str_\d+\), decoded_str_\d+, NULL\)\)\) AS res)"
+        },
+})));
+
+INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserTest,
     ::testing::Combine(
         ::testing::Values(std::make_shared<DB::ParserKQLStatement>()),
         ::testing::ValuesIn(std::initializer_list<ParserTestCase>{
@@ -17,10 +27,6 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserKQLTest,
         {
             "print base64_decode_toarray('S3VzdG8=')",
             "SELECT IF((length('S3VzdG8=') % 4) != 0, [NULL], IF(length(tryBase64Decode('S3VzdG8=')) = 0, [NULL], IF(countMatches(substring('S3VzdG8=', 1, length('S3VzdG8=') - 2), '=') > 0, [NULL], arrayMap(x -> reinterpretAsUInt8(x), splitByRegexp('', base64Decode(assumeNotNull(IF(length(tryBase64Decode('S3VzdG8=')) = 0, '', 'S3VzdG8=')))))))) AS print_0"
-        },
-        {
-            "print res = base64_decode_tostring('S3VzdG8====')",
-            "SELECT IF((length('S3VzdG8====') % 4) != 0, NULL, IF(countMatches(substring('S3VzdG8====', 1, length('S3VzdG8====') - 2), '=') > 0, NULL, IF(isValidUTF8(tryBase64Decode('S3VzdG8====') AS decoded_str), decoded_str, NULL))) AS res"
         },
         {
             "print replace_regex('Hello, World!', '.', '\\0\\0')",
