@@ -12,7 +12,7 @@ stage=${stage:-}
 export LLVM_VERSION=${LLVM_VERSION:-16}
 
 # Access the GITHUB_REPOSITORY environment variable
-export github_repository=${GITHUB_REPOSITORY:=ClickHouse/ClickHouse}
+export github_repository=${GITHUB_REPOSITORY:-ClickHouse/ClickHouse}
 
 # A variable to pass additional flags to CMake.
 # Here we explicitly default it to nothing so that bash doesn't complain about
