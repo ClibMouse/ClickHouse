@@ -7,7 +7,7 @@ import boto3  # type: ignore
 from github import Github
 from github.AuthenticatedUser import AuthenticatedUser
 
-from vault_env import VAULT_URL, VAULT_TOKEN, VAULT_PATH, VAULT_MOUNT_POINT, S3_REGION
+from env_helper2 import VAULT_URL, VAULT_TOKEN, VAULT_PATH, VAULT_MOUNT_POINT, S3_REGION
 
 if VAULT_URL:
     import hvac  # type: ignore
