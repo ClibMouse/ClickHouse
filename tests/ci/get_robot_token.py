@@ -7,8 +7,10 @@ import boto3  # type: ignore
 from github import Github
 from github.AuthenticatedUser import AuthenticatedUser
 
-from vault_env import VAULT_URL, VAULT_TOKEN, VAULT_PATH, VAULT_MOUNT_POINT
-from env_helper import S3_REGION
+from vault_env import VAULT_URL, VAULT_TOKEN, VAULT_PATH, VAULT_MOUNT_POINT, S3_REGION
+
+if VAULT_URL:
+    import hvac  # type: ignore
 
 
 @dataclass
@@ -20,8 +22,6 @@ class Token:
 
 def get_parameter_from_ssm(name, decrypt=True, client=None):
     if VAULT_URL:
-        import hvac  # type: ignore
-
         if not client:
             client = hvac.Client(url=VAULT_URL, token=VAULT_TOKEN)
         parameter = client.secrets.kv.v2.read_secret_version(
@@ -45,8 +45,6 @@ def get_best_robot_token(token_prefix_env_name="github_robot_token_"):
         return ROBOT_TOKEN.value
 
     def get_vault_robot_tokens():
-        import hvac  # type: ignore
-
         client = hvac.Client(url=VAULT_URL, token=VAULT_TOKEN)
         parameters = client.secrets.kv.v2.read_secret_version(
             mount_point=VAULT_MOUNT_POINT, path=VAULT_PATH
@@ -76,7 +74,6 @@ def get_best_robot_token(token_prefix_env_name="github_robot_token_"):
             values.append(value)
         return values
 
-    client = None
     values = []
 
     if VAULT_URL:
