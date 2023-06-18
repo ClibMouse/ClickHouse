@@ -27,8 +27,8 @@ from commit_status_helper import (
 )
 from docker_pull_helper import get_images_with_versions
 from download_release_packages import download_last_release
-from env_helper import TEMP_PATH, REPO_COPY, REPORTS_PATH
-from get_robot_token import get_best_robot_token
+from env_helper import TEMP_PATH, REPO_COPY, REPORTS_PATH, DOCKER_REPO, DOCKER_USER
+from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from pr_info import PRInfo
 from report import TestResults, read_test_results
 from s3_helper import S3Helper
@@ -40,17 +40,17 @@ from upload_result_helper import upload_results
 # When update, update
 # integration/ci-runner.py:ClickhouseIntegrationTestsRunner.get_images_names too
 IMAGES = [
-    "clickhouse/integration-tests-runner",
-    "clickhouse/mysql-golang-client",
-    "clickhouse/mysql-java-client",
-    "clickhouse/mysql-js-client",
-    "clickhouse/mysql-php-client",
-    "clickhouse/postgresql-java-client",
-    "clickhouse/integration-test",
-    "clickhouse/kerberos-kdc",
-    "clickhouse/kerberized-hadoop",
-    "clickhouse/integration-helper",
-    "clickhouse/dotnet-client",
+    f"{DOCKER_REPO}/clickhouse/integration-tests-runner",
+    f"{DOCKER_REPO}/clickhouse/mysql-golang-client",
+    f"{DOCKER_REPO}/clickhouse/mysql-java-client",
+    f"{DOCKER_REPO}/clickhouse/mysql-js-client",
+    f"{DOCKER_REPO}/clickhouse/mysql-php-client",
+    f"{DOCKER_REPO}/clickhouse/postgresql-java-client",
+    f"{DOCKER_REPO}/clickhouse/integration-test",
+    f"{DOCKER_REPO}/clickhouse/kerberos-kdc",
+    f"{DOCKER_REPO}/clickhouse/kerberized-hadoop",
+    f"{DOCKER_REPO}/clickhouse/integration-helper",
+    f"{DOCKER_REPO}/clickhouse/dotnet-client",
 ]
 
 
@@ -205,6 +205,13 @@ def main():
     if rerun_helper.is_already_finished_by_status():
         logging.info("Check is already finished according to github status, exiting")
         sys.exit(0)
+
+    subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+        f"docker login {DOCKER_REPO} --username '{DOCKER_USER}' --password-stdin",
+        input=get_parameter_from_ssm("dockerhub_robot_password"),
+        encoding="utf-8",
+        shell=True,
+    )
 
     images = get_images_with_versions(reports_path, IMAGES)
     images_with_versions = {i.name: i.version for i in images}

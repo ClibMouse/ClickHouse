@@ -309,7 +309,7 @@ def main():
         input=get_parameter_from_ssm("dockerhub_robot_password"),
         encoding="utf-8",
         shell=True,
-    )            
+    )
 
     image_name = get_image_name(check_name)
     docker_image = get_image_with_version(reports_path, image_name)
