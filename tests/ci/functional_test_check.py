@@ -30,8 +30,8 @@ from commit_status_helper import (
 )
 from docker_pull_helper import get_image_with_version
 from download_release_packages import download_last_release
-from env_helper import TEMP_PATH, REPO_COPY, REPORTS_PATH
-from get_robot_token import get_best_robot_token
+from env_helper import TEMP_PATH, REPO_COPY, REPORTS_PATH, DOCKER_REPO, DOCKER_USER
+from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from pr_info import FORCE_TESTS_LABEL, PRInfo
 from report import TestResults, read_test_results
 from s3_helper import S3Helper
@@ -66,9 +66,9 @@ def get_additional_envs(check_name, run_by_hash_num, run_by_hash_total):
 
 def get_image_name(check_name):
     if "stateless" in check_name.lower():
-        return "clickhouse/stateless-test"
+        return f"{DOCKER_REPO}/clickhouse/stateless-test"
     if "stateful" in check_name.lower():
-        return "clickhouse/stateful-test"
+        return f"{DOCKER_REPO}/clickhouse/stateful-test"
     else:
         raise Exception(f"Cannot deduce image name based on check name {check_name}")
 
@@ -303,6 +303,13 @@ def main():
                     report_url="null",
                 )
             sys.exit(0)
+
+    subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+        f"docker login {DOCKER_REPO} --username '{DOCKER_USER}' --password-stdin",
+        input=get_parameter_from_ssm("dockerhub_robot_password"),
+        encoding="utf-8",
+        shell=True,
+    )            
 
     image_name = get_image_name(check_name)
     docker_image = get_image_with_version(reports_path, image_name)
