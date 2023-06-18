@@ -114,13 +114,14 @@ jobs:
         with:
           name: changed_images
           path: ${{ runner.temp }}/changed_images.json
-  # StyleCheck:
-  #   needs: DockerHubPush
-  #   runs-on: [self-hosted, builder]
-  #   # We need additional `&& ! cancelled()` to have the job being able to cancel
-  #   if: ${{ success() || failure() || ( always() && ! cancelled() ) }}
-  #   steps:
-  #     - name: Set envs
+  StyleCheck:
+    needs: DockerHubPush
+    runs-on: [self-hosted, builder]
+    # We need additional `&& ! cancelled()` to have the job being able to cancel
+    if: ${{ success() || failure() || ( always() && ! cancelled() ) }}
+    steps:
+      - name: Set envs
+        run: echo "hi"
   #       run: |
   #         cat >> "$GITHUB_ENV" << 'EOF'
   #         TEMP_PATH=${{ runner.temp }}/style_check
@@ -245,7 +246,7 @@ jobs:
 # #################################### ORDINARY BUILDS ####################################
 # #########################################################################################
   BuilderDebRelease:
-    needs: [DockerHubPush, FastTest, StyleCheck]
+    needs: [DockerHubPush, FastTest]
     runs-on: [self-hosted, builder]
     steps:
       - name: Set envs
