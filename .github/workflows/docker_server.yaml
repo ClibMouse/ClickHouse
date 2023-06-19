@@ -11,7 +11,7 @@ on:  # yamllint disable-line rule:truthy
 ##########################################################################################
 jobs:
   DockerServerImages:
-    runs-on: [self-hosted, build]
+    runs-on: [self-hosted, docker]
     steps:
       - name: Check value
         run: |
