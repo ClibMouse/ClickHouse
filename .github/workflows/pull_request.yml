@@ -921,8 +921,6 @@ jobs:
       - BuilderDebRelease
       - BuilderDebAarch64
     runs-on: [self-hosted, style-checker]
-    # env:
-    #   DOCKER_REPO: ${{ env.DOCKER_REPO }}
     steps:
       - name: Check out repository code
         uses: ClickHouse/checkout@v1
