@@ -24,6 +24,7 @@ on:  # yamllint disable-line rule:truthy
 ##################################### SMALL CHECKS #######################################
 ##########################################################################################
 jobs:
+
   DockerHubPushAarch64:
     # needs: CheckLabels
     runs-on: [self-hosted, style-checker]
