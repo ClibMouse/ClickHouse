@@ -1,6 +1,7 @@
 FROM ubuntu:20.04 AS glibc-donor
 ARG TARGETARCH
 
+
 RUN arch=${TARGETARCH:-amd64} \
     && case $arch in \
         amd64) rarch=x86_64 ;; \

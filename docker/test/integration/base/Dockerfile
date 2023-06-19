@@ -6,6 +6,7 @@ FROM $DOCKER_REPO/clickhouse/test-base:$FROM_TAG
 
 SHELL ["/bin/bash", "-c"]
 
+
 RUN apt-get update \
     && env DEBIAN_FRONTEND=noninteractive apt-get -y install \
         bsdutils \

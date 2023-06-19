@@ -12,6 +12,7 @@ RUN rm -rf \
         /tmp/* \
 RUN apt-get clean
 
+
 ARG ver=5.1.46
 RUN curl -L -o /mysql-connector-java-${ver}.jar https://repo1.maven.org/maven2/mysql/mysql-connector-java/${ver}/mysql-connector-java-${ver}.jar
 ENV CLASSPATH=$CLASSPATH:/mysql-connector-java-${ver}.jar

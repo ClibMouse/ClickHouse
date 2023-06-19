@@ -12,4 +12,5 @@ RUN touch /config.sh
 #   volumes: /some_path/my_kerberos_config.sh:/config.sh:ro
 
 
+
 ENTRYPOINT ["/bin/bash", "/config.sh"]

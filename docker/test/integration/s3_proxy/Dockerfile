@@ -1,6 +1,7 @@
 # docker build -t clickhouse/s3-proxy .
 FROM nginx:alpine
 
+
 COPY run.sh /run.sh
 COPY server.crt /etc/ssl/certs/server.crt
 COPY server.key /etc/ssl/certs/server.key
