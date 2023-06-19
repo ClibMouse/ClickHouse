@@ -105,8 +105,9 @@ def run_docker_image_with_env(
         f"docker run --network=host --user={user} --rm {ccache_mount}"
         f"--volume={output_dir}:/output --volume={ch_root}:/build {env_part} "
         f"--volume=/home/ubuntu/.aws/credentials:/.aws/credentials "
-        if docker_repo != "docker.io"
-        else 'echo "No need to mount .aws directory"' f"{interactive} {image_name}"
+        # if docker_repo != "docker.io"
+        # else 'echo "No need to mount .aws directory"' 
+        f"{interactive} {image_name}"
     )
 
     logging.info("Will build ClickHouse pkg with cmd: '%s'", cmd)
