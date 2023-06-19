@@ -932,7 +932,6 @@ jobs:
       - name: Check docker clickhouse/clickhouse-server building
         run: |
           cd "$GITHUB_WORKSPACE/tests/ci"
-          # DOCKER_REPO="${DOCKER_REPO:-docker.io}"
           python3 docker_server.py --release-type head --no-push \
             --image-repo $DOCKER_REPO/clickhouse/clickhouse-server --image-path docker/server
           python3 docker_server.py --release-type head --no-push \
