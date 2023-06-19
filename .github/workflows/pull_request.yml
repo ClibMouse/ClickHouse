@@ -921,8 +921,8 @@ jobs:
       - BuilderDebRelease
       - BuilderDebAarch64
     runs-on: [self-hosted, style-checker]
-    # env:
-    #   DOCKER_REPO: ${{ env.DOCKER_REPO ?? 'docker.io' }}
+    env:
+      DOCKER_REPO: ${{ env.DOCKER_REPO }}
     steps:
       - name: Check out repository code
         uses: ClickHouse/checkout@v1
@@ -932,10 +932,11 @@ jobs:
       - name: Check docker clickhouse/clickhouse-server building
         run: |
           cd "$GITHUB_WORKSPACE/tests/ci"
+          DOCKER_REPO="${DOCKER_REPO:-docker.io}"
           python3 docker_server.py --release-type head --no-push \
-            --image-repo docker.io/clickhouse/clickhouse-server --image-path docker/server
+            --image-repo $DOCKER_REPO/clickhouse/clickhouse-server --image-path docker/server
           python3 docker_server.py --release-type head --no-push \
-            --image-repo docker.io/clickhouse/clickhouse-keeper --image-path docker/keeper
+            --image-repo $DOCKER_REPO/clickhouse/clickhouse-keeper --image-path docker/keeper
       - name: Cleanup
         if: always()
         run: |
