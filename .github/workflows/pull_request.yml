@@ -920,7 +920,7 @@ jobs:
     needs:
       - BuilderDebRelease
       - BuilderDebAarch64
-    runs-on: [self-hosted, style-checker]
+    runs-on: [self-hosted, ibm-vm]
     steps:
       - name: Check out repository code
         uses: ClickHouse/checkout@v1
