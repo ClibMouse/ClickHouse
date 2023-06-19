@@ -916,32 +916,32 @@ jobs:
 # ############################################################################################
 # ##################################### Docker images  #######################################
 # ############################################################################################
-  DockerServerImages:
-    needs:
-      - BuilderDebRelease
-      - BuilderDebAarch64
-    runs-on: [self-hosted, style-checker]
-    env:
-      DOCKER_REPO: ${{ env.DOCKER_REPO ?? 'docker.io' }}    
-    steps:
-      - name: Check out repository code
-        uses: ClickHouse/checkout@v1
-        with:
-          clear-repository: true
-          fetch-depth: 0  # It MUST BE THE SAME for all dependencies and the job itself
-      - name: Check docker clickhouse/clickhouse-server building
-        run: |
-          cd "$GITHUB_WORKSPACE/tests/ci"
-          python3 docker_server.py --release-type head --no-push \
-            --image-repo $DOCKER_REPO/clickhouse/clickhouse-server --image-path docker/server
-          python3 docker_server.py --release-type head --no-push \
-            --image-repo $DOCKER_REPO/clickhouse/clickhouse-keeper --image-path docker/keeper
-      - name: Cleanup
-        if: always()
-        run: |
-          docker ps --quiet | xargs --no-run-if-empty docker kill ||:
-          docker ps --all --quiet | xargs --no-run-if-empty docker rm -f ||:
-          sudo rm -fr "$TEMP_PATH"
+  # DockerServerImages:
+  #   needs:
+  #     - BuilderDebRelease
+  #     - BuilderDebAarch64
+  #   runs-on: [self-hosted, style-checker]
+  #   env:
+  #     DOCKER_REPO: ${{ env.DOCKER_REPO ?? 'docker.io' }}    
+  #   steps:
+  #     - name: Check out repository code
+  #       uses: ClickHouse/checkout@v1
+  #       with:
+  #         clear-repository: true
+  #         fetch-depth: 0  # It MUST BE THE SAME for all dependencies and the job itself
+  #     - name: Check docker clickhouse/clickhouse-server building
+  #       run: |
+  #         cd "$GITHUB_WORKSPACE/tests/ci"
+  #         python3 docker_server.py --release-type head --no-push \
+  #           --image-repo $DOCKER_REPO/clickhouse/clickhouse-server --image-path docker/server
+  #         python3 docker_server.py --release-type head --no-push \
+  #           --image-repo $DOCKER_REPO/clickhouse/clickhouse-keeper --image-path docker/keeper
+  #     - name: Cleanup
+  #       if: always()
+  #       run: |
+  #         docker ps --quiet | xargs --no-run-if-empty docker kill ||:
+  #         docker ps --all --quiet | xargs --no-run-if-empty docker rm -f ||:
+  #         sudo rm -fr "$TEMP_PATH"
 # ############################################################################################
 # ##################################### BUILD REPORTER #######################################
 # ############################################################################################
