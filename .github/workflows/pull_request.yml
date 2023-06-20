@@ -113,6 +113,7 @@ jobs:
         with:
           name: changed_images
           path: ${{ runner.temp }}/changed_images.json
+          
 #   StyleCheck:
 #     needs: DockerHubPush
 #     runs-on: [self-hosted, style-checker]
