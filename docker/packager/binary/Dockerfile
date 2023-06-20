@@ -111,9 +111,6 @@ COPY --from=cctools /cctools /cctools
 RUN mkdir /workdir && chmod 777 /workdir
 WORKDIR /workdir
 
-ARG GITHUB_REPOSITORY
-
-ENV GITHUB_REPOSITORY=$GITHUB_REPOSITORY
 
 COPY build.sh /
 CMD ["bash", "-c", "/build.sh 2>&1"]

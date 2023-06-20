@@ -5,21 +5,11 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/ClickHouse/ClickHouse/programs/diagnostics/cmd/params"
+	"github.com/ClickHouse/ClickHouse/programs/diagnostics/internal/platform/config"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 )
-
-func main() {
-	githubRepository := os.Getenv("GITHUB_REPOSITORY")
-	// if githubRepository == "" {
-	// 	log.Fatal("GITHUB_REPOSITORY environment variable is not set")
-
-	imports := fmt.Sprintf(`
-		"github.com/%s/programs/diagnostics/cmd/params"
-		"github.com/%s/programs/diagnostics/internal/platform/config"
-	`, githubRepository, githubRepository)
-
-}
 
 var conf = map[string]config.Configuration{
 	"config": {

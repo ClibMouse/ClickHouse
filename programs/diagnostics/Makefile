@@ -5,7 +5,7 @@ BUILD_DIR=dist
 
 TIMESTAMP := $(shell date +%Y%m%d-%H%M)
 COMMIT := $(shell git rev-parse --short HEAD)
-MODULE := github.com/${GITHUB_REPOSITORY}/programs/diagnostics
+MODULE := github.com/ClickHouse/ClickHouse/programs/diagnostics
 VERSION := v.dev-${TIMESTAMP}
 DEVLDFLAGS = -ldflags "-X ${MODULE}/cmd.Version=${VERSION} -X ${MODULE}/cmd.Commit=${COMMIT}"
 

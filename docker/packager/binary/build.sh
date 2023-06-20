@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -x -e
 
-github_repository=${GITHUB_REPOSITORY}
-
 exec &> >(ts)
 
 ccache_status () {
@@ -41,7 +39,7 @@ if [ -n "$MAKE_DEB" ]; then
       # We need to check if clickhouse-diagnostics is fine and build it
       (
         cd /build/programs/diagnostics
-        GITHUB_REPOSITORY="${github_repository}" make test-no-docker
+        make test-no-docker
         GOARCH="${DEB_ARCH}" CGO_ENABLED=0 make VERSION="$VERSION_STRING" build
         mv clickhouse-diagnostics ..
       )

@@ -4,23 +4,13 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ClickHouse/ClickHouse/programs/diagnostics/cmd/params"
+	"github.com/ClickHouse/ClickHouse/programs/diagnostics/internal/collectors"
+	"github.com/ClickHouse/ClickHouse/programs/diagnostics/internal/outputs"
+	"github.com/ClickHouse/ClickHouse/programs/diagnostics/internal/platform/config"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
-
-func main() {
-	githubRepository := os.Getenv("GITHUB_REPOSITORY")
-	// if githubRepository == "" {
-	// 	log.Fatal("GITHUB_REPOSITORY environment variable is not set")
-
-	imports := fmt.Sprintf(`
-		"github.com/%s/programs/diagnostics/cmd/params"
-		"github.com/%s/programs/diagnostics/internal/collectors"
-		"github.com/%s/programs/diagnostics/internal/outputs"
-		"github.com/%s/programs/diagnostics/internal/platform/config"
-	`, githubRepository, githubRepository, githubRepository, githubRepository)
-
-}
 
 var cHelp = params.StringOptionsVar{
 	Options: collectors.GetCollectorNames(false),
