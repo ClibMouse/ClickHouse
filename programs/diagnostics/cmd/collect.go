@@ -1,24 +1,38 @@
 package cmd
 
+
 import (
 	"fmt"
 	"os"
 	"strings"
 
-	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/cmd/params"
-	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal"
-	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/collectors"
-	_ "github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/collectors/clickhouse"
-	_ "github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/collectors/system"
-	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/outputs"
-	_ "github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/outputs/file"
-	_ "github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/outputs/terminal"
-	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/platform/utils"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
+
+func main() {
+	githubRepository := os.Getenv("GITHUB_REPOSITORY")
+	// if githubRepository == "" {
+	// 	log.Fatal("GITHUB_REPOSITORY environment variable is not set")
+
+	imports := fmt.Sprintf(`
+		"github.com/%s/programs/diagnostics/cmd/params"
+		"github.com/%s/programs/diagnostics/internal"
+		"github.com/%s/programs/diagnostics/internal/collectors"
+		_ "github.com/%s/programs/diagnostics/internal/collectors/clickhouse"
+		_ "github.com/%s/programs/diagnostics/internal/collectors/system"
+		"github.com/%s/programs/diagnostics/internal/outputs"
+		_ "github.com/%s/programs/diagnostics/internal/outputs/file"
+		_ "github.com/%s/programs/diagnostics/internal/outputs/terminal"
+		"github.com/%s/programs/diagnostics/internal/platform/utils"
+	`, githubRepository, githubRepository, githubRepository, githubRepository, githubRepository, githubRepository, githubRepository, githubRepository)
+
+	// Rest of your code
+}
+
+
 
 var id string
 var output = params.StringOptionsVar{
