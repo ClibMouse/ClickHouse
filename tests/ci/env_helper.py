@@ -29,7 +29,6 @@ RUNNER_TEMP = os.getenv("RUNNER_TEMP", p.abspath(p.join(module_dir, "./tmp")))
 S3_BUILDS_BUCKET = os.getenv("S3_BUILDS_BUCKET", "clickhouse-builds")
 S3_TEST_REPORTS_BUCKET = os.getenv("S3_TEST_REPORTS_BUCKET", "clickhouse-test-reports")
 S3_URL = os.getenv("S3_URL", "https://s3.amazonaws.com")
-S3_REGION = os.getenv("S3_REGION", "us-east-1")
 S3_DOWNLOAD = os.getenv("S3_DOWNLOAD", S3_URL)
 S3_ARTIFACT_DOWNLOAD_TEMPLATE = (
     f"{S3_DOWNLOAD}/{S3_BUILDS_BUCKET}/"

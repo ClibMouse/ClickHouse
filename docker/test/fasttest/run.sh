@@ -64,9 +64,6 @@ function start_server
     clickhouse-server "${opts[@]}" &>> "$FASTTEST_OUTPUT/server.log" &
     set +m
 
-    # Add a log message to indicate the server startup process has begun
-    echo "$(date '+%Y-%m-%d %H:%M:%S'): ClickHouse server startup initiated" >> "$FASTTEST_OUTPUT/server.log"
-
     for _ in {1..60}; do
         if clickhouse-client --query "select 1"; then
             break
@@ -81,10 +78,7 @@ function start_server
 
     local server_pid
     server_pid="$(cat "$FASTTEST_DATA/clickhouse-server.pid")"
-    echo "ClickHouse server pid '$server_pid' started and responded"
-
-    # Add a log message to indicate the server startup process has completed
-    echo "$(date '+%Y-%m-%d %H:%M:%S'): ClickHouse server startup completed" >> "$FASTTEST_OUTPUT/server.log"    
+    echo "ClickHouse server pid '$server_pid' started and responded" 
 }
 
 function clone_root

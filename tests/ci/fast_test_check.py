@@ -45,6 +45,12 @@ csv.field_size_limit(sys.maxsize)
 
 
 def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, image):
+
+    if DOCKER_REPO != "docker.io":
+        aws_volume = f"--volume=/home/ubuntu/.aws/credentials:/.aws/credentials"
+    else:
+        aws_volume = ""
+    
     return (
         f"docker run --cap-add=SYS_PTRACE "
         "--network=host "  # required to get access to IAM credentials
@@ -56,11 +62,9 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
         f"-e SCCACHE_BUCKET={S3_BUILDS_BUCKET} -e SCCACHE_S3_KEY_PREFIX=ccache/sccache "
         f"-e SCCACHE_ENDPOINT={S3_URL} "
         f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "
-        f"--volume=/home/ubuntu/.aws/credentials:/root/.aws/credentials "
+        f"{aws_volume} "
         f"--volume={output_path}:/test_output "
         f"{image}"
-        if DOCKER_REPO != "docker.io"
-        else 'echo "No need to mount .aws directory"'
     )
 
 

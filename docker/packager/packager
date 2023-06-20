@@ -112,12 +112,6 @@ def run_docker_image_with_env(
         cmd += " echo ''"
 
     cmd += f"{interactive} {image_name}"
-    
-    #     f"--volume=/home/ubuntu/.aws/credentials:/.aws/credentials "
-    #     # if docker_repo != "docker.io"
-    #     # else 'echo "No need to mount .aws directory"' 
-    #     f"{interactive} {image_name}"
-    # )
 
     logging.info("Will build ClickHouse pkg with cmd: '%s'", cmd)
 
@@ -417,14 +411,6 @@ def parse_args() -> argparse.Namespace:
         "--s3-endpoint",
         default="https://s3.amazonaws.com",
         help="the custom endpoint URL for the S3-compatible object storage service",
-    )
-    parser.add_argument(
-        "--aws-access-key",
-        help="an S3 directory prefix used for sscache and clang-tidy-cache",
-    )
-    parser.add_argument(
-        "--aws-secret-access-key",
-        help="an S3 directory prefix used for sscache and clang-tidy-cache",
     )
     parser.add_argument(
         "--s3-directory",
