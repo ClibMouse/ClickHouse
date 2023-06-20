@@ -17,7 +17,15 @@ from build_check import get_release_or_pr
 from clickhouse_helper import ClickHouseHelper, prepare_tests_results_for_clickhouse
 from commit_status_helper import format_description, get_commit, post_commit_status
 from docker_images_check import DockerImage
-from env_helper import CI, GITHUB_RUN_URL, RUNNER_TEMP, S3_BUILDS_BUCKET, S3_DOWNLOAD
+from env_helper import (
+    CI,
+    GITHUB_RUN_URL,
+    RUNNER_TEMP,
+    S3_BUILDS_BUCKET,
+    S3_DOWNLOAD,
+    DOCKER_USER,
+    DOCKER_REPO,
+)
 from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from git_helper import Git
 from pr_info import PRInfo
@@ -337,12 +345,12 @@ def main():
 
     if args.push:
         subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
-            "docker login --username 'robotclickhouse' --password-stdin",
+            f"docker login {DOCKER_REPO} --username '{DOCKER_USER}' --password-stdin",
             input=get_parameter_from_ssm("dockerhub_robot_password"),
             encoding="utf-8",
             shell=True,
         )
-        NAME = f"Docker image {image.repo} build and push"
+        NAME = f"Docker image {image.repo} build and push (actions)"
 
     logging.info("Following tags will be created: %s", ", ".join(tags))
     status = "success"

@@ -18,8 +18,8 @@ from clickhouse_helper import (
 )
 from commit_status_helper import RerunHelper, get_commit, post_commit_status
 from docker_pull_helper import get_image_with_version
-from env_helper import TEMP_PATH, REPO_COPY, REPORTS_PATH
-from get_robot_token import get_best_robot_token
+from env_helper import TEMP_PATH, REPO_COPY, REPORTS_PATH, DOCKER_REPO, DOCKER_USER
+from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from pr_info import PRInfo
 from report import TestResults, read_test_results
 from s3_helper import S3Helper
@@ -131,6 +131,13 @@ def run_stress_test(docker_image_name):
         logging.info("Check is already finished according to github status, exiting")
         sys.exit(0)
 
+    subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+        f"docker login {DOCKER_REPO} --username '{DOCKER_USER}' --password-stdin",
+        input=get_parameter_from_ssm("dockerhub_robot_password"),
+        encoding="utf-8",
+        shell=True,
+    )        
+
     docker_image = get_image_with_version(reports_path, docker_image_name)
 
     packages_path = os.path.join(temp_path, "packages")
@@ -198,4 +205,4 @@ def run_stress_test(docker_image_name):
 
 
 if __name__ == "__main__":
-    run_stress_test("clickhouse/stress-test")
+    run_stress_test(f"{DOCKER_REPO}/clickhouse/stress-test")

@@ -27,8 +27,8 @@ from commit_status_helper import (
 )
 from compress_files import compress_fast
 from docker_pull_helper import get_image_with_version, DockerImage
-from env_helper import CI, TEMP_PATH as TEMP, REPORTS_PATH
-from get_robot_token import get_best_robot_token
+from env_helper import CI, TEMP_PATH as TEMP, REPORTS_PATH, DOCKER_USER, DOCKER_REPO
+from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from pr_info import PRInfo
 from report import TestResults, TestResult
 from s3_helper import S3Helper
@@ -37,8 +37,8 @@ from tee_popen import TeePopen
 from upload_result_helper import upload_results
 
 
-RPM_IMAGE = "clickhouse/install-rpm-test"
-DEB_IMAGE = "clickhouse/install-deb-test"
+RPM_IMAGE = f"{DOCKER_REPO}/clickhouse/install-rpm-test"
+DEB_IMAGE = f"{DOCKER_REPO}/clickhouse/install-deb-test"
 TEMP_PATH = Path(TEMP)
 LOGS_PATH = TEMP_PATH / "tests_logs"
 SUCCESS = "success"
@@ -266,6 +266,13 @@ def main():
     LOGS_PATH.mkdir(parents=True, exist_ok=True)
 
     pr_info = PRInfo()
+
+    subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+        f"docker login {DOCKER_REPO} --username '{DOCKER_USER}' --password-stdin",
+        input=get_parameter_from_ssm("dockerhub_robot_password"),
+        encoding="utf-8",
+        shell=True,
+    )    
 
     if CI:
         gh = Github(get_best_robot_token(), per_page=100)

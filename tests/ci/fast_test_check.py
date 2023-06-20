@@ -23,8 +23,14 @@ from commit_status_helper import (
     update_mergeable_check,
 )
 from docker_pull_helper import get_image_with_version
-from env_helper import S3_BUILDS_BUCKET, TEMP_PATH
-from get_robot_token import get_best_robot_token
+from env_helper import (
+    S3_BUILDS_BUCKET,
+    TEMP_PATH,
+    DOCKER_USER,
+    DOCKER_REPO,
+    S3_URL,
+)
+from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from pr_info import FORCE_TESTS_LABEL, PRInfo
 from report import TestResults, read_test_results
 from s3_helper import S3Helper
@@ -40,7 +46,7 @@ csv.field_size_limit(sys.maxsize)
 
 def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, image):
     return (
-        f"docker run --cap-add=SYS_PTRACE "
+        f"timeout 3h docker run --cap-add=SYS_PTRACE "
         "--network=host "  # required to get access to IAM credentials
         f"-e FASTTEST_WORKSPACE=/fasttest-workspace -e FASTTEST_OUTPUT=/test_output "
         f"-e FASTTEST_SOURCE=/ClickHouse --cap-add=SYS_PTRACE "
@@ -48,7 +54,9 @@ def get_fasttest_cmd(workspace, output_path, repo_path, pr_number, commit_sha, i
         f"-e PULL_REQUEST_NUMBER={pr_number} -e COMMIT_SHA={commit_sha} "
         f"-e COPY_CLICKHOUSE_BINARY_TO_OUTPUT=1 "
         f"-e SCCACHE_BUCKET={S3_BUILDS_BUCKET} -e SCCACHE_S3_KEY_PREFIX=ccache/sccache "
+        f"-e SCCACHE_ENDPOINT={S3_URL} "
         f"--volume={workspace}:/fasttest-workspace --volume={repo_path}:/ClickHouse "
+        f"--volume=/home/ubuntu/.aws/credentials:/root/.aws/credentials "  # Mount .aws directory
         f"--volume={output_path}:/test_output {image}"
     )
 
@@ -106,6 +114,13 @@ def main():
 
     pr_info = PRInfo()
 
+    subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+        f"docker login {DOCKER_REPO} --username '{DOCKER_USER}' --password-stdin",
+        input=get_parameter_from_ssm("dockerhub_robot_password"),
+        encoding="utf-8",
+        shell=True,
+    )
+
     gh = Github(get_best_robot_token(), per_page=100)
     commit = get_commit(gh, pr_info.sha)
 
@@ -119,8 +134,9 @@ def main():
             sys.exit(1)
         sys.exit(0)
 
-    docker_image = get_image_with_version(temp_path, "clickhouse/fasttest")
-
+    docker_image = get_image_with_version(
+        temp_path, f"{DOCKER_REPO}/clickhouse/fasttest"
+    )
     s3_helper = S3Helper()
 
     workspace = os.path.join(temp_path, "fasttest-workspace")
