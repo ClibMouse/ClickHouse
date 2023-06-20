@@ -12,10 +12,10 @@ from typing import List, Union
 import boto3  # type: ignore
 import botocore  # type: ignore
 
+from env_helper2 import S3_REGION
 from env_helper import (
     S3_TEST_REPORTS_BUCKET,
     S3_BUILDS_BUCKET,
-    S3_REGION,
     RUNNER_TEMP,
     CI,
     S3_URL,
