@@ -4,8 +4,8 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/ClickHouse/ClickHouse/programs/diagnostics/internal/platform/data"
-	"github.com/ClickHouse/ClickHouse/programs/diagnostics/internal/platform/database"
+	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/platform/data"
+	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/platform/database"
 )
 
 var once sync.Once

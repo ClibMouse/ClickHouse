@@ -5,8 +5,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/ClickHouse/ClickHouse/programs/diagnostics/cmd/params"
-	"github.com/ClickHouse/ClickHouse/programs/diagnostics/internal/platform/config"
+	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/cmd/params"
+	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/platform/config"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 )

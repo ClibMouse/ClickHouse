@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ClickHouse/ClickHouse/programs/diagnostics/cmd/params"
-	"github.com/ClickHouse/ClickHouse/programs/diagnostics/internal/collectors"
-	"github.com/ClickHouse/ClickHouse/programs/diagnostics/internal/outputs"
-	"github.com/ClickHouse/ClickHouse/programs/diagnostics/internal/platform/config"
+	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/cmd/params"
+	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/collectors"
+	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/outputs"
+	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/platform/config"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )

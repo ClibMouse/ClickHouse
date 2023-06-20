@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/ClickHouse/ClickHouse/programs/diagnostics/internal/collectors"
-	"github.com/ClickHouse/ClickHouse/programs/diagnostics/internal/platform"
-	"github.com/ClickHouse/ClickHouse/programs/diagnostics/internal/platform/config"
-	"github.com/ClickHouse/ClickHouse/programs/diagnostics/internal/platform/data"
-	"github.com/ClickHouse/ClickHouse/programs/diagnostics/internal/platform/utils"
+	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/collectors"
+	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/platform"
+	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/platform/config"
+	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/platform/data"
+	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/platform/utils"
 	"github.com/pkg/errors"
 )
 

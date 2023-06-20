@@ -307,14 +307,14 @@
   #         python3 mark_release_ready.py
 
 
-name: docker-check
+# name: docker-check
 
-env:
-  # Force the stdout and stderr streams to be unbuffered
-  PYTHONUNBUFFERED: 1
+# env:
+#   # Force the stdout and stderr streams to be unbuffered
+#   PYTHONUNBUFFERED: 1
 
-on:  # yamllint disable-line rule:truthy
-  push:
+# on:  # yamllint disable-line rule:truthy
+#   push:
   # pull_request:
   #   types:
   #     - synchronize
@@ -423,7 +423,7 @@ jobs:
         with:
           name: changed_images
           path: ${{ runner.temp }}/changed_images.json
-          
+
 #   StyleCheck:
 #     needs: DockerHubPush
 #     runs-on: [self-hosted, style-checker]
