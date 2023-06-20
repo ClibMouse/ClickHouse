@@ -41,8 +41,8 @@ if [ -n "$MAKE_DEB" ]; then
       # We need to check if clickhouse-diagnostics is fine and build it
       (
         cd /build/programs/diagnostics
-        make test-no-docker
-        GOARCH="${DEB_ARCH}" CGO_ENABLED=0 make VERSION="$VERSION_STRING" GITHUB_REPOSITORY="$github_repository" build
+        GITHUB_REPOSITORY="$github_repository" make test-no-docker
+        GOARCH="${DEB_ARCH}" CGO_ENABLED=0 make VERSION="$VERSION_STRING" build
         mv clickhouse-diagnostics ..
       )
     else
