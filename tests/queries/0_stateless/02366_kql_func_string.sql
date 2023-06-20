@@ -291,6 +291,7 @@ print '-- base64_decode_tostring';
 print base64_decode_tostring('');
 print base64_decode_tostring('S3VzdG8x');
 print base64_decode_tostring('S3VzdG8====');
+print base64_decode_tostring('U3RyaW5n0KHR0tGA0L7Rh9C60LA=');
 print '-- parse_url() same as ADX';
 print parse_url('scheme://username:password@host:1234/this/is/a/path?k1=v1&k2=v2#fragment');
 print parse_url('');
