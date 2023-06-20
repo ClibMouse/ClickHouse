@@ -4,10 +4,19 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/platform/data"
-	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/platform/database"
 )
 
+func main() {
+	githubRepository := os.Getenv("GITHUB_REPOSITORY")
+	// if githubRepository == "" {
+	// 	log.Fatal("GITHUB_REPOSITORY environment variable is not set")
+
+	imports := fmt.Sprintf(`
+		"github.com/%s/programs/diagnostics/internal/platform/data"
+		"github.com/%s/programs/diagnostics/internal/platform/database"
+	`, githubRepository, githubRepository)
+
+}
 var once sync.Once
 var dbInit sync.Once
 

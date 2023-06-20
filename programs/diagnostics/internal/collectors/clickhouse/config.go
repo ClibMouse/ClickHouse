@@ -4,13 +4,22 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/collectors"
-	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/platform"
-	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/platform/config"
-	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/platform/data"
-	"github.com/${GITHUB_REPOSITORY}/programs/diagnostics/internal/platform/utils"
 	"github.com/pkg/errors"
 )
+
+githubRepository := os.Getenv("GITHUB_REPOSITORY")
+// if githubRepository == "" {
+// 	log.Fatal("GITHUB_REPOSITORY environment variable is not set")
+
+imports := fmt.Sprintf(`
+	"github.com/%s/programs/diagnostics/internal/collectors"
+	"github.com/%s/programs/diagnostics/internal/platform"
+	"github.com/%s/programs/diagnostics/internal/platform/config"
+	"github.com/%s/programs/diagnostics/internal/platform/data"
+	"github.com/%s/programs/diagnostics/internal/platform/utils"
+`, githubRepository, githubRepository, githubRepository, githubRepository, githubRepository)
+
+}
 
 type ConfigCollector struct {
 	resourceManager *platform.ResourceManager

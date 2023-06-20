@@ -29,7 +29,6 @@ func main() {
 		"github.com/%s/programs/diagnostics/internal/platform/utils"
 	`, githubRepository, githubRepository, githubRepository, githubRepository, githubRepository, githubRepository, githubRepository, githubRepository)
 
-	// Rest of your code
 }
 
 
