@@ -596,6 +596,7 @@ jobs:
           docker ps --quiet | xargs --no-run-if-empty docker kill ||:
           docker ps --all --quiet | xargs --no-run-if-empty docker rm -f ||:
           sudo rm -fr "$TEMP_PATH"
+          
 #   BuilderBinRelease:
 #     needs: [DockerHubPush, FastTest, StyleCheck]
 #     runs-on: [self-hosted, builder]
