@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -x -e
 
-export github_repository=${GITHUB_REPOSITORY:-ClickHouse/ClickHouse}
+github_repository=${GITHUB_REPOSITORY}
 
 exec &> >(ts)
 
@@ -41,7 +41,7 @@ if [ -n "$MAKE_DEB" ]; then
       # We need to check if clickhouse-diagnostics is fine and build it
       (
         cd /build/programs/diagnostics
-        GITHUB_REPOSITORY="$github_repository" make test-no-docker
+        GITHUB_REPOSITORY="${github_repository}" make test-no-docker
         GOARCH="${DEB_ARCH}" CGO_ENABLED=0 make VERSION="$VERSION_STRING" build
         mv clickhouse-diagnostics ..
       )
