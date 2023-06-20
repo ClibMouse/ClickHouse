@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -x -e
 
+export github_repository=${GITHUB_REPOSITORY:-ClickHouse/ClickHouse}
+
 exec &> >(ts)
 
 ccache_status () {
@@ -40,7 +42,7 @@ if [ -n "$MAKE_DEB" ]; then
       (
         cd /build/programs/diagnostics
         make test-no-docker
-        GOARCH="${DEB_ARCH}" CGO_ENABLED=0 make VERSION="$VERSION_STRING" build
+        GOARCH="${DEB_ARCH}" CGO_ENABLED=0 make VERSION="$VERSION_STRING" GITHUB_REPOSITORY="$github_repository" build
         mv clickhouse-diagnostics ..
       )
     else
