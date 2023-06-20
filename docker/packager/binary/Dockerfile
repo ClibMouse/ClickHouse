@@ -112,5 +112,6 @@ RUN mkdir /workdir && chmod 777 /workdir
 WORKDIR /workdir
 
 
+
 COPY build.sh /
 CMD ["bash", "-c", "/build.sh 2>&1"]
