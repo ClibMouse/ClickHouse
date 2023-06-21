@@ -27,7 +27,7 @@ bool ParserKQLProjectAway::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expe
         if (regex_column == column)
             regular_columns.push_back(column);
         else
-            wildcard_columns.push_back("'" + regex_column + "'");
+            wildcard_columns.push_back("'^" + regex_column + "$'");
     };
 
     while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
