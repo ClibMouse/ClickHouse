@@ -16,23 +16,23 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_ProjectAway, ParserTest,
         },
         {
             "Customers | project-away *Name",
-            "SELECT * EXCEPT '.*Name'\nFROM Customers"
+            "SELECT * EXCEPT '^.*Name$'\nFROM Customers"
         },
         {
             "Customers | project-away *Name, *tion",
-            "SELECT * EXCEPT '.*Name'\nFROM\n(\n    SELECT * EXCEPT '.*tion'\n    FROM Customers\n)"
+            "SELECT * EXCEPT '^.*Name$'\nFROM\n(\n    SELECT * EXCEPT '^.*tion$'\n    FROM Customers\n)"
         },
         {
             "Customers | project-away *Name, Age",
-            "SELECT * EXCEPT Age\nFROM\n(\n    SELECT * EXCEPT '.*Name'\n    FROM Customers\n)"
+            "SELECT * EXCEPT Age\nFROM\n(\n    SELECT * EXCEPT '^.*Name$'\n    FROM Customers\n)"
         },
         {
             "Customers | project-away *Name, Age, Education",
-            "SELECT * EXCEPT (Age, Education)\nFROM\n(\n    SELECT * EXCEPT '.*Name'\n    FROM Customers\n)"
+            "SELECT * EXCEPT (Age, Education)\nFROM\n(\n    SELECT * EXCEPT '^.*Name$'\n    FROM Customers\n)"
         },
         {
             "Customers | project-away *irstName, Age, *astName, Education",
-            "SELECT * EXCEPT (Age, Education)\nFROM\n(\n    SELECT * EXCEPT '.*astName'\n    FROM\n    (\n        SELECT * EXCEPT '.*irstName'\n        FROM Customers\n    )\n)"
+            "SELECT * EXCEPT (Age, Education)\nFROM\n(\n    SELECT * EXCEPT '^.*astName$'\n    FROM\n    (\n        SELECT * EXCEPT '^.*irstName$'\n        FROM Customers\n    )\n)"
         },
         {
             "Customers | where Age< 30 | limit 2 | project-away FirstName",
