@@ -2,6 +2,7 @@
 
 #include <base/Decimal_fwd.h>
 #include <base/extended_types.h>
+#include <base/strong_typedef.h>
 
 #include <utility>
 
@@ -58,5 +59,10 @@ inline void transformEndianness(std::pair<A, B> & pair)
 {
     transformEndianness<endian>(pair.first);
     transformEndianness<endian>(pair.second);
+}
+template <std::endian endian, typename T, typename Tag>
+inline void transformEndianness(StrongTypedef<T, Tag> & x)
+{
+	    transformEndianness<endian>(x.toUnderType());
 }
 }
