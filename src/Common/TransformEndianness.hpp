@@ -47,7 +47,7 @@ inline void transformEndianness(T & value)
 }
 
 template <std::endian endian, typename T>
-requires std::is_scoped_enum_v<T>
+requires std::is_enum_v<T> || std::is_scoped_enum_v<T>
 inline void transformEndianness(T & x)
 {
     using UnderlyingType = std::underlying_type_t<T>;
@@ -60,9 +60,10 @@ inline void transformEndianness(std::pair<A, B> & pair)
     transformEndianness<endian>(pair.first);
     transformEndianness<endian>(pair.second);
 }
+
 template <std::endian endian, typename T, typename Tag>
 inline void transformEndianness(StrongTypedef<T, Tag> & x)
 {
-	    transformEndianness<endian>(x.toUnderType());
+    transformEndianness<endian>(x.toUnderType());
 }
 }
