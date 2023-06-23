@@ -410,6 +410,7 @@ def main():
 
     if args.push:
         subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+            docker ps
             f"docker login {DOCKER_REPO} --username '{DOCKER_USER}' --password-stdin",
             input=get_parameter_from_ssm("dockerhub_robot_password"),
             encoding="utf-8",
