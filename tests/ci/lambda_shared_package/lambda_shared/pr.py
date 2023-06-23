@@ -56,7 +56,7 @@ TRUSTED_CONTRIBUTORS = {
         "mcmajam",
         "bemitc",
         "vibhaKulka",
-        "bhavnajindal"
+        "bhavnajindal",
     ]
 }
 
