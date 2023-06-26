@@ -38,6 +38,7 @@ void setSelectAll(ASTSelectQuery & select_query)
 String wildcardToRegex(const String & wildcard)
 {
     String regex;
+    regex += '^';
     for (char c : wildcard)
     {
         if (c == '*')
@@ -58,6 +59,7 @@ String wildcardToRegex(const String & wildcard)
             regex += c;
         }
     }
+    regex += '$';
     return regex;
 }
 
