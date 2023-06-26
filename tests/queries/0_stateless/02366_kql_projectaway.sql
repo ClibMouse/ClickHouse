@@ -10,6 +10,18 @@ CREATE TABLE Customers
 
 INSERT INTO Customers VALUES ('Theodore','Diaz','Skilled Manual','Bachelors',28);
 
+DROP TABLE IF EXISTS Events;
+CREATE TABLE Events
+(    
+    Test Nullable(String),
+    abc_Test String, 
+    Test_xyz String,
+    abc_Test_xyz String,
+    test_lowercase Nullable(UInt8)
+) ENGINE = Memory;
+
+INSERT INTO Events VALUES ('Qwerty','abc_Qwerty','Qwerty_xyz','abc_Qwerty_xyz',1);
+
 set dialect = 'kusto';
 print '1-- remove one column';
 Customers | project-away FirstName;
@@ -40,3 +52,12 @@ Customers|summarize sum(Age), avg(Age) by FirstName | project-away sum_Age;
 print '';
 print '10-- remove columns after extend';
 Customers|extend FullName = strcat(FirstName,' ',LastName) | project-away FirstName, LastName;
+print '';
+print '11-- remove two columns by one wildcard in postfix';
+Events | project-away Test*;
+print '';
+print '12-- remove two columns by one wildcard in prefix';
+Events | project-away *Test;
+print '';
+print '13-- remove four columns by wildcard in prefix and postfix';
+Events | project-away *Test*;
