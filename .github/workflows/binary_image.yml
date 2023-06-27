@@ -55,7 +55,7 @@ jobs:
           path: ${{ runner.temp }}/docker_images_check/changed_images_amd64.json
   DockerHubPush:
     needs: [DockerHubPushAmd64, DockerHubPushAarch64]
-    runs-on: [self-hosted, vm2]
+    runs-on: [self-hosted, builder]
     steps:
       - name: Check out repository code
         uses: ClickHouse/checkout@v1
