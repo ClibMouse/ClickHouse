@@ -7,6 +7,7 @@ FROM sequenceiq/hadoop-docker:2.7.0
 RUN sed -i s/xMDkzMDE0MDExNVow/0MDkzMDE4MTQwM1ow/ /etc/pki/tls/certs/ca-bundle.crt
 
 
+
 RUN curl -o krb5-libs-1.10.3-65.el6.x86_64.rpm ftp://ftp.pbone.net/mirror/vault.centos.org/6.10/os/x86_64/Packages/krb5-libs-1.10.3-65.el6.x86_64.rpm && \
     curl -o krb5-workstation-1.10.3-65.el6.x86_64.rpm ftp://ftp.pbone.net/mirror/vault.centos.org/6.9/os/x86_64/Packages/krb5-workstation-1.10.3-65.el6.x86_64.rpm && \
     curl -o libkadm5-1.10.3-65.el6.x86_64.rpm ftp://ftp.pbone.net/mirror/vault.centos.org/6.10/os/x86_64/Packages/libkadm5-1.10.3-65.el6.x86_64.rpm && \

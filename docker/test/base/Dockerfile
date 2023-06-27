@@ -14,6 +14,7 @@ RUN apt-get update \
         zstd \
         --yes --no-install-recommends
 
+
 # Sanitizer options for services (clickhouse-server)
 # Set resident memory limit for TSAN to 45GiB (46080MiB) to avoid OOMs in Stress tests
 # and MEMORY_LIMIT_EXCEEDED exceptions in Functional tests (total memory limit in Functional tests is ~55.24 GiB).

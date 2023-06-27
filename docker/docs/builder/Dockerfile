@@ -8,6 +8,7 @@ RUN apk add --no-cache git openssh bash
 # despite the cached images
 ARG CACHE_INVALIDATOR=0
 
+
 RUN git clone https://github.com/ClickHouse/clickhouse-docs.git \
     --depth=1 --branch=main /opt/clickhouse-docs
 

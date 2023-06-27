@@ -7,6 +7,7 @@ FROM $DOCKER_REPO/clickhouse/test-base:$FROM_TAG
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CLOJURE_VERSION=1.10.3.814
 
+
 # arguments
 ENV PR_TO_TEST=""
 ENV SHA_TO_TEST=""

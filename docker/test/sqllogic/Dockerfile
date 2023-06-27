@@ -3,6 +3,7 @@ ARG FROM_TAG=latest
 ARG DOCKER_REPO=docker.io
 FROM $DOCKER_REPO/clickhouse/test-base:$FROM_TAG
 
+
 RUN apt-get update --yes \
     && env DEBIAN_FRONTEND=noninteractive \
         apt-get install --yes --no-install-recommends \

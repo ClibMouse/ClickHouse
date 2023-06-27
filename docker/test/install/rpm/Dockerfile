@@ -8,6 +8,7 @@ ENV \
   container=docker \
   init=/lib/systemd/systemd
 
+
 # configure systemd
 # remove systemd 'wants' triggers
 # remove everything except tmpfiles setup in sysinit target

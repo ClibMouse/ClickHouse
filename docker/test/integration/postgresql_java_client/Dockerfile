@@ -12,6 +12,7 @@ RUN rm -rf \
         /tmp/* \
 RUN apt-get clean
 
+
 ARG ver=42.2.12
 RUN curl -L -o /postgresql-java-${ver}.jar https://repo1.maven.org/maven2/org/postgresql/postgresql/${ver}/postgresql-${ver}.jar
 ENV CLASSPATH=$CLASSPATH:/postgresql-java-${ver}.jar

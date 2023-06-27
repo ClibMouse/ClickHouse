@@ -4,6 +4,7 @@ ARG FROM_TAG=latest
 ARG DOCKER_REPO=docker.io
 FROM $DOCKER_REPO/clickhouse/test-base:$FROM_TAG
 
+
 SHELL ["/bin/bash", "-c"]
 
 RUN apt-get update \

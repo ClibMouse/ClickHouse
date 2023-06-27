@@ -8,6 +8,7 @@ FROM ubuntu:20.04 as clickhouse-test-runner-base
 # for later installing.
 VOLUME /packages
 
+
 CMD apt-get update ;\
 	DEBIAN_FRONTEND=noninteractive \
 	apt install -y /packages/clickhouse-common-static_*.deb \

@@ -5,6 +5,7 @@ RUN sed -i '/^mirrorlist/s/^/#/;/^#baseurl/{s/#//;s/mirror.centos.org\/centos\/$
 
 RUN yum install -y ca-certificates krb5-server krb5-libs krb5-auth-dialog krb5-workstation
 
+
 EXPOSE 88 749
 
 RUN touch /config.sh
