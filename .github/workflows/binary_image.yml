@@ -22,7 +22,7 @@ on:  # yamllint disable-line rule:truthy
   #     - 'utils/check-style/aspell-ignore/**'
 jobs:
   DockerHubPushAarch64:
-    runs-on: [self-hosted, test41]
+    runs-on: [self-hosted, style-checker-aarch64]
     steps:
       - name: Check out repository code
         uses: ClickHouse/checkout@v1
