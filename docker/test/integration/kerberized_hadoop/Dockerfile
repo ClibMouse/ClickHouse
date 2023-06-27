@@ -2,6 +2,7 @@
 
 FROM sequenceiq/hadoop-docker:2.7.0
 
+
 # https://community.letsencrypt.org/t/rhel-centos-6-openssl-client-compatibility-after-dst-root-ca-x3-expiration/161032/81
 RUN sed -i s/xMDkzMDE0MDExNVow/0MDkzMDE4MTQwM1ow/ /etc/pki/tls/certs/ca-bundle.crt
 
