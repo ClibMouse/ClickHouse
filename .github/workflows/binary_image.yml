@@ -20,6 +20,7 @@ on:  # yamllint disable-line rule:truthy
   #     - 'docker/docs/**'
   #     - 'docs/**'
   #     - 'utils/check-style/aspell-ignore/**'
+
 jobs:
   DockerHubPushAarch64:
     runs-on: [self-hosted, style-checker-aarch64]
