@@ -88,10 +88,9 @@ inline void writePODBinary(const T & x, WriteBuffer & buf)
 
 inline void writePODBinary(const UUID & x, WriteBuffer & buf) 
 {
-    auto uuid = x.toUnderType();
-    std::swap(uuid.items[0], uuid.items[1]);
-
-    writePODBinary(uuid, buf);
+    const auto & uuid = x.toUnderType();
+    writePODBinary(uuid.items[1], buf);
+    writePODBinary(uuid.items[0], buf);
 }
 
 template <typename T>

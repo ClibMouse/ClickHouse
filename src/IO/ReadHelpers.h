@@ -116,9 +116,8 @@ inline void readPODBinary(T & x, ReadBuffer & buf)
 inline void readPODBinary(UUID & x, ReadBuffer & buf)
 {
     auto & uuid = x.toUnderType();
-    readPODBinary(uuid, buf);
-    
-    std::swap(uuid.items[0], uuid.items[1]);
+    readPODBinary(uuid.items[1], buf);
+    readPODBinary(uuid.items[0], buf);
 }
 
 template <typename T>

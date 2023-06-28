@@ -1149,7 +1149,7 @@ private:
                     std::swap(uuid.items[0], uuid.items[1]);
                 }
 
-                ToType hash = apply(key, reinterpret_cast<const char *>(&value), sizeof(value));
+                const auto hash = apply(key, reinterpret_cast<const char *>(&value), sizeof(value));
 
                 if constexpr (first)
                     vec_to[i] = hash;
@@ -1168,7 +1168,7 @@ private:
                 std::swap(uuid.items[0], uuid.items[1]);
             }
 
-            ToType hash = apply(key, reinterpret_cast<const char *>(&value), sizeof(value));
+            const auto hash = apply(key, reinterpret_cast<const char *>(&value), sizeof(value));
 
             size_t size = vec_to.size();
             if constexpr (first)
