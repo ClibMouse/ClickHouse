@@ -1139,45 +1139,44 @@ private:
             size_t size = vec_from.size();
             for (size_t i = 0; i < size; ++i)
             {
-                ToType h;
-                if constexpr (std::endian::native == std::endian::little)
+                // Take a copy to maintain column representation as is.
+                auto value = vec_from[i];
+                transformEndianness<std::endian::little>(value);
+
+                if constexpr(std::is_same_v<FromType, UUID>)
                 {
-                    h = apply(key, reinterpret_cast<const char *>(&vec_from[i]), sizeof(vec_from[i]));
+                    auto & uuid = value.toUnderType();
+                    std::swap(uuid.items[0], uuid.items[1]);
                 }
-                else
-                {
-                    char tmp_buffer[sizeof(vec_from[i])];
-                    reverseMemcpy(tmp_buffer, &vec_from[i], sizeof(vec_from[i]));
-                    h = apply(key, reinterpret_cast<const char *>(tmp_buffer), sizeof(vec_from[i]));
-                }
+
+                ToType hash = apply(key, reinterpret_cast<const char *>(&value), sizeof(value));
+
                 if constexpr (first)
-                    vec_to[i] = h;
+                    vec_to[i] = hash;
                 else
-                    vec_to[i] = combineHashes(key, vec_to[i], h);
+                    vec_to[i] = combineHashes(key, vec_to[i], hash);
             }
         }
         else if (auto col_from_const = checkAndGetColumnConst<ColVecType>(column))
         {
             auto value = col_from_const->template getValue<FromType>();
+            transformEndianness<std::endian::little>(value);
 
-            ToType h;
-            if constexpr (std::endian::native == std::endian::little)
+            if constexpr(std::is_same_v<FromType, UUID>)
             {
-                h = apply(key, reinterpret_cast<const char *>(&value), sizeof(value));
+                auto & uuid = value.toUnderType();
+                std::swap(uuid.items[0], uuid.items[1]);
             }
-            else
-            {
-                char tmp_buffer[sizeof(value)];
-                reverseMemcpy(tmp_buffer, &value, sizeof(value));
-                h = apply(key, reinterpret_cast<const char *>(tmp_buffer), sizeof(value));
-            }
+
+            ToType hash = apply(key, reinterpret_cast<const char *>(&value), sizeof(value));
+
             size_t size = vec_to.size();
             if constexpr (first)
-                vec_to.assign(size, h);
+                vec_to.assign(size, hash);
             else
             {
                 for (size_t i = 0; i < size; ++i)
-                    vec_to[i] = combineHashes(key, vec_to[i], h);
+                    vec_to[i] = combineHashes(key, vec_to[i], hash);
             }
         }
         else

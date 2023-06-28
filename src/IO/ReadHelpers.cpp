@@ -60,16 +60,15 @@ UUID parseUUID(std::span<const UInt8> src)
 #endif
     if (size == 36)
     {
-        parseHex<4>(src_ptr, dst + 8);
-        parseHex<2>(src_ptr + 9, dst + 12);
-        parseHex<2>(src_ptr + 14, dst + 14);
-        parseHex<2>(src_ptr + 19, dst);
-        parseHex<6>(src_ptr + 24, dst + 2);
+        parseHex<4>(src_ptr, dst);
+        parseHex<2>(src_ptr + 9, dst + 4);
+        parseHex<2>(src_ptr + 14, dst + 6);
+        parseHex<2>(src_ptr + 19, dst + 8);
+        parseHex<6>(src_ptr + 24, dst + 10);
     }
     else if (size == 32)
     {
-        parseHex<8>(src_ptr, dst + 8);
-        parseHex<8>(src_ptr + 16, dst);
+        parseHex<16>(src_ptr, dst);
     }
     else
         throw Exception(ErrorCodes::CANNOT_PARSE_UUID, "Unexpected length when trying to parse UUID ({})", size);

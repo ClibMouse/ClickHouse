@@ -31,15 +31,15 @@ std::array<char, 36> formatUUID(const UUID & uuid)
 #else
     const auto * src = reinterpret_cast<const UInt8 *>(&uuid);
 #endif
-    formatHex(src + 8, dst_ptr, 4);
+    formatHex(src, dst_ptr, 4);
     dst[8] = '-';
-    formatHex(src + 12, dst_ptr + 9, 2);
+    formatHex(src + 4, dst_ptr + 9, 2);
     dst[13] = '-';
-    formatHex(src + 14, dst_ptr + 14, 2);
+    formatHex(src + 6, dst_ptr + 14, 2);
     dst[18] = '-';
-    formatHex(src, dst_ptr + 19, 2);
+    formatHex(src + 8, dst_ptr + 19, 2);
     dst[23] = '-';
-    formatHex(src + 2, dst_ptr + 24, 6);
+    formatHex(src + 10, dst_ptr + 24, 6);
 
     return dst;
 }

@@ -113,6 +113,14 @@ inline void readPODBinary(T & x, ReadBuffer & buf)
     buf.readStrict(reinterpret_cast<char *>(&x), sizeof(x)); /// NOLINT
 }
 
+inline void readPODBinary(UUID & x, ReadBuffer & buf)
+{
+    auto & uuid = x.toUnderType();
+    readPODBinary(uuid, buf);
+    
+    std::swap(uuid.items[0], uuid.items[1]);
+}
+
 template <typename T>
 inline void readIntBinary(T & x, ReadBuffer & buf)
 {
@@ -1086,6 +1094,7 @@ inline void readBinary(Int256 & x, ReadBuffer & buf) { readPODBinary(x, buf); }
 inline void readBinary(UInt32 & x, ReadBuffer & buf) { readPODBinary(x, buf); }
 inline void readBinary(UInt128 & x, ReadBuffer & buf) { readPODBinary(x, buf); }
 inline void readBinary(UInt256 & x, ReadBuffer & buf) { readPODBinary(x, buf); }
+inline void readBinary(UUID & x, ReadBuffer & buf) { readPODBinary(x, buf); }
 inline void readBinary(Decimal32 & x, ReadBuffer & buf) { readPODBinary(x, buf); }
 inline void readBinary(Decimal64 & x, ReadBuffer & buf) { readPODBinary(x, buf); }
 inline void readBinary(Decimal128 & x, ReadBuffer & buf) { readPODBinary(x, buf); }
