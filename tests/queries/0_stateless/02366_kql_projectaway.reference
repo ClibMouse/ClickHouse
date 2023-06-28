@@ -27,3 +27,12 @@ Theodore	28
 
 10-- remove columns after extend
 Skilled Manual	Bachelors	28	Theodore Diaz
+
+11-- remove two columns by one wildcard in postfix
+abc_Qwerty	abc_Qwerty_xyz	1
+
+12-- remove two columns by one wildcard in prefix
+Qwerty_xyz	abc_Qwerty_xyz	1
+
+13-- remove four columns by wildcard in prefix and postfix
+1
