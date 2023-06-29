@@ -185,9 +185,11 @@ def test_install(image: DockerImage, tests: Dict[str, str]) -> TestResults:
                 run_command, shell=True, encoding="utf-8"
             ).strip()
             (TEMP_PATH / "install.sh").write_text(command)
+            print(f"Content of 'install.sh': {(TEMP_PATH / 'install.sh').read_text()}")  # Debugging statement
             install_command = (
-                f"docker exec {container_id} bash -ex /packages/install.sh"
+                f"sudo docker exec {container_id} bash -ex /packages/install.sh"
             )
+            print(f"Install command: {install_command}")  # Debugging statement
             with TeePopen(install_command, log_file) as process:
                 retcode = process.wait()
                 if retcode == 0:
