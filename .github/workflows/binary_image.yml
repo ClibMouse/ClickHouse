@@ -124,7 +124,7 @@ jobs:
           sudo rm -fr "$TEMP_PATH" "$CACHES_PATH"
   InstallPackagesTestAarch64:
     needs: [BuilderDebAarch64]
-    runs-on: [self-hosted, arm64-runner-vm]
+    runs-on: [self-hosted, arm64-runner]
     steps:
       - name: Set envs
         run: |
