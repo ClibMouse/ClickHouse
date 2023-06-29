@@ -8,6 +8,6 @@ namespace DB
 String extractLiteralArgumentWithoutQuotes(const std::string & function_name, IParser::Pos & pos);
 String extractTokenWithoutQuotes(IParser::Pos & pos);
 void setSelectAll(ASTSelectQuery & select_query);
-String wildcardToRegex(const String & wildcard);
+std::optional<String> wildcardToRegex(const String & wildcard);
 ASTPtr wrapInSelectWithUnion(const ASTPtr & select_query);
 }
