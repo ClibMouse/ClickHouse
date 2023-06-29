@@ -187,7 +187,7 @@ def test_install(image: DockerImage, tests: Dict[str, str]) -> TestResults:
             (TEMP_PATH / "install.sh").write_text(command)
             print(f"Content of 'install.sh': {(TEMP_PATH / 'install.sh').read_text()}")  # Debugging statement
             print ("la -la TEMP_PATH")
-            time.sleep(60)  # Add a delay of 60 second
+            time.sleep(10800)  # Add a delay of 60 second
             install_command = (
                 f"docker exec {container_id} bash -ex /packages/install.sh"
             )
