@@ -25,10 +25,14 @@ jobs:
   DockerHubPushAarch64:
     runs-on: [self-hosted, arm64-runner]
     steps:
-      - name: docker pull
-        run: |
-          docker pull ca.icr.io/clickhouse/install-rpm-test:latest
-          docker inspect ca.icr.io/clickhouse/install-rpm-test:latest
+    - name: docker login
+      env:
+        DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_ROBOT_PASSWORD }}
+      run: echo "$DOCKER_PASSWORD" | docker login -u iamapikey --password-stdin ca.icr.io
+    - name: docker pull
+      run: |
+        docker pull ca.icr.io/clickhouse/install-rpm-test:latest
+        docker inspect ca.icr.io/clickhouse/install-rpm-test:latest
   #     - name: Check out repository code
   #       uses: ClickHouse/checkout@v1
   #       with:
