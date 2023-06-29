@@ -96,15 +96,15 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Aggregate, ParserKQLTest,
         },
         {
             "Customers | summarize take_anyif(FirstName, LastName has 'Diaz'), dcount(FirstName)"
-            "SELECT\n    anyIf(FirstName, hasTokenCaseInsensitive(LastName, 'Diaz')) AS take_anyif_FirstName,\n    countDistinct(FirstName) AS dcount_FirstName\nFROM Customers"
+            "SELECT\n    anyIf(FirstName, hasTokenCaseInsensitive(LastName, 'Diaz')) AS take_anyif_FirstName,\n    uniqCombined64(18)(FirstName) AS dcount_FirstName\nFROM Customers"
 	    },
 	    {
             "Customers | summarize dcount(Education, 2)"
-            "SELECT countDistinct(Education, 2) AS dcount_Education\nFROM Customers"
+            "SELECT uniqCombined64(16)(Education) AS dcount_Education\nFROM Customers"
 	    },
 	    {
             "Customers | summarize dcountif(Education, Occupation=='Professional', 2)"
-            "SELECT countDistinct(Education, Occupation = 'Professional', 2) AS dcountif_Education\nFROM Customers"
+            "SELECT uniqCombined64If(16)(Education, Occupation = 'Professional') AS dcountif_Education\nFROM Customers"
         },
         {	
             "Customers | summarize by FirstName, LastName, Age",
