@@ -17,6 +17,7 @@
 #include <Columns/ColumnFixedString.h>
 #include <Columns/ColumnConst.h>
 #include <Columns/ColumnVector.h>
+#include <Columns/ColumnsNumber.h>
 #include <Columns/ColumnDecimal.h>
 
 #include <Common/typeid_cast.h>
@@ -115,11 +116,25 @@ public:
 
     ColumnPtr executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, size_t /*input_rows_count*/) const override
     {
+        // Take a copy of the source column so that we might modify the copy.
+        auto arguments_copy = arguments;
+        
+        if (const ColumnUUID * col_vec = checkAndGetColumn<ColumnUUID>(*arguments[0].column))
+        {
+            auto uuid_src = ColumnUUID::create(*col_vec);
+
+            std::ranges::for_each(uuid_src->getData(), [](auto & value) {
+                std::swap(value.toUnderType().items[0], value.toUnderType().items[1]);
+            });
+
+            arguments_copy[0].column = std::move(uuid_src);
+        }
+
         auto from_type = arguments[0].type;
 
         ColumnPtr result;
 
-        if (!callOnTwoTypeIndexes(from_type->getTypeId(), result_type->getTypeId(), [&](const auto & types)
+        if (!callOnTwoTypeIndexes(from_type->getTypeId(), result_type->getTypeId(), [& arguments=arguments_copy, & result_type, & result](const auto & types)
         {
             using Types = std::decay_t<decltype(types)>;
             using FromType = typename Types::LeftType;
@@ -281,6 +296,17 @@ public:
                 result_type->getName());
         }
 
+        if (const ColumnUUID * col_vec = checkAndGetColumn<ColumnUUID>(*result))
+        {
+            auto uuid_src = ColumnUUID::create(*col_vec);
+
+            std::ranges::for_each(uuid_src->getData(), [](auto & value) {
+                std::swap(value.toUnderType().items[0], value.toUnderType().items[1]);
+            });
+
+            result = std::move(uuid_src);
+        }
+
         return result;
     }
 private:
@@ -315,7 +341,11 @@ private:
         {
             std::string_view data = src.getDataAt(i).toView();
 
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
             memcpy(&data_to[offset], data.data(), std::min(n, data.size()));
+#else
+            reverseMemcpy(&data_to[offset], data.data(), std::min(n, data.size()));
+#endif
             offset += n;
         }
     }
@@ -326,7 +356,11 @@ private:
         ColumnFixedString::Chars & data_to = dst.getChars();
         data_to.resize(n * rows);
 
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         memcpy(data_to.data(), src.getRawData().data(), data_to.size());
+#else
+        reverseMemcpy(data_to.data(), src.getRawData().data(), data_to.size());
+#endif
     }
 
     static void NO_INLINE executeToString(const IColumn & src, ColumnString & dst)
