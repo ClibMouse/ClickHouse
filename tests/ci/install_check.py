@@ -181,6 +181,7 @@ def test_install(image: DockerImage, tests: Dict[str, str]) -> TestResults:
             for file in LOGS_PATH.glob("*"):
                 file.unlink()
 
+
             logging.info("Running docker container: `%s`", run_command)
             container_id = subprocess.check_output(
                 run_command, shell=True, encoding="utf-8"
