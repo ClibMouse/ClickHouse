@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import time
-import os
 
 import atexit
 import logging
@@ -182,23 +180,14 @@ def test_install(image: DockerImage, tests: Dict[str, str]) -> TestResults:
             for file in LOGS_PATH.glob("*"):
                 file.unlink()
 
-            (TEMP_PATH / "install.sh").write_text(command)
-            print(f"Content of 'install.sh': {(TEMP_PATH / 'install.sh').read_text()}")  # Debugging statement            
             logging.info("Running docker container: `%s`", run_command)
             container_id = subprocess.check_output(
                 run_command, shell=True, encoding="utf-8"
             ).strip()
-            # (TEMP_PATH / "install.sh").write_text(command)
-            # print(f"Content of 'install.sh': {(TEMP_PATH / 'install.sh').read_text()}")  # Debugging statement
-            print(f"Value of TEMP_PATH: {TEMP_PATH}")
-            print(f"Contents of TEMP_PATH:")
-            for item in os.listdir(TEMP_PATH):
-                print(item)            
-            time.sleep(200)  # Add a delay of 60 second
+            (TEMP_PATH / "install.sh").write_text(command)
             install_command = (
                 f"docker exec {container_id} bash -ex /packages/install.sh"
             )
-            print(f"Install command: {install_command}")  # Debugging statement
             with TeePopen(install_command, log_file) as process:
                 retcode = process.wait()
                 if retcode == 0:
