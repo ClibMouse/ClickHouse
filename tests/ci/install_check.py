@@ -2,6 +2,7 @@
 
 import argparse
 import time
+import os
 
 import atexit
 import logging
@@ -41,7 +42,7 @@ from upload_result_helper import upload_results
 RPM_IMAGE = f"{DOCKER_REPO}/clickhouse/install-rpm-test"
 DEB_IMAGE = f"{DOCKER_REPO}/clickhouse/install-deb-test"
 TEMP_PATH = Path(TEMP)
-LOGS_PATH = TEMP_PATH / "tests_logs"
+LOGS_PATH = /arm64rootTEMP_PATH / "tests_logs"
 SUCCESS = "success"
 FAILURE = "failure"
 OK = "OK"
@@ -103,9 +104,9 @@ cp /var/log/clickhouse-keeper/clickhouse-keeper.* /tests_logs/ || :
 chmod a+rw -R /tests_logs
 exit 1
 """
-    (TEMP_PATH / "server_test.sh").write_text(server_test, encoding="utf-8")
-    (TEMP_PATH / "keeper_test.sh").write_text(keeper_test, encoding="utf-8")
-    (TEMP_PATH / "binary_test.sh").write_text(binary_test, encoding="utf-8")
+    (/arm64rootTEMP_PATH / "server_test.sh").write_text(server_test, encoding="utf-8")
+    (/arm64rootTEMP_PATH / "keeper_test.sh").write_text(keeper_test, encoding="utf-8")
+    (/arm64rootTEMP_PATH / "binary_test.sh").write_text(binary_test, encoding="utf-8")
     (TEMP_PATH / "preserve_logs.sh").write_text(preserve_logs, encoding="utf-8")
 
 
@@ -182,6 +183,9 @@ def test_install(image: DockerImage, tests: Dict[str, str]) -> TestResults:
                 file.unlink()
 
             (TEMP_PATH / "install.sh").write_text(command)
+            print(f"Contents of TEMP_PATH:")
+            for item in os.listdir(TEMP_PATH):
+                print(item)            
             print(f"Content of 'install.sh': {(TEMP_PATH / 'install.sh').read_text()}")  # Debugging statement            
             logging.info("Running docker container: `%s`", run_command)
             container_id = subprocess.check_output(
@@ -189,7 +193,10 @@ def test_install(image: DockerImage, tests: Dict[str, str]) -> TestResults:
             ).strip()
             # (TEMP_PATH / "install.sh").write_text(command)
             # print(f"Content of 'install.sh': {(TEMP_PATH / 'install.sh').read_text()}")  # Debugging statement
-            print ("ls -la TEMP_PATH")
+            print(f"Value of TEMP_PATH: {TEMP_PATH}")
+            print(f"Contents of TEMP_PATH:")
+            for item in os.listdir(TEMP_PATH):
+                print(item)            
             time.sleep(10)  # Add a delay of 60 second
             install_command = (
                 f"docker exec {container_id} bash -ex /packages/test_install/install.sh"
