@@ -41,8 +41,8 @@ from upload_result_helper import upload_results
 
 RPM_IMAGE = f"{DOCKER_REPO}/clickhouse/install-rpm-test"
 DEB_IMAGE = f"{DOCKER_REPO}/clickhouse/install-deb-test"
-TEMP_PATH = Path(TEMP)
-LOGS_PATH = /arm64rootTEMP_PATH / "tests_logs"
+TEMP_PATH = Path("/arm64root") / Path(TEMP)
+LOGS_PATH = TEMP_PATH / "tests_logs"
 SUCCESS = "success"
 FAILURE = "failure"
 OK = "OK"
@@ -104,9 +104,9 @@ cp /var/log/clickhouse-keeper/clickhouse-keeper.* /tests_logs/ || :
 chmod a+rw -R /tests_logs
 exit 1
 """
-    (/arm64rootTEMP_PATH / "server_test.sh").write_text(server_test, encoding="utf-8")
-    (/arm64rootTEMP_PATH / "keeper_test.sh").write_text(keeper_test, encoding="utf-8")
-    (/arm64rootTEMP_PATH / "binary_test.sh").write_text(binary_test, encoding="utf-8")
+    (TEMP_PATH / "server_test.sh").write_text(server_test, encoding="utf-8")
+    (TEMP_PATH / "keeper_test.sh").write_text(keeper_test, encoding="utf-8")
+    (TEMP_PATH / "binary_test.sh").write_text(binary_test, encoding="utf-8")
     (TEMP_PATH / "preserve_logs.sh").write_text(preserve_logs, encoding="utf-8")
 
 
@@ -197,9 +197,9 @@ def test_install(image: DockerImage, tests: Dict[str, str]) -> TestResults:
             print(f"Contents of TEMP_PATH:")
             for item in os.listdir(TEMP_PATH):
                 print(item)            
-            time.sleep(10)  # Add a delay of 60 second
+            time.sleep(300)  # Add a delay of 60 second
             install_command = (
-                f"docker exec {container_id} bash -ex /packages/test_install/install.sh"
+                f"docker exec {container_id} bash -ex /packages/install.sh"
             )
             print(f"Install command: {install_command}")  # Debugging statement
             with TeePopen(install_command, log_file) as process:
