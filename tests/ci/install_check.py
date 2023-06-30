@@ -41,7 +41,7 @@ from upload_result_helper import upload_results
 
 RPM_IMAGE = f"{DOCKER_REPO}/clickhouse/install-rpm-test"
 DEB_IMAGE = f"{DOCKER_REPO}/clickhouse/install-deb-test"
-TEMP_PATH = Path("/arm64root") / Path(TEMP)
+TEMP_PATH = Path(TEMP)
 LOGS_PATH = TEMP_PATH / "tests_logs"
 SUCCESS = "success"
 FAILURE = "failure"
@@ -182,11 +182,7 @@ def test_install(image: DockerImage, tests: Dict[str, str]) -> TestResults:
             for file in LOGS_PATH.glob("*"):
                 file.unlink()
 
-
             (TEMP_PATH / "install.sh").write_text(command)
-            print(f"Contents of TEMP_PATH:")
-            for item in os.listdir(TEMP_PATH):
-                print(item)            
             print(f"Content of 'install.sh': {(TEMP_PATH / 'install.sh').read_text()}")  # Debugging statement            
             logging.info("Running docker container: `%s`", run_command)
             container_id = subprocess.check_output(
@@ -198,7 +194,7 @@ def test_install(image: DockerImage, tests: Dict[str, str]) -> TestResults:
             print(f"Contents of TEMP_PATH:")
             for item in os.listdir(TEMP_PATH):
                 print(item)            
-            time.sleep(300)  # Add a delay of 60 second
+            time.sleep(200)  # Add a delay of 60 second
             install_command = (
                 f"docker exec {container_id} bash -ex /packages/install.sh"
             )
