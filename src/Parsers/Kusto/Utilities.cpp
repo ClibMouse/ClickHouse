@@ -39,24 +39,24 @@ std::optional<String> wildcardToRegex(const String & wildcard)
 {
     String regex;
     regex += '^';
-    bool hasWildcard = false;
+    bool has_wildcard = false;
     for (char c : wildcard)
     {
         if (c == '*')
         {
             regex += ".*";
-            hasWildcard = true;
+            has_wildcard = true;
         }
         else if (c == '?')
         {
             regex += ".";
-            hasWildcard = true;
+            has_wildcard = true;
         }
         else if (c == '.' || c == '+' || c == '(' || c == ')' || c == '[' || c == ']' || c == '\\' || c == '^' || c == '$')
         {
             regex += "\\";
             regex += c;
-            hasWildcard = true;
+            has_wildcard = true;
         }
         else
         {
@@ -65,7 +65,7 @@ std::optional<String> wildcardToRegex(const String & wildcard)
     }
     regex += '$';
 
-    if(hasWildcard)
+    if(has_wildcard)
         return regex;
 
     return {};
