@@ -182,6 +182,7 @@ def test_install(image: DockerImage, tests: Dict[str, str]) -> TestResults:
             for file in LOGS_PATH.glob("*"):
                 file.unlink()
 
+
             (TEMP_PATH / "install.sh").write_text(command)
             print(f"Contents of TEMP_PATH:")
             for item in os.listdir(TEMP_PATH):
