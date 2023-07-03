@@ -22,7 +22,8 @@ on:  # yamllint disable-line rule:truthy
   #     - 'utils/check-style/aspell-ignore/**'
 jobs:
   DockerHubPushAarch64:
-    runs-on: [self-hosted, style-checker-aarch64]
+    # runs-on: [self-hosted, style-checker-aarch64]
+    runs-on: [self-hosted, style-checker-rtp1-aarch64]    
     steps:
       - name: Check out repository code
         uses: ClickHouse/checkout@v1
@@ -38,7 +39,7 @@ jobs:
           name: changed_images_aarch64
           path: ${{ runner.temp }}/docker_images_check/changed_images_aarch64.json
   DockerHubPushAmd64:
-    runs-on: [self-hosted, builder]
+    runs-on: [self-hosted, vm2]
     steps:
       - name: Check out repository code
         uses: ClickHouse/checkout@v1
@@ -55,7 +56,7 @@ jobs:
           path: ${{ runner.temp }}/docker_images_check/changed_images_amd64.json
   DockerHubPush:
     needs: [DockerHubPushAmd64, DockerHubPushAarch64]
-    runs-on: [self-hosted, vm2]
+    runs-on: [self-hosted, vm]
     steps:
       - name: Check out repository code
         uses: ClickHouse/checkout@v1
