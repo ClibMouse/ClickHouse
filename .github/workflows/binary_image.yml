@@ -21,7 +21,6 @@ on:  # yamllint disable-line rule:truthy
   #     - 'docs/**'
   #     - 'utils/check-style/aspell-ignore/**'
 jobs:
-
   CheckLabels:
     runs-on: [self-hosted, style-checker-rtp]
     # Run the first check always, even if the CI is cancelled
