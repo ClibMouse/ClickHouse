@@ -1,10 +1,10 @@
 #include "KQLAggregationFunctions.h"
 #include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
 
-#include <Common/StringUtils/StringUtils.h>
-#include <ranges>
 #include <format>
 #include <numeric>
+#include <ranges>
+#include <Common/StringUtils/StringUtils.h>
 
 namespace DB::ErrorCodes
 {
@@ -17,6 +17,21 @@ void checkAccuracy(const std::optional<std::string> & accuracy)
 {
     if (accuracy && *accuracy != "4")
         throw DB::Exception(DB::ErrorCodes::NOT_IMPLEMENTED, "only accuracy of 4 is supported");
+}
+
+uint mapPrecisionAccuracy(const std::optional<std::string> & accuracy)
+{
+    if (!accuracy)
+        return 14; //default accuracy is 1
+
+    if (*accuracy == "0")
+        return 12;
+    else if (*accuracy == "2")
+        return 16;
+    else if (*accuracy == "3")
+        return 17;
+    else
+        return 14;
 }
 }
 
@@ -105,16 +120,11 @@ bool DCount::convertImpl(String & out, IParser::Pos & pos)
 
     if (fn_name.empty())
         return false;
-    ++pos;
-    String value = getConvertedArgument(fn_name, pos);
-    if (pos->type == TokenType::Comma)
-    {
-        ++pos;
-        const auto accuracy = getConvertedArgument(fn_name, pos);
-        out = "count(DISTINCT " + value + " , " + accuracy + ")";
-    }
-    else
-        out = "count(DISTINCT " + value + ")";
+
+    const auto value = getArgument(fn_name, pos);
+    const auto accuracy = getOptionalArgument(fn_name, pos);
+
+    out = std::format("uniqCombined64({})({})", mapPrecisionAccuracy(accuracy), value);
     return true;
 }
 
@@ -128,14 +138,9 @@ bool DCountIf::convertImpl(String & out, IParser::Pos & pos)
     String value = getConvertedArgument(fn_name, pos);
     ++pos;
     String condition = getConvertedArgument(fn_name, pos);
-    if (pos->type == TokenType::Comma)
-    {
-        ++pos;
-        const auto accuracy = getConvertedArgument(fn_name, pos);
-        out = "count(DISTINCT " + value + " , " + condition + " , " + accuracy + ")";
-    }
-    else
-        out = "countIf(DISTINCT " + value + " , " + condition + ")";
+
+    const auto accuracy = getOptionalArgument(fn_name, pos);
+    out = std::format("uniqCombined64If({})({},({}))", mapPrecisionAccuracy(accuracy), value, condition);
     return true;
 }
 
