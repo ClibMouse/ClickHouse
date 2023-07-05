@@ -23,11 +23,12 @@ bool ParserKQLProjectAway::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expe
     auto append_columns = [&regular_columns, &wildcard_columns](Pos & begin, Pos & end)
     {
         const auto column = String(begin->begin, end->end);
-        const auto regex_column = wildcardToRegex(column);
-        if (regex_column == column)
-            regular_columns.push_back(column);
+        if (const auto regex_column = wildcardToRegex(column))
+        {
+            wildcard_columns.push_back("'" + *regex_column + "'");
+        }
         else
-            wildcard_columns.push_back("'" + regex_column + "'");
+            regular_columns.push_back(column);
     };
 
     while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)

@@ -35,24 +35,28 @@ void setSelectAll(ASTSelectQuery & select_query)
     select_query.setExpression(ASTSelectQuery::Expression::SELECT, std::move(expression_list));
 }
 
-String wildcardToRegex(const String & wildcard)
+std::optional<String> wildcardToRegex(const String & wildcard)
 {
     String regex;
     regex += '^';
+    bool has_wildcard = false;
     for (char c : wildcard)
     {
         if (c == '*')
         {
             regex += ".*";
+            has_wildcard = true;
         }
         else if (c == '?')
         {
             regex += ".";
+            has_wildcard = true;
         }
         else if (c == '.' || c == '+' || c == '(' || c == ')' || c == '[' || c == ']' || c == '\\' || c == '^' || c == '$')
         {
             regex += "\\";
             regex += c;
+            has_wildcard = true;
         }
         else
         {
@@ -60,7 +64,11 @@ String wildcardToRegex(const String & wildcard)
         }
     }
     regex += '$';
-    return regex;
+
+    if (has_wildcard)
+        return regex;
+
+    return {};
 }
 
 ASTPtr wrapInSelectWithUnion(const ASTPtr & select_query)
