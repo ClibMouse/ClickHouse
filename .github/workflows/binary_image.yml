@@ -52,7 +52,7 @@ jobs:
   #         done
   DockerHubPushAarch64:
     # runs-on: [self-hosted, style-checker-aarch64]
-    runs-on: [self-hosted, style-checker-rtp1-aarch64]    
+    runs-on: [self-hosted, style-checker-aarch64]    
     steps:
       - name: Check out repository code
         uses: ClickHouse/checkout@v1
