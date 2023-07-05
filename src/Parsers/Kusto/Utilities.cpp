@@ -65,7 +65,7 @@ std::optional<String> wildcardToRegex(const String & wildcard)
     }
     regex += '$';
 
-    if(has_wildcard)
+    if (has_wildcard)
         return regex;
 
     return {};
