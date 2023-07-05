@@ -1,10 +1,10 @@
 #include "KQLAggregationFunctions.h"
 #include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
 
-#include <Common/StringUtils/StringUtils.h>
-#include <ranges>
 #include <format>
 #include <numeric>
+#include <ranges>
+#include <Common/StringUtils/StringUtils.h>
 
 namespace DB::ErrorCodes
 {
@@ -19,20 +19,19 @@ void checkAccuracy(const std::optional<std::string> & accuracy)
         throw DB::Exception(DB::ErrorCodes::NOT_IMPLEMENTED, "only accuracy of 4 is supported");
 }
 
-uint mapPrecisionAccuracy(const std::optional<std::string> & accuracy){
-    if(accuracy){
-        if(*accuracy == "0")
-            return 12;
-        else if(*accuracy == "1")
-            return 14;
-        else if(*accuracy == "2")
-            return 16;
-        else if(*accuracy == "3")
-            return 17;
-        else
-            return 18;
-    }
-    return 18;
+uint mapPrecisionAccuracy(const std::optional<std::string> & accuracy)
+{
+    if (!accuracy)
+        return 14; //default accuracy is 1
+
+    if (*accuracy == "0")
+        return 12;
+    else if (*accuracy == "2")
+        return 16;
+    else if (*accuracy == "3")
+        return 17;
+    else
+        return 14;
 }
 }
 
@@ -125,7 +124,7 @@ bool DCount::convertImpl(String & out, IParser::Pos & pos)
     const auto value = getArgument(fn_name, pos);
     const auto accuracy = getOptionalArgument(fn_name, pos);
 
-    out = std::format("uniqCombined64({})({})",mapPrecisionAccuracy(accuracy),value);
+    out = std::format("uniqCombined64({})({})", mapPrecisionAccuracy(accuracy), value);
     return true;
 }
 
@@ -141,7 +140,7 @@ bool DCountIf::convertImpl(String & out, IParser::Pos & pos)
     String condition = getConvertedArgument(fn_name, pos);
 
     const auto accuracy = getOptionalArgument(fn_name, pos);
-    out = std::format("uniqCombined64If({})({},({}))",mapPrecisionAccuracy(accuracy),value,condition);
+    out = std::format("uniqCombined64If({})({},({}))", mapPrecisionAccuracy(accuracy), value, condition);
     return true;
 }
 
