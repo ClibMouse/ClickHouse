@@ -674,7 +674,15 @@ ReturnType parseDateTime64BestEffortImpl(DateTime64 & res, UInt32 scale, ReadBuf
     if constexpr (std::is_same_v<ReturnType, bool>)
         return DecimalUtils::tryGetDecimalFromComponents<DateTime64>(whole, fractional, scale, res);
 
-    res = DecimalUtils::decimalFromComponents<DateTime64>(whole, fractional, scale);
+    try
+    {
+        res = DecimalUtils::decimalFromComponents<DateTime64>(whole, fractional, scale);
+    }
+    catch (...)
+    {
+        throw Exception(ErrorCodes::CANNOT_PARSE_DATETIME, "DateTime out of range");
+    }
+    
     return ReturnType(true);
 }
 
