@@ -85,7 +85,7 @@ jobs:
           path: ${{ runner.temp }}/docker_images_check/changed_images_amd64.json
   DockerHubPush:
     needs: [DockerHubPushAmd64, DockerHubPushAarch64]
-    runs-on: [self-hosted, vm]
+    runs-on: [self-hosted, vm2]
     steps:
       - name: Check out repository code
         uses: ClickHouse/checkout@v1
@@ -154,7 +154,7 @@ jobs:
           sudo rm -fr "$TEMP_PATH" "$CACHES_PATH"
   InstallPackagesTestAarch64:
     needs: [BuilderDebAarch64]
-    runs-on: [self-hosted, Arm64-runner-fyre1]
+    runs-on: [self-hosted, arm64-runner-2]
     steps:
       - name: Set envs
         run: |
