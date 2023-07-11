@@ -24,3 +24,5 @@ print FN='Theodore', LN='Diaz' | project-rename FirstName=FN, LastName=LN;
 print  '4-- nested query';
 print a = 9 | project-rename b = a | extend c = toscalar(print d = 8 | project-rename e = d) | project-rename f = c;
 
+print '5-- rename duplicate column';
+print a='a', b='b', c='c' | project-rename c=b; -- { serverError SYNTAX_ERROR }

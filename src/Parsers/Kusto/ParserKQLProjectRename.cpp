@@ -13,7 +13,7 @@ namespace DB
 
 bool ParserKQLProjectRename::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
-    const auto projectrename_expr = getRenameExprFromToken(pos);
+    const auto projectrename_expr = getRenameExprFromToken(pos, node);
     Tokens ntokens(projectrename_expr.c_str(), projectrename_expr.c_str() + projectrename_expr.size());
     IParser::Pos npos(ntokens, pos.max_depth);
 

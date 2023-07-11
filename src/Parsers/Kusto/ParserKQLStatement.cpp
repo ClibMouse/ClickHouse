@@ -14,8 +14,6 @@ namespace DB
 
 bool ParserKQLStatement::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
-    KQLContext kql_context;
-
     ParserKQLWithOutput query_with_output_p(kql_context);
     ParserSetQuery set_p;
 

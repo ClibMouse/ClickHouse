@@ -9,9 +9,14 @@ namespace DB
 
 class ParserKQLStatement : public IParserBase
 {
+public:
+    explicit ParserKQLStatement() = default;
+    explicit ParserKQLStatement(KQLContext & kql_context_) : kql_context(kql_context_) {}
 protected:
     const char * getName() const override { return "KQL Statement"; }
     bool parseImpl(Pos & pos, ASTPtr & node, Expected & expected) override;
+private:
+    KQLContext kql_context;
 };
 
 class ParserKQLWithOutput : public IParserBase
