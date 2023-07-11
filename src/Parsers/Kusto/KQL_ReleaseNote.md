@@ -1,4 +1,7 @@
 ## KQL implemented features  
+# July XX, 2023
+## Bugfixes
+- Throw an exception when there is an attempt to `project-rename` the same column multiple times.
 # April XX, 2023
 ## Bugfixes
  - Corrected an issue with parse_url in which hostnames and port numbers were not correctly parsed.
