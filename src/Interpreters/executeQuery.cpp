@@ -75,6 +75,9 @@
 
 #include <Parsers/Kusto/ParserKQLStatement.h>
 
+#include <Interpreters/InterpreterSelectWithUnionQuery.h>
+#include <Parsers/Kusto/ParserKQLProjectRename.h>
+
 namespace ProfileEvents
 {
     extern const Event FailedQuery;
@@ -369,10 +372,12 @@ static std::tuple<ASTPtr, BlockIO> executeQueryImpl(
     try
     {
         const Dialect & dialect = settings.dialect;
+        KQLContext kql_context;
+        kql_context.context = context;
 
         if (dialect == Dialect::kusto && !internal)
         {
-            ParserKQLStatement parser;
+            ParserKQLStatement parser(kql_context);
             ast = parseQuery(parser, begin, end, "", max_query_size, settings.max_parser_depth);
         }
         else if (dialect == Dialect::kusto_auto && !internal)
@@ -385,8 +390,10 @@ static std::tuple<ASTPtr, BlockIO> executeQueryImpl(
             }
             catch (...)
             {
-                ParserKQLStatement parser;
+                ParserKQLStatement parser(kql_context);
                 ast = parseQuery(parser, begin, end, "", max_query_size, settings.max_parser_depth);
+                ParserKQLProjectRename rename(kql_context);
+                //rename.checkDuplicateAlias(ast, "");
             }
         }
         else
