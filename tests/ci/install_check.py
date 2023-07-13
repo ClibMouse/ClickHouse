@@ -74,37 +74,37 @@ exec 13>&-"""
     binary_test = r"""#!/bin/bash
 set -e
 trap "bash -ex /packages/preserve_logs.sh" ERR
-# echo "Pausing execution"
-# sleep 3600
-/packages/clickhouse.copy install
-# cp /packages/clickhouse /usr/bin/clickhouse.new
-# mv /usr/bin/clickhouse.new /usr/bin/clickhouse
-# ln -s /usr/bin/clickhouse /usr/bin/clickhouse-server
-# ln -s /usr/bin/clickhouse /usr/bin/clickhouse-client
-# ln -s /usr/bin/clickhouse /usr/bin/clickhouse-local
-# ln -s /usr/bin/clickhouse /usr/bin/clickhouse-benchmark
-# ln -s /usr/bin/clickhouse /usr/bin/clickhouse-copier
-# ln -s /usr/bin/clickhouse /usr/bin/clickhouse-obfuscator
-# ln -s /usr/bin/clickhouse /usr/bin/clickhouse-git-import
-# ln -s /usr/bin/clickhouse /usr/bin/clickhouse-compressor
-# ln -s /usr/bin/clickhouse /usr/bin/clickhouse-format
-# ln -s /usr/bin/clickhouse /usr/bin/clickhouse-extract-from-config
-# ln -s /usr/bin/clickhouse /usr/bin/clickhouse-keeper
-# ln -s /usr/bin/clickhouse /usr/bin/clickhouse-keeper-converter
-# ln -s /usr/bin/clickhouse /usr/bin/clickhouse-disks
-# groupadd -r clickhouse
-# useradd -r --shell /bin/false --home-dir /nonexistent -g clickhouse clickhouse
-# mkdir /etc/clickhouse-server
-# mkdir /etc/clickhouse-server/config.d
-# mkdir /etc/clickhouse-server/users.d
-# mkdir /var/log/clickhouse-server
-# mkdir /var/lib/clickhouse
-# mkdir /var/run/clickhouse-server
-# chown -R clickhouse:clickhouse '/var/log/clickhouse-server'
-# chown -R clickhouse:clickhouse '/var/run/clickhouse-server'
-# chown clickhouse:clickhouse '/var/lib/clickhouse'
-# chown -R clickhouse:clickhouse '/etc/clickhouse-server'
-# chmod +x /usr/bin/clickhouse
+echo "Pausing execution"
+sleep 3600
+# /packages/clickhouse.copy install
+cp /packages/clickhouse /usr/bin/clickhouse.new
+mv /usr/bin/clickhouse.new /usr/bin/clickhouse
+ln -s /usr/bin/clickhouse /usr/bin/clickhouse-server
+ln -s /usr/bin/clickhouse /usr/bin/clickhouse-client
+ln -s /usr/bin/clickhouse /usr/bin/clickhouse-local
+ln -s /usr/bin/clickhouse /usr/bin/clickhouse-benchmark
+ln -s /usr/bin/clickhouse /usr/bin/clickhouse-copier
+ln -s /usr/bin/clickhouse /usr/bin/clickhouse-obfuscator
+ln -s /usr/bin/clickhouse /usr/bin/clickhouse-git-import
+ln -s /usr/bin/clickhouse /usr/bin/clickhouse-compressor
+ln -s /usr/bin/clickhouse /usr/bin/clickhouse-format
+ln -s /usr/bin/clickhouse /usr/bin/clickhouse-extract-from-config
+ln -s /usr/bin/clickhouse /usr/bin/clickhouse-keeper
+ln -s /usr/bin/clickhouse /usr/bin/clickhouse-keeper-converter
+ln -s /usr/bin/clickhouse /usr/bin/clickhouse-disks
+groupadd -r clickhouse
+useradd -r --shell /bin/false --home-dir /nonexistent -g clickhouse clickhouse
+mkdir /etc/clickhouse-server
+mkdir /etc/clickhouse-server/config.d
+mkdir /etc/clickhouse-server/users.d
+mkdir /var/log/clickhouse-server
+mkdir /var/lib/clickhouse
+mkdir /var/run/clickhouse-server
+chown -R clickhouse:clickhouse '/var/log/clickhouse-server'
+chown -R clickhouse:clickhouse '/var/run/clickhouse-server'
+chown clickhouse:clickhouse '/var/lib/clickhouse'
+chown -R clickhouse:clickhouse '/etc/clickhouse-server'
+chmod +x /usr/bin/clickhouse
 
 clickhouse-server start --daemon
 for i in {1..5}; do
