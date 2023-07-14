@@ -76,7 +76,6 @@ set -e
 trap "bash -ex /packages/preserve_logs.sh" ERR
 echo "Pausing execution"
 sleep 3600
-
 # /packages/clickhouse.copy install
 cp /packages/clickhouse /usr/bin/clickhouse.new
 mv /usr/bin/clickhouse.new /usr/bin/clickhouse
