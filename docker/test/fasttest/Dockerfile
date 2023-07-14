@@ -10,6 +10,7 @@ RUN apt-get update \
         expect \
         file \
         lsof \
+        odbcinst \
         psmisc \
         python3 \
         python3-lxml \
