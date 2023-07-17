@@ -106,5 +106,25 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_operator_in_sql, ParserKQLTest,
         {
             "select * from kql(Customers | where FirstName !~ 'nEyMaR' and LastName =~ 'naRA')",
             "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE (lower(FirstName) != lower('nEyMaR')) AND (lower(LastName) = lower('naRA'))\n)"
+        },
+        {
+            "select * from kql($$Customers | where FirstName !in ('Peter', 'Latoya')$$)",
+            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE FirstName NOT IN ('Peter', 'Latoya')\n)"
+        },
+        {
+            "select * from kql($$Customers | where FirstName !contains 'Pet'$$);",
+            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE NOT (FirstName ILIKE '%Pet%')\n)"
+        },
+        {
+            "select * from kql($$Customers | where FirstName !contains_cs 'Pet'$$);",
+            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE NOT (FirstName LIKE '%Pet%')\n)"
+        },
+        {
+            "select * from kql($$Customers | where FirstName in~ ((Customers | project FirstName | where Age < 30))$$)",
+            "SELECT *\nFROM\n(\n    SELECT *\n    FROM Customers\n    WHERE lower(FirstName) IN (\n        SELECT lower(FirstName)\n        FROM Customers\n        WHERE Age < 30\n    )\n)"
+        },
+        {
+            "select * from kql($$print t = 'a' !in~ (dynamic(['A', 'b', 'c']))$$)",
+            "SELECT *\nFROM\n(\n    SELECT lower('a') NOT IN (lower('A'), lower('b'), lower('c')) AS t\n)"
         }
 })));
