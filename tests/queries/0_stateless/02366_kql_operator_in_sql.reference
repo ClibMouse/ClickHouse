@@ -104,3 +104,126 @@ Peter	Nara	Skilled Manual	Graduate Degree	26
 20000
 0
 30000
+-- HereDoc --
+-- #31 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Apple		Skilled Manual	Bachelors	28
+-- #32 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Peter	Nara	Skilled Manual	Graduate Degree	26
+Latoya	Shen	Professional	Graduate Degree	25
+Apple		Skilled Manual	Bachelors	28
+-- #33 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Latoya	Shen	Professional	Graduate Degree	25
+Apple		Skilled Manual	Bachelors	28
+-- #34 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Latoya	Shen	Professional	Graduate Degree	25
+Apple		Skilled Manual	Bachelors	28
+-- #35 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Latoya	Shen	Professional	Graduate Degree	25
+Apple		Skilled Manual	Bachelors	28
+-- #36 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Latoya	Shen	Professional	Graduate Degree	25
+Apple		Skilled Manual	Bachelors	28
+-- #37 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Latoya	Shen	Professional	Graduate Degree	25
+Apple		Skilled Manual	Bachelors	28
+-- #38 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Latoya	Shen	Professional	Graduate Degree	25
+Apple		Skilled Manual	Bachelors	28
+-- #39 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Peter	Nara	Skilled Manual	Graduate Degree	26
+Latoya	Shen	Professional	Graduate Degree	25
+Apple		Skilled Manual	Bachelors	28
+-- #40 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Latoya	Shen	Professional	Graduate Degree	25
+Apple		Skilled Manual	Bachelors	28
+-- #41 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Latoya	Shen	Professional	Graduate Degree	25
+Apple		Skilled Manual	Bachelors	28
+-- #42 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Latoya	Shen	Professional	Graduate Degree	25
+Apple		Skilled Manual	Bachelors	28
+-- #43 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Latoya	Shen	Professional	Graduate Degree	25
+Apple		Skilled Manual	Bachelors	28
+-- #44 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Latoya	Shen	Professional	Graduate Degree	25
+Apple		Skilled Manual	Bachelors	28
+-- #45 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Latoya	Shen	Professional	Graduate Degree	25
+Apple		Skilled Manual	Bachelors	28
+-- #46 --
+1
+-- #47 --
+Peter	Nara	Skilled Manual	Graduate Degree	26
+Apple		Skilled Manual	Bachelors	28
+-- #48 --
+Peter	Nara	Skilled Manual	Graduate Degree	26
+-- #49 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Peter	Nara	Skilled Manual	Graduate Degree	26
+Latoya	Shen	Professional	Graduate Degree	25
+Apple		Skilled Manual	Bachelors	28
+-- #50 --
+0
+-- #51 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Latoya	Shen	Professional	Graduate Degree	25
+-- #52 --
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Latoya	Shen	Professional	Graduate Degree	25
+Apple		Skilled Manual	Bachelors	28
+-- #53 --
+Stephanie	Cox	Management abcd defg	Bachelors	33
+-- #54 --
+Peter	Nara	Skilled Manual	Graduate Degree	26
+-- #55 --
+Peter	Nara	Skilled Manual	Graduate Degree	26
+-- #56 --
+2.00:00:00
+-- #57 --
+4
+-- #58 --
+Peter	Nara	Skilled Manual	Graduate Degree	26
+-- #59 --
+Peter	Nara	Skilled Manual	Graduate Degree	26
+-- #60 --
+4
+-- HereDoc operator has, !has, has_cs, !has_cs, has_all, has_any --
+50000
+0
+20000
+20000
+0
+30000

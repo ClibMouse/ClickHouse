@@ -68,17 +68,13 @@ bool ParserKQLTableFunction::parseImpl(Pos & pos, ASTPtr & node, Expected & expe
 
     if (s_lparen.ignore(pos, expected))
     {
-        ++paren_count;
-        auto pos_start = pos;
-        while (!pos->isEnd())
+        if (pos->type == TokenType::HereDoc)
         {
-            if (pos->type == TokenType::ClosingRoundBracket)
-                --paren_count;
-            if (pos->type == TokenType::OpeningRoundBracket)
-                ++paren_count;
-            if (paren_count == 0)
-                break;
-            ++pos;
+            auto kal_table_str = String(pos->begin, pos->end);
+            size_t pos1 = kal_table_str.find("$$");
+            size_t pos2 = kal_table_str.rfind("$$");
+            if (pos1 != std::string::npos && pos2 != std::string::npos && pos1 < pos2)
+                kql_statement = kal_table_str.substr(pos1 + 2, pos2 - pos1 - 2);
         }
         else
         {
@@ -90,6 +86,7 @@ bool ParserKQLTableFunction::parseImpl(Pos & pos, ASTPtr & node, Expected & expe
                     --paren_count;
                 if (pos->type == TokenType::OpeningRoundBracket)
                     ++paren_count;
+
                 if (paren_count == 0)
                     break;
                 ++pos;
@@ -97,9 +94,10 @@ bool ParserKQLTableFunction::parseImpl(Pos & pos, ASTPtr & node, Expected & expe
             if (!isValidKQLPos(pos) && paren_count != 0)
                 return false;
 
-        kql_statement = String(pos_start->begin, (--pos)->end);
-        ++pos;
+            kql_statement = String(pos_start->begin, (--pos)->end);
+        }
 
+        ++pos;
         Tokens token_kql(kql_statement.c_str(), kql_statement.c_str() + kql_statement.size());
         IParser::Pos pos_kql(token_kql, pos.max_depth, pos.max_backtracks);
 
@@ -112,5 +110,5 @@ bool ParserKQLTableFunction::parseImpl(Pos & pos, ASTPtr & node, Expected & expe
     }
     pos = begin;
     return false;
-}
+};
 }
