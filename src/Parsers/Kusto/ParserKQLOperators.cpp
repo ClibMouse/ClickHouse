@@ -290,7 +290,7 @@ String genBetweenOpExpr(std::vector<std::string> & tokens, DB::IParser::Pos & to
 String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos, const DB::String & kql_op, const DB::String & ch_op)
 {
     DB::KQLContext kql_context;
-    DB::ParserKQLTaleFunction kqlfun_p(kql_context);
+    DB::ParserKQLTableFunction kqlfun_p(kql_context);
     DB::ParserToken s_lparen(DB::TokenType::OpeningRoundBracket);
 
     DB::ASTPtr select;
@@ -344,7 +344,7 @@ String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
 std::string genInOpExpr(DB::IParser::Pos & token_pos, const std::string & kql_op, const std::string & ch_op)
 {
     DB::KQLContext kql_context;
-    DB::ParserKQLTaleFunction kqlfun_p(kql_context);
+    DB::ParserKQLTableFunction kqlfun_p(kql_context);
     DB::ParserToken s_lparen(DB::TokenType::OpeningRoundBracket);
 
     DB::ASTPtr select;
