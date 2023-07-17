@@ -43,7 +43,7 @@ private:
 class ParserKQLTableFunction : public IParserBase
 {
 public:
-    explicit ParserKQLTaleFunction(KQLContext & kql_context_) : kql_context(kql_context_) { }
+    explicit ParserKQLTableFunction(KQLContext & kql_context_) : kql_context(kql_context_) { }
 
 protected:
     const char * getName() const override { return "KQL() function"; }
