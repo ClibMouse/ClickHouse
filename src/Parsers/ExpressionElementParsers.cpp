@@ -110,7 +110,7 @@ bool ParserSubquery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 
     if (s_kql.ignore(pos, expected))
     {
-        if (KQLContext kql_context; !ParserKQLTaleFunction(kql_context).parse(pos, result_node, expected))
+        if (KQLContext kql_context; !ParserKQLTableFunction(kql_context).parse(pos, result_node, expected))
             return false;
     }
     else
