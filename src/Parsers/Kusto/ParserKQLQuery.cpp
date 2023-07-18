@@ -713,7 +713,7 @@ bool ParserKQLSubquery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
     ASTPtr select_node;
 
-    if (!ParserKQLTaleFunction(kql_context).parse(pos, select_node, expected))
+    if (!ParserKQLTableFunction(kql_context).parse(pos, select_node, expected))
         return false;
 
     ASTPtr node_subquery = std::make_shared<ASTSubquery>();
