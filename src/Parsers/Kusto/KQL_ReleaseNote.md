@@ -1,4 +1,12 @@
 ## KQL implemented features  
+# July, 2023
+## Features
+-  Enable kql table function support both heredoc and regular format
+## Bugfixes
+ - Fix printing datetime throws exceptions
+ - Fix dcount, dcountif aren't using HyperLogLog 
+ - Fix base64 decode to string should return null for invalid encoded values 
+ - Fix wildcard to Regex is not correct in the project-away operator
 # June, 2023
 ## Bugfixes
  - Fix core dump when table is missing in pipeline  
