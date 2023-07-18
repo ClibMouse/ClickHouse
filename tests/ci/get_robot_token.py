@@ -8,7 +8,7 @@ import hvac
 from github import Github
 from github.AuthenticatedUser import AuthenticatedUser
 
-from contants import VAULT_URL, VAULT_TOKEN, VAULT_PATH, VAULT_MOUNT_POINT
+from constants import VAULT_URL, VAULT_TOKEN, VAULT_PATH, VAULT_MOUNT_POINT
 
 @dataclass
 class Token:
