@@ -104,15 +104,15 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print make_datetime(2017,10,01)",
-            "SELECT if(((2017 >= 1900) AND (2017 <= 2261)) AND ((10 >= 1) AND (10 <= 12)) AND ((0 >= 0) AND (0 <= 59)) AND ((0 >= 0) AND (0 <= 59)) AND (0 >= 0) AND (0 < 60) AND (toModifiedJulianDayOrNull(concat(leftPad(toString(2017), 4, '0'), '-', leftPad(toString(10), 2, '0'), '-', leftPad(toString(1), 2, '0'))) IS NOT NULL), toDateTime64OrNull(toString(makeDateTime64(2017, 10, 1, 0, 0, truncate(0), (0 - truncate(0)) * 10000000., 7, 'UTC')), 9), NULL) AS print_0"
+            "SELECT if(((2017 >= 1900) AND (2017 <= 2261)) AND ((10 >= 1) AND (10 <= 12)) AND ((0 >= 0) AND (0 <= 59)) AND ((0 >= 0) AND (0 <= 59)) AND (0 >= 0) AND (0 < 60) AND (toModifiedJulianDayOrNull(concat(leftPad(toString(2017), 4, '0'), '-', leftPad(toString(10), 2, '0'), '-', leftPad(toString(1), 2, '0'))) IS NOT NULL), toDateTime64OrNull(toString(makeDateTime64(2017, 10, 1, 0, 0, truncate(0), (0 - truncate(0)) * 10000000., 7, 'UTC')), 9, 'UTC'), NULL) AS print_0"
         },
         {
             "print make_datetime(2017,10,01,12,10)",
-            "SELECT if(((2017 >= 1900) AND (2017 <= 2261)) AND ((10 >= 1) AND (10 <= 12)) AND ((12 >= 0) AND (12 <= 59)) AND ((10 >= 0) AND (10 <= 59)) AND (0 >= 0) AND (0 < 60) AND (toModifiedJulianDayOrNull(concat(leftPad(toString(2017), 4, '0'), '-', leftPad(toString(10), 2, '0'), '-', leftPad(toString(1), 2, '0'))) IS NOT NULL), toDateTime64OrNull(toString(makeDateTime64(2017, 10, 1, 12, 10, truncate(0), (0 - truncate(0)) * 10000000., 7, 'UTC')), 9), NULL) AS print_0"
+            "SELECT if(((2017 >= 1900) AND (2017 <= 2261)) AND ((10 >= 1) AND (10 <= 12)) AND ((12 >= 0) AND (12 <= 59)) AND ((10 >= 0) AND (10 <= 59)) AND (0 >= 0) AND (0 < 60) AND (toModifiedJulianDayOrNull(concat(leftPad(toString(2017), 4, '0'), '-', leftPad(toString(10), 2, '0'), '-', leftPad(toString(1), 2, '0'))) IS NOT NULL), toDateTime64OrNull(toString(makeDateTime64(2017, 10, 1, 12, 10, truncate(0), (0 - truncate(0)) * 10000000., 7, 'UTC')), 9, 'UTC'), NULL) AS print_0"
         },
         {
             "print make_datetime(2017,10,01,12,11,0.1234567)",
-            "SELECT if(((2017 >= 1900) AND (2017 <= 2261)) AND ((10 >= 1) AND (10 <= 12)) AND ((12 >= 0) AND (12 <= 59)) AND ((11 >= 0) AND (11 <= 59)) AND (0.1234567 >= 0) AND (0.1234567 < 60) AND (toModifiedJulianDayOrNull(concat(leftPad(toString(2017), 4, '0'), '-', leftPad(toString(10), 2, '0'), '-', leftPad(toString(1), 2, '0'))) IS NOT NULL), toDateTime64OrNull(toString(makeDateTime64(2017, 10, 1, 12, 11, truncate(0.1234567), (0.1234567 - truncate(0.1234567)) * 10000000., 7, 'UTC')), 9), NULL) AS print_0"
+            "SELECT if(((2017 >= 1900) AND (2017 <= 2261)) AND ((10 >= 1) AND (10 <= 12)) AND ((12 >= 0) AND (12 <= 59)) AND ((11 >= 0) AND (11 <= 59)) AND (0.1234567 >= 0) AND (0.1234567 < 60) AND (toModifiedJulianDayOrNull(concat(leftPad(toString(2017), 4, '0'), '-', leftPad(toString(10), 2, '0'), '-', leftPad(toString(1), 2, '0'))) IS NOT NULL), toDateTime64OrNull(toString(makeDateTime64(2017, 10, 1, 12, 11, truncate(0.1234567), (0.1234567 - truncate(0.1234567)) * 10000000., 7, 'UTC')), 9, 'UTC'), NULL) AS print_0"
         },
         {
             "print unixtime_microseconds_todatetime(1546300800000000)",
@@ -196,7 +196,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print datetime_add('day',1,datetime(2017-10-30 01:02:03.7654321))",
-            "SELECT kql_datetime('2017-10-30 01:02:03.7654321') + toIntervalDay(1) AS print_0"
+            "SELECT kql_datetime(kql_datetime('2017-10-30 01:02:03.7654321') + toIntervalDay(1)) AS print_0"
         },
         {
             "print totimespan(time(1d))",
