@@ -104,6 +104,7 @@ def run_docker_image_with_env(
     cmd = (
         f"docker run --network=host --user={user} --rm {ccache_mount}"
         f"--volume={output_dir}:/output --volume={ch_root}:/build {env_part} "
+        f"--volume=/home/ubuntu/.aws/credentials:/.aws/credentials "
         f"{interactive} {image_name}"
     )
 
@@ -123,6 +124,7 @@ def parse_env_variables(
     package_type: str,
     cache: str,
     s3_bucket: str,
+    s3_endpoint: str,
     s3_directory: str,
     s3_rw_access: bool,
     clang_tidy: bool,
@@ -276,6 +278,8 @@ def parse_env_variables(
         result.append("CCACHE_NOHASHDIR=true")
         result.append("CCACHE_COMPILERCHECK=content")
         result.append("CCACHE_MAXSIZE=15G")
+        result.append(f"SCCACHE_BUCKET={s3_bucket} ")
+        result.append(f"SCCACHE_ENDPOINT={s3_endpoint} ")        
 
     if cache == "sccache":
         cmake_flags.append("-DCOMPILER_CACHE=sccache")
@@ -408,6 +412,19 @@ def parse_args() -> argparse.Namespace:
         help="an S3 bucket used for sscache and clang-tidy-cache",
     )
     parser.add_argument(
+        "--s3-endpoint",
+        default="https://s3.amazonaws.com",
+        help="the custom endpoint URL for the S3-compatible object storage service",
+    )
+    parser.add_argument(
+        "--aws-access-key",
+        help="an S3 directory prefix used for sscache and clang-tidy-cache",
+    )
+    parser.add_argument(
+        "--aws-secret-access-key",
+        help="an S3 directory prefix used for sscache and clang-tidy-cache",
+    )    
+    parser.add_argument(
         "--s3-directory",
         default="ccache",
         help="an S3 directory prefix used for sscache and clang-tidy-cache",
@@ -431,6 +448,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--as-root", action="store_true", help="if the container should run as root"
     )
+    parser.add_argument("--docker-repo", default="docker.io", help="docker repository")
+    parser.add_argument("--docker-user", default=argparse.SUPPRESS, help="docker user")
+    parser.add_argument(
+        "--docker-password", default=argparse.SUPPRESS, help="docker password"
+    )    
 
     args = parser.parse_args()
 
@@ -462,6 +484,8 @@ def main():
 
     ch_root = args.clickhouse_repo_path
 
+    IMAGE_NAME = f"{args.docker_repo}/clickhouse/{IMAGE_TYPE}-builder"    
+
     dockerfile = ch_root / "docker/packager" / IMAGE_TYPE / "Dockerfile"
     image_with_version = IMAGE_NAME + ":" + args.docker_image_version
     if args.force_build_image:
@@ -478,6 +502,7 @@ def main():
         args.package_type,
         args.cache,
         args.s3_bucket,
+        args.s3_endpoint,
         args.s3_directory,
         args.s3_rw_access,
         args.clang_tidy,
@@ -487,6 +512,16 @@ def main():
         args.with_coverage,
         args.with_binaries,
     )
+
+    if args.docker_user:
+        print(f"docker_repo: {args.docker_repo}")
+        print(f"docker_user: {args.docker_user}")
+        subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+            f"docker login {args.docker_repo} --username '{args.docker_user}' --password-stdin",
+            input=args.docker_password,
+            encoding="utf-8",
+            shell=True,
+        )    
 
     pre_build(args.clickhouse_repo_path, env_prepared)
     run_docker_image_with_env(
