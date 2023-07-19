@@ -27,8 +27,8 @@ from commit_status_helper import (
 )
 from compress_files import compress_fast
 from docker_pull_helper import get_image_with_version, DockerImage
-from env_helper import CI, TEMP_PATH as TEMP, REPORTS_PATH
-from get_robot_token import get_best_robot_token
+from env_helper import CI, TEMP_PATH as TEMP, REPORTS_PATH, DOCKER_USER, DOCKER_REPO
+from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from pr_info import PRInfo
 from report import TestResults, TestResult
 from s3_helper import S3Helper
@@ -37,8 +37,8 @@ from tee_popen import TeePopen
 from upload_result_helper import upload_results
 
 
-RPM_IMAGE = "clickhouse/install-rpm-test"
-DEB_IMAGE = "clickhouse/install-deb-test"
+RPM_IMAGE = f"{DOCKER_REPO}/clickhouse/install-rpm-test"
+DEB_IMAGE = f"{DOCKER_REPO}/clickhouse/install-deb-test"
 TEMP_PATH = Path(TEMP)
 LOGS_PATH = TEMP_PATH / "tests_logs"
 SUCCESS = "success"

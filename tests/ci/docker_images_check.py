@@ -15,7 +15,7 @@ from github import Github
 
 from clickhouse_helper import ClickHouseHelper, prepare_tests_results_for_clickhouse
 from commit_status_helper import format_description, get_commit, post_commit_status
-from env_helper import GITHUB_WORKSPACE, RUNNER_TEMP, GITHUB_RUN_URL, DOCKER_USER, DOCKER_REPO
+from env_helper import GITHUB_WORKSPACE, RUNNER_TEMP, GITHUB_RUN_URL, DOCKER_USER, DOCKER_REPO, GITHUB_REPOSITORY
 from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from pr_info import PRInfo
 from report import TestResults, TestResult
@@ -94,7 +94,7 @@ def get_images_dict(repo_path: str, image_file_path: str) -> ImagesDict:
 
 
 def get_changed_docker_images(
-    pr_info: PRInfo, images_dict: ImagesDict, DOCKER_REPO
+    pr_info: PRInfo, images_dict: ImagesDict, DOCKER_REPO: str
 ) -> Set[DockerImage]:
     if not images_dict:
         return set()
@@ -249,6 +249,7 @@ def build_and_push_one_image(
         f"--label build-url={GITHUB_RUN_URL} "
         f"{from_tag_arg}"
         f"--build-arg DOCKER_REPO={DOCKER_REPO} "
+        f"--build-arg GITHUB_REPOSITORY={GITHUB_REPOSITORY} "
         # A hack to invalidate cache, grep for it in docker/ dir
         f"--build-arg CACHE_INVALIDATOR={GITHUB_RUN_URL} "
         f"--tag {image.repo}:{version_string} "
