@@ -285,6 +285,7 @@ def parse_env_variables(
         cmake_flags.append("-DCOMPILER_CACHE=sccache")
         # see https://github.com/mozilla/sccache/blob/main/docs/S3.md
         result.append(f"SCCACHE_BUCKET={s3_bucket}")
+        result.append(f"SCCACHE_ENDPOINT={s3_endpoint} ")
         sccache_dir = "sccache"
         if s3_directory:
             sccache_dir = f"{s3_directory}/{sccache_dir}"
@@ -423,7 +424,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--aws-secret-access-key",
         help="an S3 directory prefix used for sscache and clang-tidy-cache",
-    )    
+    )
     parser.add_argument(
         "--s3-directory",
         default="ccache",
@@ -452,7 +453,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--docker-user", default=argparse.SUPPRESS, help="docker user")
     parser.add_argument(
         "--docker-password", default=argparse.SUPPRESS, help="docker password"
-    )    
+    )
 
     args = parser.parse_args()
 
@@ -484,7 +485,7 @@ def main():
 
     ch_root = args.clickhouse_repo_path
 
-    IMAGE_NAME = f"{args.docker_repo}/clickhouse/{IMAGE_TYPE}-builder"    
+    IMAGE_NAME = f"{args.docker_repo}/clickhouse/{IMAGE_TYPE}-builder"
 
     dockerfile = ch_root / "docker/packager" / IMAGE_TYPE / "Dockerfile"
     image_with_version = IMAGE_NAME + ":" + args.docker_image_version
@@ -521,7 +522,7 @@ def main():
             input=args.docker_password,
             encoding="utf-8",
             shell=True,
-        )    
+        )
 
     pre_build(args.clickhouse_repo_path, env_prepared)
     run_docker_image_with_env(
