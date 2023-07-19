@@ -774,7 +774,11 @@ namespace
                         /// Field may be of Float type, but for the purpose of bitwise equality we can treat them as UInt64
                         StringRef ref = cache.from_column->getDataAt(i);
                         UInt64 key = 0;
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+                        memcpy(reinterpret_cast<unsigned char *>(&key) + sizeof(UInt64) - ref.size, ref.data, ref.size);
+#else
                         memcpy(&key, ref.data, ref.size);
+#endif
                         table[key] = i;
                     }
                 }
