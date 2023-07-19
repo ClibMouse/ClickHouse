@@ -514,6 +514,8 @@ def main():
         args.with_binaries,
     )
 
+    print(f"docker_repo: {args.docker_repo}")
+    print(f"docker_user: {args.docker_user}")
     if args.docker_user:
         print(f"docker_repo: {args.docker_repo}")
         print(f"docker_user: {args.docker_user}")
