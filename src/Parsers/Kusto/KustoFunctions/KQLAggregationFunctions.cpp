@@ -38,8 +38,8 @@ uint mapPrecisionAccuracy(const std::optional<std::string> & accuracy)
     else
         throw DB::Exception(
             DB::ErrorCodes::BAD_ARGUMENTS,
-            "Argument 2 must be a constant integer with value 0, 1, 2, 3 or 4 (0 = fast , 1 = default, 2 = accurate, 3 = extra accurate, 4 "
-            "= super accurate");
+            "Accuracy argument must be a constant integer with value 0, 1, 2, 3 or 4 (0 = fast , 1 = default, 2 = accurate, 3 = extra accurate, 4 "
+            "= super accurate)");
 }
 }
 
