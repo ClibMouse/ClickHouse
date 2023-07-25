@@ -278,8 +278,6 @@ def parse_env_variables(
         result.append("CCACHE_NOHASHDIR=true")
         result.append("CCACHE_COMPILERCHECK=content")
         result.append("CCACHE_MAXSIZE=15G")
-        result.append(f"SCCACHE_BUCKET={s3_bucket} ")
-        result.append(f"SCCACHE_ENDPOINT={s3_endpoint} ")        
 
     if cache == "sccache":
         cmake_flags.append("-DCOMPILER_CACHE=sccache")
@@ -516,7 +514,6 @@ def main():
 
     print(f"docker_repo: {args.docker_repo}")
     print(f"docker_user: {args.docker_user}")
-    
     if args.docker_user:
         print(f"docker_repo: {args.docker_repo}")
         print(f"docker_user: {args.docker_user}")
