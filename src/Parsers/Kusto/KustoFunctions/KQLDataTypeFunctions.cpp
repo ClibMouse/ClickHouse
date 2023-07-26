@@ -62,13 +62,6 @@ bool DatatypeDatetime::convertImpl(String & out, IParser::Pos & pos)
                 || Poco::toLower(argument) == "null")
                 return argument;
 
-            if (Int64 year;
-                (boost::conversion::try_lexical_convert(argument.substr(0, 4), year)
-                 && (year < DATE_KQL_MIN_YEAR || year > DATE_KQL_MAX_YEAR)))
-            {
-                throw Exception(ErrorCodes::BAD_ARGUMENTS, "Datetime out of range");
-            }
-
             return "'" + argument + "'";
         });
 

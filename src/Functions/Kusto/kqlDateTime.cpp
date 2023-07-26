@@ -11,10 +11,15 @@
 namespace DB::ErrorCodes
 {
 extern const int LOGICAL_ERROR;
+extern const int BAD_ARGUMENTS;
 }
 
 namespace
 {
+
+#define DATE_KQL_MIN_YEAR 1900 
+#define DATE_KQL_MAX_YEAR 2261 /// Last supported year(complete) in KQL 
+
 enum class InputPolicy
 {
     Arbitrary,
@@ -70,6 +75,15 @@ ColumnPtr FunctionKqlDateTime<input_policy>::executeImpl(
     const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const size_t input_rows_count) const
 {
     const auto & argument = arguments.front();
+
+    if (Int64 year;
+        (WhichDataType(*argument.type).isStringOrFixedString() 
+            && boost::conversion::try_lexical_convert(argument.name.substr(1, 4), year)
+            && (year < DATE_KQL_MIN_YEAR || year > DATE_KQL_MAX_YEAR)))
+    {
+        throw DB::Exception(DB::ErrorCodes::BAD_ARGUMENTS, "Datetime out of range");
+    }
+
     const ColumnsWithTypeAndName conversion_args{
         argument,
         createConstColumnWithTypeAndName<DataTypeUInt8>(9, "scale"),

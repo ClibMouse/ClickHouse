@@ -2,9 +2,6 @@
 
 #include "IParserKQLFunction.h"
 
-#define DATE_KQL_MIN_YEAR 1900 
-#define DATE_KQL_MAX_YEAR 2261 /// Last supported year(complete) in KQL 
-
 namespace DB
 {
 class DatatypeBool : public IParserKQLFunction
