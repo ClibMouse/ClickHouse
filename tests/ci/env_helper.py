@@ -30,6 +30,10 @@ S3_BUILDS_BUCKET = os.getenv("S3_BUILDS_BUCKET", "clickhouse-builds")
 S3_TEST_REPORTS_BUCKET = os.getenv("S3_TEST_REPORTS_BUCKET", "clickhouse-test-reports")
 S3_URL = os.getenv("S3_URL", "https://s3.amazonaws.com")
 S3_DOWNLOAD = os.getenv("S3_DOWNLOAD", S3_URL)
+VAULT_PATH = os.getenv("VAULT_PATH")
+VAULT_TOKEN = os.getenv("VAULT_TOKEN")
+VAULT_URL = os.getenv("VAULT_URL")
+VAULT_MOUNT_POINT = os.getenv("VAULT_MOUNT_POINT", "secret")
 S3_ARTIFACT_DOWNLOAD_TEMPLATE = (
     f"{S3_DOWNLOAD}/{S3_BUILDS_BUCKET}/"
     "{pr_or_release}/{commit}/{build_name}/{artifact}"
