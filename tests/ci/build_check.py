@@ -344,64 +344,64 @@ def main():
         official_flag,
     )
 
-    # logging.info("Going to run packager with %s", packager_cmd)
+    logging.info("Going to run packager with %s", packager_cmd)
 
-    # logs_path = os.path.join(TEMP_PATH, "build_log")
-    # if not os.path.exists(logs_path):
-    #     os.makedirs(logs_path)
+    logs_path = os.path.join(TEMP_PATH, "build_log")
+    if not os.path.exists(logs_path):
+        os.makedirs(logs_path)
 
-    # start = time.time()
-    # log_path, success = build_clickhouse(packager_cmd, logs_path, build_output_path)
-    # elapsed = int(time.time() - start)
-    # subprocess.check_call(
-    #     f"sudo chown -R ubuntu:ubuntu {build_output_path}", shell=True
-    # )
-    # logging.info("Build finished with %s, log path %s", success, log_path)
+    start = time.time()
+    log_path, success = build_clickhouse(packager_cmd, logs_path, build_output_path)
+    elapsed = int(time.time() - start)
+    subprocess.check_call(
+        f"sudo chown -R ubuntu:ubuntu {build_output_path}", shell=True
+    )
+    logging.info("Build finished with %s, log path %s", success, log_path)
 
-    # # FIXME performance
-    # performance_urls = []
-    # performance_path = os.path.join(build_output_path, "performance.tar.zst")
-    # if os.path.exists(performance_path):
-    #     performance_urls.append(
-    #         s3_helper.upload_build_file_to_s3(performance_path, s3_performance_path)
-    #     )
-    #     logging.info(
-    #         "Uploaded performance.tar.zst to %s, now delete to avoid duplication",
-    #         performance_urls[0],
-    #     )
-    #     os.remove(performance_path)
+    # FIXME performance
+    performance_urls = []
+    performance_path = os.path.join(build_output_path, "performance.tar.zst")
+    if os.path.exists(performance_path):
+        performance_urls.append(
+            s3_helper.upload_build_file_to_s3(performance_path, s3_performance_path)
+        )
+        logging.info(
+            "Uploaded performance.tar.zst to %s, now delete to avoid duplication",
+            performance_urls[0],
+        )
+        os.remove(performance_path)
 
-    # build_urls = (
-    #     s3_helper.upload_build_folder_to_s3(
-    #         build_output_path,
-    #         s3_path_prefix,
-    #         keep_dirs_in_s3_path=False,
-    #         upload_symlinks=False,
-    #     )
-    #     + performance_urls
-    # )
-    # logging.info("Got build URLs %s", build_urls)
+    build_urls = (
+        s3_helper.upload_build_folder_to_s3(
+            build_output_path,
+            s3_path_prefix,
+            keep_dirs_in_s3_path=False,
+            upload_symlinks=False,
+        )
+        + performance_urls
+    )
+    logging.info("Got build URLs %s", build_urls)
 
-    # print("::notice ::Build URLs: {}".format("\n".join(build_urls)))
+    print("::notice ::Build URLs: {}".format("\n".join(build_urls)))
 
-    # if os.path.exists(log_path):
-    #     log_url = s3_helper.upload_build_file_to_s3(
-    #         log_path, s3_path_prefix + "/" + os.path.basename(log_path)
-    #     )
-    #     logging.info("Log url %s", log_url)
-    # else:
-    #     logging.info("Build log doesn't exist")
+    if os.path.exists(log_path):
+        log_url = s3_helper.upload_build_file_to_s3(
+            log_path, s3_path_prefix + "/" + os.path.basename(log_path)
+        )
+        logging.info("Log url %s", log_url)
+    else:
+        logging.info("Build log doesn't exist")
 
-    # print(f"::notice ::Log URL: {log_url}")
+    print(f"::notice ::Log URL: {log_url}")
 
-    # create_json_artifact(
-    #     TEMP_PATH, build_name, log_url, build_urls, build_config, elapsed, success
-    # )
+    create_json_artifact(
+        TEMP_PATH, build_name, log_url, build_urls, build_config, elapsed, success
+    )
 
-    # upload_master_static_binaries(pr_info, build_config, s3_helper, build_output_path)
-    # # Fail build job if not successeded
-    # if not success:
-    #     sys.exit(1)
+    upload_master_static_binaries(pr_info, build_config, s3_helper, build_output_path)
+    # Fail build job if not successeded
+    if not success:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
