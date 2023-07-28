@@ -10,6 +10,7 @@ from github.AuthenticatedUser import AuthenticatedUser
 
 from env import VAULT_URL, VAULT_TOKEN, VAULT_PATH, VAULT_MOUNT_POINT
 
+
 @dataclass
 class Token:
     user: AuthenticatedUser
