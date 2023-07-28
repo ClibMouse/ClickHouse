@@ -51,7 +51,6 @@ jobs:
   #           echo "Testing $dir"
   #           python3 -m unittest discover -s "$dir" -p '*_test.py'
   #         done
-  
   DockerHubPushAarch64:
     # runs-on: [self-hosted, style-checker-aarch64]
     runs-on: [self-hosted, style-checker-aarch64]    
