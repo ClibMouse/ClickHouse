@@ -483,8 +483,7 @@ def main():
 
     ch_root = args.clickhouse_repo_path
 
-    # IMAGE_NAME = f"{args.docker_repo}/clickhouse/{IMAGE_TYPE}-builder"
-    IMAGE_NAME = f"ca.icr.io/clickhouse/{IMAGE_TYPE}-builder"    
+    IMAGE_NAME = f"{args.docker_repo}/clickhouse/{IMAGE_TYPE}-builder"
 
     dockerfile = ch_root / "docker/packager" / IMAGE_TYPE / "Dockerfile"
     image_with_version = IMAGE_NAME + ":" + args.docker_image_version
@@ -515,15 +514,15 @@ def main():
 
     # print(f"docker_repo: {args.docker_repo}")
     # print(f"docker_user: {args.docker_user}")
-    # if args.docker_user:
+    if args.docker_user:
         # print(f"docker_repo: {args.docker_repo}")
         # print(f"docker_user: {args.docker_user}")
-    subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
-        f"docker login ca.icr.io --username 'iamapikey' --password-stdin",
-        input=args.docker_password,
-        encoding="utf-8",
-        shell=True,
-    )
+        subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+            f"docker login {args.docker_repo} --username '{args.docker_user}' --password-stdin",
+            input=args.docker_password,
+            encoding="utf-8",
+            shell=True,
+        )
 
     pre_build(args.clickhouse_repo_path, env_prepared)
     run_docker_image_with_env(

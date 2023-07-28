@@ -23,8 +23,11 @@ from env_helper import (
     S3_BUILDS_BUCKET,
     S3_DOWNLOAD,
     TEMP_PATH,
+    DOCKER_USER,
+    DOCKER_REPO,
+    S3_URL,
 )
-from get_robot_token import get_best_robot_token
+from get_robot_token import get_best_robot_token, get_parameter_from_ssm
 from github_helper import GitHub
 from pr_info import PRInfo
 from s3_helper import S3Helper
@@ -36,7 +39,7 @@ from version_helper import (
     update_version_local,
 )
 
-IMAGE_NAME = "clickhouse/binary-builder"
+IMAGE_NAME = f"{DOCKER_REPO}/clickhouse/binary-builder"
 BUILD_LOG_NAME = "build_log.log"
 
 
@@ -76,12 +79,16 @@ def get_packager_cmd(
     cmd += " --cache=sccache"
     cmd += " --s3-rw-access"
     cmd += f" --s3-bucket={S3_BUILDS_BUCKET}"
+    cmd += f" --s3-endpoint={S3_URL}"
 
     if "additional_pkgs" in build_config and build_config["additional_pkgs"]:
         cmd += " --additional-pkgs"
 
     cmd += f" --docker-image-version={image_version}"
     cmd += f" --version={build_version}"
+    cmd += f" --docker-repo={DOCKER_REPO}"
+    cmd += f" --docker-user={DOCKER_USER}"
+    cmd += f" --docker-password={get_parameter_from_ssm('dockerhub_robot_password')}"
 
     if _can_export_binaries(build_config):
         cmd += " --with-binaries=tests"
@@ -294,6 +301,13 @@ def main():
     # put them as github actions artifact (result)
     check_for_success_run(s3_helper, s3_path_prefix, build_name, build_config)
 
+    subprocess.check_output(  # pylint: disable=unexpected-keyword-arg
+        f"docker login {DOCKER_REPO} --username '{DOCKER_USER}' --password-stdin",
+        input=get_parameter_from_ssm("dockerhub_robot_password"),
+        encoding="utf-8",
+        shell=True,
+    )
+
     # If it's a latter running, we need to mark possible failed status
     mark_failed_reports_pending(build_name, pr_info)
 
@@ -330,73 +344,64 @@ def main():
         official_flag,
     )
 
-    logging.info("Going to run packager with %s", packager_cmd)
+    # logging.info("Going to run packager with %s", packager_cmd)
 
-    logs_path = os.path.join(TEMP_PATH, "build_log")
-    if not os.path.exists(logs_path):
-        os.makedirs(logs_path)
+    # logs_path = os.path.join(TEMP_PATH, "build_log")
+    # if not os.path.exists(logs_path):
+    #     os.makedirs(logs_path)
 
-    start = time.time()
-    log_path, success = build_clickhouse(packager_cmd, logs_path, build_output_path)
-    elapsed = int(time.time() - start)
-    subprocess.check_call(
-        f"sudo chown -R ubuntu:ubuntu {build_output_path}", shell=True
-    )
-    logging.info("Build finished with %s, log path %s", success, log_path)
-    if not success:
-        # We check if docker works, because if it's down, it's infrastructure
-        try:
-            subprocess.check_call("docker info", shell=True)
-        except subprocess.CalledProcessError:
-            logging.error(
-                "The dockerd looks down, won't upload anything and generate report"
-            )
-            sys.exit(1)
+    # start = time.time()
+    # log_path, success = build_clickhouse(packager_cmd, logs_path, build_output_path)
+    # elapsed = int(time.time() - start)
+    # subprocess.check_call(
+    #     f"sudo chown -R ubuntu:ubuntu {build_output_path}", shell=True
+    # )
+    # logging.info("Build finished with %s, log path %s", success, log_path)
 
-    # FIXME performance
-    performance_urls = []
-    performance_path = os.path.join(build_output_path, "performance.tar.zst")
-    if os.path.exists(performance_path):
-        performance_urls.append(
-            s3_helper.upload_build_file_to_s3(performance_path, s3_performance_path)
-        )
-        logging.info(
-            "Uploaded performance.tar.zst to %s, now delete to avoid duplication",
-            performance_urls[0],
-        )
-        os.remove(performance_path)
+    # # FIXME performance
+    # performance_urls = []
+    # performance_path = os.path.join(build_output_path, "performance.tar.zst")
+    # if os.path.exists(performance_path):
+    #     performance_urls.append(
+    #         s3_helper.upload_build_file_to_s3(performance_path, s3_performance_path)
+    #     )
+    #     logging.info(
+    #         "Uploaded performance.tar.zst to %s, now delete to avoid duplication",
+    #         performance_urls[0],
+    #     )
+    #     os.remove(performance_path)
 
-    build_urls = (
-        s3_helper.upload_build_folder_to_s3(
-            build_output_path,
-            s3_path_prefix,
-            keep_dirs_in_s3_path=False,
-            upload_symlinks=False,
-        )
-        + performance_urls
-    )
-    logging.info("Got build URLs %s", build_urls)
+    # build_urls = (
+    #     s3_helper.upload_build_folder_to_s3(
+    #         build_output_path,
+    #         s3_path_prefix,
+    #         keep_dirs_in_s3_path=False,
+    #         upload_symlinks=False,
+    #     )
+    #     + performance_urls
+    # )
+    # logging.info("Got build URLs %s", build_urls)
 
-    print("::notice ::Build URLs: {}".format("\n".join(build_urls)))
+    # print("::notice ::Build URLs: {}".format("\n".join(build_urls)))
 
-    if os.path.exists(log_path):
-        log_url = s3_helper.upload_build_file_to_s3(
-            log_path, s3_path_prefix + "/" + os.path.basename(log_path)
-        )
-        logging.info("Log url %s", log_url)
-    else:
-        logging.info("Build log doesn't exist")
+    # if os.path.exists(log_path):
+    #     log_url = s3_helper.upload_build_file_to_s3(
+    #         log_path, s3_path_prefix + "/" + os.path.basename(log_path)
+    #     )
+    #     logging.info("Log url %s", log_url)
+    # else:
+    #     logging.info("Build log doesn't exist")
 
-    print(f"::notice ::Log URL: {log_url}")
+    # print(f"::notice ::Log URL: {log_url}")
 
-    create_json_artifact(
-        TEMP_PATH, build_name, log_url, build_urls, build_config, elapsed, success
-    )
+    # create_json_artifact(
+    #     TEMP_PATH, build_name, log_url, build_urls, build_config, elapsed, success
+    # )
 
-    upload_master_static_binaries(pr_info, build_config, s3_helper, build_output_path)
-    # Fail build job if not successeded
-    if not success:
-        sys.exit(1)
+    # upload_master_static_binaries(pr_info, build_config, s3_helper, build_output_path)
+    # # Fail build job if not successeded
+    # if not success:
+    #     sys.exit(1)
 
 
 if __name__ == "__main__":
