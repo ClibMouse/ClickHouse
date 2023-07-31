@@ -3,8 +3,6 @@ name: binary-image
 env:
   # Force the stdout and stderr streams to be unbuffered
   PYTHONUNBUFFERED: 1
-
-
 on:  # yamllint disable-line rule:truthy
   push:
   # pull_request:
