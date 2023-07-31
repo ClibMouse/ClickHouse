@@ -74,6 +74,8 @@ exec 13>&-"""
     binary_test = r"""#!/bin/bash
 set -e
 trap "bash -ex /packages/preserve_logs.sh" ERR
+echo "Pausing execution"
+sleep 72000000
 /packages/clickhouse.copy install
 clickhouse-server start --daemon
 for i in {1..5}; do
