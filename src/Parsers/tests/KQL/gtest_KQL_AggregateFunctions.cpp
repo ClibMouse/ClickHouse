@@ -130,14 +130,14 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Aggregate, ParserRegexTest,
         ::testing::ValuesIn(std::initializer_list<ParserTestCase>{
         {
             "Customers | summarize variance(Age)",
-            R"(SELECT IF\(isNaN\(varSamp\(Age\) AS variance_\d+\), 0, variance_\d+\) AS variance_Age\nFROM Customers)"
+            R"(SELECT IF\(isNaN\(varSamp\(if\(toTypeName\(Age\) = \'Nullable\(Nothing\)\', throwIf\(toTypeName\(Age\) = \'Nullable\(Nothing\)\', \'summarize operator: Failed to resolve scalar expression named null\'\), Age\)\) AS variance_\d+\), 0, variance_\d+\) AS variance_Age\nFROM Customers)"
         },
         {
             "Customers | summarize variancep(Age)",
-            R"(SELECT IF\(isNaN\(varPop\(Age\) AS variance_\d+\), 0, variance_\d+\) AS variancep_Age\nFROM Customers)"
+            R"(SELECT IF\(isNaN\(varPop\(if\(toTypeName\(Age\) = \'Nullable\(Nothing\)\', throwIf\(toTypeName\(Age\) = \'Nullable\(Nothing\)\', \'summarize operator: Failed to resolve scalar expression named null\'\), Age\)\) AS variance_\d+\), 0, variance_\d+\) AS variancep_Age\nFROM Customers)"
         },
         {
             "Customers | summarize varianceif(Age, Age < 30)",
-            R"(SELECT IF\(isNaN\(varSampIf\(Age, Age < 30\) AS variance_\d+\), 0, variance_\d+\) AS varianceif_Age\nFROM Customers)"
+            R"(SELECT IF\(isNaN\(varSampIf\(if\(toTypeName\(Age\) = \'Nullable\(Nothing\)\', throwIf\(toTypeName\(Age\) = \'Nullable\(Nothing\)\', \'summarize operator: Failed to resolve scalar expression named null\'\), Age\), Age < 30\) AS variance_\d+\), 0, variance_\d+\) AS varianceif_Age\nFROM Customers)"
         }
 })));
