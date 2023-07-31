@@ -47,13 +47,6 @@ public:
             
             if (std::ranges::find_if(names_and_types.begin(), names_and_types.end(), [&alias](DB::NameAndTypePair x) { return x.name == alias; }) != names_and_types.end())
                 return true;
-            /*
-            for (int i = 0; i < std::ssize(names_and_types); ++i)
-            {
-                if (names_and_types[i].name == alias)
-                    return true;
-            }
-            */
         }
         
         return false;
