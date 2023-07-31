@@ -9,6 +9,7 @@
 namespace DB::ErrorCodes
 {
 extern const int NOT_IMPLEMENTED;
+extern const int BAD_ARGUMENTS;
 }
 
 namespace
@@ -26,12 +27,19 @@ uint mapPrecisionAccuracy(const std::optional<std::string> & accuracy)
 
     if (*accuracy == "0")
         return 12;
+    else if (*accuracy == "1")
+        return 14;
     else if (*accuracy == "2")
         return 16;
     else if (*accuracy == "3")
         return 17;
+    else if (*accuracy == "4")
+        return 18;
     else
-        return 14;
+        throw DB::Exception(
+            DB::ErrorCodes::BAD_ARGUMENTS,
+            "Accuracy argument must be a constant integer with value 0, 1, 2, 3 or 4 (0 = fast , 1 = default, 2 = accurate, 3 = extra accurate, 4 "
+            "= super accurate)");
 }
 }
 
