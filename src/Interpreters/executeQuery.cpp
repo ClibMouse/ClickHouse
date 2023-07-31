@@ -393,7 +393,6 @@ static std::tuple<ASTPtr, BlockIO> executeQueryImpl(
                 ParserKQLStatement parser(kql_context);
                 ast = parseQuery(parser, begin, end, "", max_query_size, settings.max_parser_depth);
                 ParserKQLProjectRename rename(kql_context);
-                //rename.checkDuplicateAlias(ast, "");
             }
         }
         else

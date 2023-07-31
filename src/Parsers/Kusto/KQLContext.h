@@ -13,7 +13,7 @@ class KQLContext
 public:
     void checkForDefaultColumnName(const std::string & column_name);
     std::string nextDefaultColumnName();
-    std::optional<std::shared_ptr<Context>> context;
+    std::shared_ptr<Context> context;
 
 private:
     int next_column_ordinal = 1;

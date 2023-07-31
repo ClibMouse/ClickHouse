@@ -4,7 +4,6 @@
 #include <Parsers/IParserBase.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <iostream>
-#include <algorithm>
 #include <Parsers/ASTTablesInSelectQuery.h>
 
 #include <Parsers/ASTAsterisk.h>
@@ -17,7 +16,8 @@
 #include <Common/CurrentThread.h>
 #include <format>
 #include <optional>
-
+#include <ranges>
+#include <algorithm>
 
 namespace DB
 {
@@ -38,20 +38,22 @@ protected:
 public:
     bool checkDuplicateAlias(const ASTPtr & node, const std::string & alias)
     {
-        (void)node;
-        (void)alias;
-
-        if (kql_context.context.has_value())
+        if (kql_context.context)
         {
             if (auto * select_query = node->as<ASTSelectQuery>(); !select_query->select())
                 setSelectAll(*select_query);
-            const auto sample_block = InterpreterSelectWithUnionQuery::getSampleBlock(wrapInSelectWithUnion(node), kql_context.context.value());
+            const auto sample_block = InterpreterSelectWithUnionQuery::getSampleBlock(wrapInSelectWithUnion(node), kql_context.context);
             const auto & names_and_types = sample_block.getNamesAndTypes();
+            
+            if (std::ranges::find_if(names_and_types.begin(), names_and_types.end(), [&alias](DB::NameAndTypePair x) { return x.name == alias; }) != names_and_types.end())
+                return true;
+            /*
             for (int i = 0; i < std::ssize(names_and_types); ++i)
             {
                 if (names_and_types[i].name == alias)
                     return true;
             }
+            */
         }
         
         return false;
@@ -59,7 +61,6 @@ public:
 
     String getRenameExprFromToken(Pos & pos, ASTPtr & node)
     {
-        (void)node;
         String rename_expr;
         std::vector<String> seen_columns;
         auto last_pos = pos;
@@ -77,7 +78,7 @@ public:
                 --pos;
                 if (pos->type == TokenType::BareWord)
                 {
-                    auto alias = String(pos->begin, pos->end);
+                    const auto alias = String(pos->begin, pos->end);
                     if (checkDuplicateAlias(node, alias))
                     {
                         throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error: duplicate column name '{}'", alias);
