@@ -2137,7 +2137,16 @@ void Server::createServers(
 
     for (const auto & protocol : protocols)
     {
-        if (!server_type.shouldStart(ServerType::Type::CUSTOM, protocol))
+        std::string prefix = "protocols." + protocol + ".";
+        std::string port_name = prefix + "port";
+        std::string description {"<undefined> protocol"};
+        if (config.has(prefix + "description"))
+            description = config.getString(prefix + "description");
+
+        if (!config.has(prefix + "port"))
+            continue;
+
+        if (!server_type.shouldStart(ServerType::Type::CUSTOM, port_name))
             continue;
 
         std::string prefix = "protocols." + protocol + ".";
