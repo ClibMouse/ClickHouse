@@ -334,7 +334,6 @@ bool IndexOfRegex::convertImpl(String & out, IParser::Pos & pos)
         occurrence.value_or("1"));
 
     return true;
-    //return directMapping(out, pos, "kql_indexof_regex");
 }
 
 bool IsAscii::convertImpl(String & out, IParser::Pos & pos)
