@@ -49,7 +49,9 @@ create table Dates
 insert into Dates values ('2015-10-12'), ('2016-10-12');
 
 select '-- test summarize --';
-set dialect='kusto';
+set dialect = 'kusto';
+set interval_output_format = 'kusto';
+
 Customers | summarize count(), min(Age), max(Age), avg(Age), sum(Age);
 Customers | summarize count(), min(Age), max(Age), avg(Age), sum(Age) by Occupation | order by Occupation;
 Customers | summarize countif(Age>40) by Occupation | order by Occupation;

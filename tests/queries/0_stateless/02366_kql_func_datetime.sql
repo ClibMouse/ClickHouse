@@ -1,4 +1,5 @@
 set dialect = 'kusto';
+set interval_output_format = 'kusto';
 
 print '-- dayofmonth()';
 print dayofmonth(datetime(2015-12-31));

@@ -1,4 +1,5 @@
 set dialect = 'kusto';
+set interval_output_format = 'kusto';
 
 print '-- range function int1 < int2, default int3 --';
 print range(1, 10);

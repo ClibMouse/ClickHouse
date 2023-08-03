@@ -19,6 +19,8 @@ create table datetime_test(s String, i Int64) engine = Memory;
 insert into datetime_test values ('0', 0), ('1899', 1899), ('1900', 1900), ('2261', 2261), ('2262', 2262), ('10000', 10000);
 
 set dialect = 'kusto';
+set interval_output_format = 'kusto';
+
 print '-- bool';
 print bool(true);
 print bool(null);

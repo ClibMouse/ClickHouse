@@ -24,6 +24,8 @@ CREATE TABLE Customers
 INSERT INTO Customers VALUES ('Theodore','Diaz','Skilled Manual','Bachelors',28), ('Stephanie','Cox','Management abcd defg','Bachelors',33),('Peter','Nara','Skilled Manual','Graduate Degree',26),('Latoya','Shen','Professional','Graduate Degree',25),('Apple','','Skilled Manual','Bachelors',28),(NULL,'why','Professional','Partial College',38);
 
 set dialect = 'kusto';
+set interval_output_format = 'kusto';
+
 print '-- bin()';
 print bin(4.5, 1);
 print floor(4.5, 3);
