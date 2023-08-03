@@ -62,7 +62,9 @@ CREATE TABLE MyTable
 
 INSERT INTO MyTable VALUES (array(81,82,83,84), 123, 1605, 29233 ,128002 ), (array(85, 86), 62, 1540 ,25151 , 49856), (array(87,88,89), 36, 2437, 127801, 50509)
 
-set dialect='kusto';
+set dialect = 'kusto';
+set interval_output_format = 'kusto';
+
 print '-- test String Functions --';
 
 print '-- Customers |where Education contains \'degree\'';
