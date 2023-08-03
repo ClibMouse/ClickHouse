@@ -44,7 +44,7 @@ void StorageSystemSchema::fillData(MutableColumns & res_columns, ContextPtr cont
     const auto & column_types = res_columns[3];
 
     const auto & dialect = context->getSettingsRef().dialect;
-    const auto is_kql = dialect == Dialect::kusto || dialect == Dialect::kusto_auto;
+    const auto is_kql = dialect == Dialect::kusto;
 
     const auto sample_block = InterpreterSelectWithUnionQuery::getSampleBlock(query, context);
     const auto & names_and_types = sample_block.getNamesAndTypes();
