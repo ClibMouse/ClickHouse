@@ -12,6 +12,8 @@ INSERT INTO visit VALUES (3,['CA', 'Gem','Japan','Eng'], [25,10,23,11],[120,110,
 --INSERT INTO visit VALUES (4,['CA', 'Gem',null,'Eng'], [5,10,3,2],[220,320,310,150]);
 --INSERT INTO visit VALUES (5,['FR', null,'US','Eng'], [16,12,23,10],[210,250,110,260]);
 set dialect = 'kusto';
+set interval_output_format = 'kusto';
+
 print '-- constant index value';
 array_test | project floats[0], strings[1], nullable_strings;
 print '-- array_length()';
