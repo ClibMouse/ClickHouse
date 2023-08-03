@@ -168,11 +168,11 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
         },
         {
             "print format_datetime(todatetime('2009-06-15T13:45:30.6175425'), 'yy-M-dd [H:mm:ss.fff]')",
-            "SELECT concat(substring(toString(formatDateTime(kql_todatetime('2009-06-15T13:45:30.6175425'), '%y-%m-%d [%H:%M:%S.]')), 1, position(toString(formatDateTime(kql_todatetime('2009-06-15T13:45:30.6175425'), '%y-%m-%d [%H:%M:%S.]')), '.')), substring(substring(toString(kql_todatetime('2009-06-15T13:45:30.6175425')), position(toString(kql_todatetime('2009-06-15T13:45:30.6175425')), '.') + 1), 1, 3), substring(toString(formatDateTime(kql_todatetime('2009-06-15T13:45:30.6175425'), '%y-%m-%d [%H:%M:%S.]')), position(toString(formatDateTime(kql_todatetime('2009-06-15T13:45:30.6175425'), '%y-%m-%d [%H:%M:%S.]')), '.') + 1, length(toString(formatDateTime(kql_todatetime('2009-06-15T13:45:30.6175425'), '%y-%m-%d [%H:%M:%S.]'))))) AS print_0"
+            "SELECT concat(substring(toString(formatDateTime(kql_todatetime('2009-06-15T13:45:30.6175425'), '%y-%m-%d [%H:%i:%S.]')), 1, position(toString(formatDateTime(kql_todatetime('2009-06-15T13:45:30.6175425'), '%y-%m-%d [%H:%i:%S.]')), '.')), substring(substring(toString(kql_todatetime('2009-06-15T13:45:30.6175425')), position(toString(kql_todatetime('2009-06-15T13:45:30.6175425')), '.') + 1), 1, 3), substring(toString(formatDateTime(kql_todatetime('2009-06-15T13:45:30.6175425'), '%y-%m-%d [%H:%i:%S.]')), position(toString(formatDateTime(kql_todatetime('2009-06-15T13:45:30.6175425'), '%y-%m-%d [%H:%i:%S.]')), '.') + 1, length(toString(formatDateTime(kql_todatetime('2009-06-15T13:45:30.6175425'), '%y-%m-%d [%H:%i:%S.]'))))) AS print_0"
         },
         {
             "print format_datetime(datetime(2015-12-14 02:03:04.12345), 'y-M-d h:m:s tt')",
-            "SELECT formatDateTime(kql_datetime('2015-12-14 02:03:04.12345'), '%y-%m-%e %I:%M:%S %p') AS print_0"
+            "SELECT formatDateTime(kql_datetime('2015-12-14 02:03:04.12345'), '%y-%m-%e %I:%i:%S %p') AS print_0"
         },
         {
             "print format_timespan(time(1d), 'd-[hh:mm:ss]')",
