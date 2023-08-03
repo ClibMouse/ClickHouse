@@ -40,54 +40,6 @@ std::ostream & operator<<(std::ostream & ostr, const ParserTestCase & test_case)
     return ostr << "ParserTestCase input: " << input_text;
 }
 
-TEST_P(ParserTest, parseQuery)
-{
-    const auto & parser = std::get<0>(GetParam());
-    const auto & [input_text, expected_ast] = std::get<1>(GetParam());
-
-    ASSERT_NE(nullptr, parser);
-
-    if (expected_ast)
-    {
-        if (std::string(expected_ast).starts_with("throws"))
-        {
-            EXPECT_THROW(parseQuery(*parser, input_text.begin(), input_text.end(), 0, 0), DB::Exception);
-        }
-        else
-        {
-            ASTPtr ast;
-            ASSERT_NO_THROW(ast = parseQuery(*parser, input_text.begin(), input_text.end(), 0, 0));
-            if (std::string("CREATE USER or ALTER USER query") != parser->getName()
-                    && std::string("ATTACH access entity query") != parser->getName())
-            {
-                WriteBufferFromOwnString buf;
-                formatAST(*ast->clone(), buf, false, false);
-                String formatted_ast = buf.str();
-                EXPECT_EQ(expected_ast, formatted_ast);
-            }
-            else
-            {
-                if (input_text.starts_with("ATTACH"))
-                {
-                    auto salt = (dynamic_cast<const ASTCreateUserQuery *>(ast.get())->auth_data)->getSalt().value_or("");
-                    EXPECT_TRUE(std::regex_match(salt, std::regex(expected_ast)));
-                }
-                else
-                {
-                    WriteBufferFromOwnString buf;
-                    formatAST(*ast->clone(), buf, false, false);
-                    String formatted_ast = buf.str();
-                    EXPECT_TRUE(std::regex_match(formatted_ast, std::regex(expected_ast)));
-                }
-            }
-        }
-    }
-    else
-    {
-        ASSERT_THROW(parseQuery(*parser, input_text.begin(), input_text.end(), 0, 0), DB::Exception);
-    }
-}
-
 INSTANTIATE_TEST_SUITE_P(ParserOptimizeQuery, ParserTest,
     ::testing::Combine(
         ::testing::Values(std::make_shared<ParserOptimizeQuery>()),
