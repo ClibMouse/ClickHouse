@@ -40,7 +40,7 @@ print "-- #8 --";
 IP_ARRAY | extend has_any_ipv6(haystack, dynamic(needle));
 print "-- #9 --";
 IP_ARRAY | extend has_any_ipv6_prefix(haystack, dynamic(needle));
-set dialect='kusto_auto';
+set dialect='clickhouse';
 DROP TABLE IP_STRING;
 DROP TABLE IP_ARRAY;
 
