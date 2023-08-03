@@ -128,7 +128,7 @@ bool DatetimePart::convertImpl(String & out, IParser::Pos & pos)
     else if (part == "HOUR")
         format = "%I";
     else if (part == "MINUTE")
-        format = "%M";
+        format = "%i";
     else if (part == "SECOND")
         format = "%S";
     else if (part == "MILLISECOND")
