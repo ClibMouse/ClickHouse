@@ -39,8 +39,8 @@ struct HasTokenImpl
         if (start_pos != nullptr)
             throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Function '{}' does not support start_pos argument", name);
 
-        if (pattern.empty())
-            throw Exception(ErrorCodes::BAD_ARGUMENTS, "Needle cannot be empty, because empty string isn't a token");
+        // if (pattern.empty())
+        //     throw Exception(ErrorCodes::BAD_ARGUMENTS, "Needle cannot be empty, because empty string isn't a token");
 
         if (haystack_offsets.empty())
             return;
