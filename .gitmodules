@@ -46,7 +46,7 @@
 	url = https://github.com/ClibMouse/Turbo-Base64
 [submodule "contrib/arrow"]
 	path = contrib/arrow
-	url = https://github.com/ClickHouse/arrow
+	url = https://github.com/ClibMouse/arrow
 	branch = blessed/release-6.0.1
 [submodule "contrib/thrift"]
 	path = contrib/thrift
