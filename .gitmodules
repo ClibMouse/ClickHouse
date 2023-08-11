@@ -47,7 +47,7 @@
 [submodule "contrib/arrow"]
 	path = contrib/arrow
 	url = https://github.com/ClibMouse/arrow
-	branch = release-6.0.1
+	branch = origin/release-11.0.0
 [submodule "contrib/thrift"]
 	path = contrib/thrift
 	url = https://github.com/apache/thrift
