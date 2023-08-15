@@ -110,12 +110,24 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Dynamic, ParserTest,
             "SELECT (A[1])[2] AS print_0"
         },
         {
+            "print A[-5]",
+            "SELECT A[-5] AS print_0"
+        },
+        {
+            "print A[-1][1]",
+            "SELECT (A[-1])[2] AS print_0"
+        },
+        {
             "print dynamic([[1,2,3,4,5],[20,30]])[0]",
             "SELECT [[1, 2, 3, 4, 5], [20, 30]][1] AS print_0"
         },
         {
             "print dynamic([[1,2,3,4,5],[20,30]])[1][1]",
             "SELECT ([[1, 2, 3, 4, 5], [20, 30]][2])[2] AS print_0"
+        },
+        {
+            "print dynamic([[1,2,3,4,5],[20,30]])[1][-1]",
+            "SELECT ([[1, 2, 3, 4, 5], [20, 30]][2])[-1] AS print_0"
         },
         {
             "print A[B[1]]",
