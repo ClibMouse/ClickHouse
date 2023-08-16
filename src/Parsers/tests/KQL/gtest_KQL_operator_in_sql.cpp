@@ -126,5 +126,9 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_operator_in_sql, ParserKQLTest,
         {
             "select * from kql($$print t = 'a' !in~ (dynamic(['A', 'b', 'c']))$$)",
             "SELECT *\nFROM\n(\n    SELECT lower('a') NOT IN (lower('A'), lower('b'), lower('c')) AS t\n)"
+        },
+        {
+            "select * from kql($IBM$print t = 'a' !in~ (dynamic(['A', 'b', 'c']))$IBM$)",
+            "SELECT *\nFROM\n(\n    SELECT lower('a') NOT IN (lower('A'), lower('b'), lower('c')) AS t\n)"
         }
 })));
