@@ -172,5 +172,6 @@ select * from kql($$StormEventsLite | where EventType has_cs 'Strong Wind' | cou
 select * from kql($$StormEventsLite | where EventType !has_cs 'iddqd' | count$$);
 select * from kql($$StormEventsLite | where EventType has_all ('iddqd', 'string') | count$$);
 select * from kql($$StormEventsLite | where EventType has_any ('iddqd', 'string') | count$$);
+select * from kql($IBM$StormEventsLite | where EventType has_any ('iddqd', 'string') | count$IBM$);
 DROP TABLE IF EXISTS Customers;
 drop table if exists StormEventsLite;
