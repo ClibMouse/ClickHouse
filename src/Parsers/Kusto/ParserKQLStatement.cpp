@@ -70,10 +70,18 @@ bool ParserKQLTableFunction::parseImpl(Pos & pos, ASTPtr & node, Expected & expe
         if (pos->type == TokenType::HereDoc)
         {
             auto kal_table_str = String(pos->begin, pos->end);
-            size_t pos1 = kal_table_str.find("$$");
-            size_t pos2 = kal_table_str.rfind("$$");
-            if (pos1 != std::string::npos && pos2 != std::string::npos && pos1 < pos2)
-                kql_statement = kal_table_str.substr(pos1 + 2, pos2 - pos1 - 2);
+            auto heredoc_name_end_position = kal_table_str.find('$', 1);
+            if (heredoc_name_end_position != std::string::npos)
+            {
+                size_t heredoc_size = heredoc_name_end_position + 1;
+                std::string_view heredoc = {kal_table_str.data(), heredoc_size};
+
+                size_t heredoc_end_position = kal_table_str.find(heredoc, heredoc_size);
+                if (heredoc_end_position != std::string::npos)
+                {
+                    kql_statement = kal_table_str.substr(heredoc_name_end_position + 1, heredoc_end_position - heredoc_name_end_position - 1);
+                }
+            }
         }
         else
         {
