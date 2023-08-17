@@ -79,7 +79,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Dynamic, ParserTest,
         },
         {
             "print array_sort_asc(dynamic([2, 1, null,3]), dynamic([20, 10, 40, 30]))[0]",
-            "SELECT tupleElement(kql_array_sort_asc([2, 1, NULL, 3], [20, 10, 40, 30]), if(0 >= 0, 0 + 1, 0)) AS print_0"
+            "SELECT kql_array_sort_asc([2, 1, NULL, 3], [20, 10, 40, 30]).1 AS print_0"
         },
         {
             "print  (t) = array_sort_asc(dynamic([2, 1, null,3]), dynamic([20, 10, 40, 30]))",
@@ -103,23 +103,35 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Dynamic, ParserTest,
         },
         {
             "print A[0]",
-            "SELECT A[if(0 >= 0, 0 + 1, 0)] AS print_0"
+            "SELECT A[1] AS print_0"
         },
         {
             "print A[0][1]",
-            "SELECT (A[if(0 >= 0, 0 + 1, 0)])[if(1 >= 0, 1 + 1, 1)] AS print_0"
+            "SELECT (A[1])[2] AS print_0"
+        },
+        {
+            "print A[-5]",
+            "SELECT A[-5] AS print_0"
+        },
+        {
+            "print A[-1][1]",
+            "SELECT (A[-1])[2] AS print_0"
         },
         {
             "print dynamic([[1,2,3,4,5],[20,30]])[0]",
-            "SELECT [[1, 2, 3, 4, 5], [20, 30]][if(0 >= 0, 0 + 1, 0)] AS print_0"
+            "SELECT [[1, 2, 3, 4, 5], [20, 30]][1] AS print_0"
         },
         {
             "print dynamic([[1,2,3,4,5],[20,30]])[1][1]",
-            "SELECT ([[1, 2, 3, 4, 5], [20, 30]][if(1 >= 0, 1 + 1, 1)])[if(1 >= 0, 1 + 1, 1)] AS print_0"
+            "SELECT ([[1, 2, 3, 4, 5], [20, 30]][2])[2] AS print_0"
+        },
+        {
+            "print dynamic([[1,2,3,4,5],[20,30]])[1][-1]",
+            "SELECT ([[1, 2, 3, 4, 5], [20, 30]][2])[-1] AS print_0"
         },
         {
             "print A[B[1]]",
-            "SELECT A[if((B[if(1 >= 0, 1 + 1, 1)]) >= 0, (B[if(1 >= 0, 1 + 1, 1)]) + 1, B[if(1 >= 0, 1 + 1, 1)])] AS print_0"
+            "SELECT A[if((B[2]) >= 0, (B[2]) + 1, B[2])] AS print_0"
         },
         {
             "print A[strlen('a')-1]",
@@ -127,7 +139,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Dynamic, ParserTest,
         },
         {
             "print strlen(A[0])",
-            "SELECT lengthUTF8(A[if(0 >= 0, 0 + 1, 0)]) AS print_0"
+            "SELECT lengthUTF8(A[1]) AS print_0"
         },
         {
             "print repeat(1, 3)",
