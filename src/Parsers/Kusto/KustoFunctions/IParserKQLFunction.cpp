@@ -199,7 +199,13 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
                         array_index += getExpression(pos);
                         ++pos;
                     }
-                    token = std::format("[ {0} >=0 ? {0} + 1 : {0}]", array_index);
+                    if (Int64 index; (boost::conversion::try_lexical_convert(array_index, index)))
+                    {
+                        auto ch_index = index >= 0 ? index + 1 : index;
+                        token = std::format("[{0}]", ch_index);
+                    }
+                    else
+                        token = std::format("[ {0} >=0 ? {0} + 1 : {0}]", array_index);
                 }
                 else
                     token = String(pos->begin, pos->end);
@@ -366,9 +372,16 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
             array_index += getExpression(pos);
             ++pos;
         }
-        arg = std::format("[ {0} >=0 ? {0} + 1 : {0}]", array_index);
+        if (Int64 index; (boost::conversion::try_lexical_convert(array_index, index)))
+        {
+            auto ch_index = index >= 0 ? index + 1 : index;
+            arg = std::format("[{0}]", ch_index);
+        }
+        else
+        {
+            arg = std::format("[ {0} >=0 ? {0} + 1 : {0}]", array_index);
+        }
     }
-
     return arg;
 }
 
