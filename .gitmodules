@@ -153,7 +153,7 @@
 	url = https://github.com/ClickHouse/sentry-native
 [submodule "contrib/krb5"]
 	path = contrib/krb5
-	url = https://github.com/ClibMouse/krb5
+	url = https://github.com/ClickHouse/krb5
 [submodule "contrib/cyrus-sasl"]
 	path = contrib/cyrus-sasl
 	url = https://github.com/ClickHouse/cyrus-sasl
