@@ -132,6 +132,9 @@ print '-- variance/variancep/varianceif --';
 Customers | summarize variance(Age);
 Customers | summarize variancep(Age);
 Customers | summarize varianceif(Age, Age < 30);
+Customers | summarize variance(null); -- { clientError Code: 395 }
+Customers | summarize variancep(null); -- { clientError Code: 395 }
+Customers | summarize varianceif(null, Age < 30); -- { clientError Code: 395 }
 
 print '-- arg_max --';
 Customers | summarize arg_max(Age); -- { clientError NUMBER_OF_ARGUMENTS_DOESNT_MATCH }

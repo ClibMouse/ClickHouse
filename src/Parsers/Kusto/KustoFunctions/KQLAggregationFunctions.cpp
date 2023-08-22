@@ -599,7 +599,18 @@ bool TakeAnyIf::convertImpl(String & out, IParser::Pos & pos)
 
 bool Variance::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "varSamp");
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const String expr = getArgument(fn_name, pos);
+    out = std::format(
+        "IF (isNaN(varSamp(if(toTypeName({0}) = 'Nullable(Nothing)', throwIf(toTypeName({0}) = 'Nullable(Nothing)', "
+        "'summarize operator: Failed to resolve scalar expression named null'), {0})) AS variance_{1}), 0, variance_{1})",
+        expr,
+        generateUniqueIdentifier());
+
+    return true;
 }
 
 bool VarianceIf::convertImpl(String & out, IParser::Pos & pos)
@@ -610,14 +621,30 @@ bool VarianceIf::convertImpl(String & out, IParser::Pos & pos)
 
     const String expr = getArgument(fn_name, pos);
     const String predicate = getArgument(fn_name, pos);
-    out = std::format("varSampIf({}, {})", expr, predicate);
+    out = std::format(
+        "IF (isNaN(varSampIf((if(toTypeName({0}) = 'Nullable(Nothing)', throwIf(toTypeName({0}) = 'Nullable(Nothing)', "
+        "'summarize operator: Failed to resolve scalar expression named null'), {0})), {1}) AS variance_{2}), 0, variance_{2})",
+        expr,
+        predicate,
+        generateUniqueIdentifier());
 
     return true;
 }
 
 bool VarianceP::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "varPop");
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const String expr = getArgument(fn_name, pos);
+    out = std::format(
+        "IF (isNaN(varPop(if(toTypeName({0}) = 'Nullable(Nothing)', throwIf(toTypeName({0}) = 'Nullable(Nothing)', "
+        "'summarize operator: Failed to resolve scalar expression named null'), {0})) AS variance_{1}), 0, variance_{1})",
+        expr,
+        generateUniqueIdentifier());
+
+    return true;
 }
 
 bool CountDistinct::convertImpl(String & out, IParser::Pos & pos)

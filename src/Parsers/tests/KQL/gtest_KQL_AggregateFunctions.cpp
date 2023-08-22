@@ -111,18 +111,6 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Aggregate, ParserKQLTest,
             "SELECT\n    FirstName,\n    LastName,\n    Age\nFROM Customers\nGROUP BY\n    FirstName,\n    LastName,\n    Age"
         },
         {
-            "Customers | summarize variance(Age)",
-            "SELECT varSamp(Age) AS variance_Age\nFROM Customers"
-        },
-        {
-            "Customers | summarize variancep(Age)",
-            "SELECT varPop(Age) AS variancep_Age\nFROM Customers"
-        },
-        {
-            "Customers | summarize varianceif(Age, Age < 30)",
-            "SELECT varSampIf(Age, Age < 30) AS varianceif_Age\nFROM Customers"
-        },
-        {
             "Customers | summarize z=arg_max(Age, FirstName, LastName) by Occupation",
             "SELECT\n    Occupation,\n    argMax(FirstName, Age) AS FirstName,\n    argMax(LastName, Age) AS LastName,\n    argMax(Age, Age) AS z\nFROM Customers\nGROUP BY Occupation"
         },
@@ -133,5 +121,23 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Aggregate, ParserKQLTest,
         {
             "Customers | summarize x = hll(Education), y = hll(Occupation) | project xy = hll_merge(x, y) | project dcount_hll(xy);",
             "SELECT uniqCombined64Merge(18)(xy) AS Column1\nFROM\n(\n    SELECT uniqCombined64MergeState(18)(arrayJoin([x, y])) AS xy\n    FROM\n    (\n        SELECT\n            uniqCombined64State(18)(Education) AS x,\n            uniqCombined64State(18)(Occupation) AS y\n        FROM Customers\n    )\n)"
+        }
+})));
+
+INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Aggregate, ParserRegexTest,
+    ::testing::Combine(
+        ::testing::Values(std::make_shared<DB::ParserKQLStatement>()),
+        ::testing::ValuesIn(std::initializer_list<ParserTestCase>{
+        {
+            "Customers | summarize variance(Age)",
+            R"(SELECT IF\(isNaN\(varSamp\(if\(toTypeName\(Age\) = \'Nullable\(Nothing\)\', throwIf\(toTypeName\(Age\) = \'Nullable\(Nothing\)\', \'summarize operator: Failed to resolve scalar expression named null\'\), Age\)\) AS variance_\d+\), 0, variance_\d+\) AS variance_Age\nFROM Customers)"
+        },
+        {
+            "Customers | summarize variancep(Age)",
+            R"(SELECT IF\(isNaN\(varPop\(if\(toTypeName\(Age\) = \'Nullable\(Nothing\)\', throwIf\(toTypeName\(Age\) = \'Nullable\(Nothing\)\', \'summarize operator: Failed to resolve scalar expression named null\'\), Age\)\) AS variance_\d+\), 0, variance_\d+\) AS variancep_Age\nFROM Customers)"
+        },
+        {
+            "Customers | summarize varianceif(Age, Age < 30)",
+            R"(SELECT IF\(isNaN\(varSampIf\(if\(toTypeName\(Age\) = \'Nullable\(Nothing\)\', throwIf\(toTypeName\(Age\) = \'Nullable\(Nothing\)\', \'summarize operator: Failed to resolve scalar expression named null\'\), Age\), Age < 30\) AS variance_\d+\), 0, variance_\d+\) AS varianceif_Age\nFROM Customers)"
         }
 })));
