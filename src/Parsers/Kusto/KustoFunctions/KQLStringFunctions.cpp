@@ -314,7 +314,25 @@ bool IndexOf::convertImpl(String & out, IParser::Pos & pos)
 
 bool IndexOfRegex::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "kql_indexof_regex");
+    const auto fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const auto source = getArgument(fn_name, pos);
+    const auto lookup = getArgument(fn_name, pos);
+    const auto start_index = getOptionalArgument(fn_name, pos);
+    const auto length = getOptionalArgument(fn_name, pos);
+    const auto occurrence = getOptionalArgument(fn_name, pos);
+
+    out = std::format(
+        "If(isNULL({0}), -1, kql_indexof_regex(kql_tostring({0}),kql_tostring({1}),{2},{3},{4}))",
+        source,
+        lookup,
+        start_index.value_or("0"),
+        length.value_or("-1"),
+        occurrence.value_or("1"));
+
+    return true;
 }
 
 bool IsAscii::convertImpl(String & out, IParser::Pos & pos)
