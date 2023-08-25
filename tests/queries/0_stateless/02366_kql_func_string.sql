@@ -422,6 +422,7 @@ print idx2 = indexof_regex("abcabcdefg", "a.c", 0, 9, 2);
 print idx3 = indexof_regex("abcabc", "a.c", 1, -1, 2);
 print idx4 = indexof_regex("ababaa", "a.a", 0, -1, 2);
 print idx5 = indexof_regex("abcabc", "a|ab", -1);
+print idx6 = indexof_regex(int(null), '.');
 print indexof_regex('adsasdasasd', 'sas');
 print indexof_regex('adsasdasasd', 'sas', -1);
 print indexof_regex('adsasdasasd', 'sas', 99);
