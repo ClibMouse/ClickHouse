@@ -178,7 +178,7 @@ const auto SET_VALUE_AND_UNIT = [](auto & ctx)
 };
 
 const x3::rule<class KQLTimespanLiteral, KQLTimespanValueWithUnit> KQL_TIMESPAN_VALUE_WITH_UNIT = "KQL timespan value with unit";
-const auto KQL_TIMESPAN_VALUE_WITH_UNIT_def = (double_ >> timespan_units)[SET_VALUE_AND_UNIT];
+const auto KQL_TIMESPAN_VALUE_WITH_UNIT_def = (double_ >> lexeme[timespan_units])[SET_VALUE_AND_UNIT];
 
 const x3::rule<class KQLTimespanLiteral, Int64> KQL_TIMESPAN_DAY_VALUE = "KQL timespan day value";
 const auto KQL_TIMESPAN_DAY_VALUE_def = int_;
@@ -215,7 +215,7 @@ std::optional<Int64> ParserKQLTimespan::parse(const std::string_view expression)
     const auto * last = expression.cend();
 
     boost::variant<KQLTimespanComponents, KQLTimespanValueWithUnit, Int64, KQLTimespanNull> kql_timespan_variant;
-    const auto success = x3::parse(first, last, KQL_TIMESPAN, kql_timespan_variant);
+    const auto success = x3::phrase_parse(first, last, KQL_TIMESPAN, x3::space, kql_timespan_variant);
 
     if (!success || first != last)
         throw_exception();
