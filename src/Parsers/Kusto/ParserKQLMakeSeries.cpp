@@ -107,6 +107,8 @@ void ParserKQLMakeSeries ::parseSingleAggregationColumn(AggregationColumns & agg
         default_value = getExprFromToken(String(begin->begin, end->end), pos.max_depth);
     }
 
+    auto converted_aggregation_fun = getExprFromToken(aggregation_fun, pos.max_depth);
+
     auto agg_fun = String(agg_start_pos->begin, agg_start_pos->end);
     String tmp_alias;
     if (allowed_aggregation.contains(agg_fun))
@@ -141,7 +143,7 @@ void ParserKQLMakeSeries ::parseSingleAggregationColumn(AggregationColumns & agg
 
     if (alias.empty())
         alias = tmp_alias;
-    aggregation_columns.emplace_back(alias, aggregation_fun, column, default_value);
+    aggregation_columns.emplace_back(alias, converted_aggregation_fun, column, default_value);
 }
 
 bool ParserKQLMakeSeries ::parseAggregationColumns(AggregationColumns & aggregation_columns, Pos & pos)
