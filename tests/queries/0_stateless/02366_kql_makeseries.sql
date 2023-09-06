@@ -38,6 +38,17 @@ CREATE TABLE make_series_test_table3
 ) ENGINE = Memory;
 INSERT INTO make_series_test_table3 VALUES (parseDateTimeBestEffort('2016-12-31T06:00'), 50), (parseDateTimeBestEffort('2017-01-01'), 4), (parseDateTimeBestEffort('2017-01-02'), 3), (parseDateTimeBestEffort('2017-01-03'), 4), (parseDateTimeBestEffort('2017-01-03T03:00'), 6), (parseDateTimeBestEffort('2017-01-05'), 8), (parseDateTimeBestEffort('2017-01-05T13:40'), 13), (parseDateTimeBestEffort('2017-01-06'), 4), (parseDateTimeBestEffort('2017-01-07'), 3), (parseDateTimeBestEffort('2017-01-08'), 8), (parseDateTimeBestEffort('2017-01-08T21:00'), 8), (parseDateTimeBestEffort('2017-01-09'), 2), (parseDateTimeBestEffort('2017-01-09T12:00'), 11), (parseDateTimeBestEffort('2017-01-10T05:00'), 5);
 
+DROP TABLE IF EXISTS subtable;
+CREATE TABLE subtable
+(
+    `original_time` DateTime64(9, 'UTC'),
+    `data_source_id` String
+)
+ENGINE = Log;
+INSERT INTO subtable (`data_source_id`, `original_time`) VALUES (17, '2023-08-28 15:14:15.774000000');
+INSERT INTO subtable (`data_source_id`, `original_time`) VALUES (17, '2023-08-28 14:14:15.774000000');
+INSERT INTO subtable (`data_source_id`, `original_time`) VALUES (16, '2023-08-28 15:14:15.774000000');
+
 set dialect = 'kusto';
 print '-- from to';
 make_series_test_table |  make-series PriceAvg = avg(Price) default=0 on Purchase from datetime(2016-09-10)  to datetime(2016-09-13) step 1d by Supplier, Fruit | order by Supplier, Fruit;
@@ -82,3 +93,4 @@ print '--other function and aggregation function 1  without aggregation alias';
 make_series_test_table |  make-series ceiling(avg(Price+1)+1) on Purchase from datetime(2016-09-10)  to datetime(2016-09-13) step 1d by Supplier, Fruit | order by Supplier, Fruit;
 print '--from , to expression';
 make_series_test_table |  make-series avg(Price) on Purchase from datetime(2016-09-10)+1d  to datetime(2016-09-13)+1d step 1d by Supplier, Fruit | order by Supplier, Fruit;
+subtable| project original_time, data_source_id | make-series ECount=count() on original_time from datetime(2023-08-28 07:43:19.860677573)  to datetime(2023-08-28 18:43:42.745090264)  step 2h by data_source_id ;
