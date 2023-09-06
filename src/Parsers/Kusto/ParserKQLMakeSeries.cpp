@@ -160,6 +160,7 @@ bool ParserKQLMakeSeries ::parseAggregationColumns(AggregationColumns & aggregat
         if (pos->type == TokenType::Comma && bracket_count.isZero())
         {
             parseSingleAggregationColumn(aggregation_columns, begin, pos, column_index);
+            begin = pos;
             ++begin;
         }
         if (String(pos->begin, pos->end) == "on" && bracket_count.isZero())
@@ -361,6 +362,10 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
     if (from_to_step.is_timespan)
     {
         axis_column_format = std::format("toFloat64(toDateTime64({}, 9, 'UTC'))", axis_column);
+        if (!start_str.empty())
+        {
+            start_str = std::format("date_trunc('second', {})", start_str);
+        }
     }
     else
         axis_column_format = std::format("toFloat64({})", axis_column);
@@ -442,20 +447,22 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
     auto axis_and_agg_alias_list = axis_column;
     auto final_axis_agg_alias_list = std::format("tupleElement(zipped,1) AS {}", axis_column);
     int idx = 2;
+    int agg_count = 1;
     for (auto agg_column : aggregation_columns)
     {
         String agg_group_column = std::format(
-            "arrayConcat(groupArray({}_ali) as ga, arrayMap(x -> ({}),range(0,toUInt32({} - length(ga) < 0 ? 0 : {} - length(ga)),1))) as "
-            "{}",
+            "arrayConcat(groupArray({0}_ali) as ga{3}, arrayMap(x -> ({1}),range(0,toUInt32({2} - length(ga{3}) < 0 ? 0 : {2} - length(ga{3})),1))) as "
+            "{0}",
             agg_column.alias,
             agg_column.default_value,
             range_len,
-            range_len,
-            agg_column.alias);
+            agg_count
+            );
         main_query = main_query.empty() ? agg_group_column : main_query + ", " + agg_group_column;
 
         axis_and_agg_alias_list += ", " + agg_column.alias;
         final_axis_agg_alias_list += std::format(", tupleElement(zipped,{}) AS {}", idx, agg_column.alias);
+        ++agg_count;
     }
 
     if (from_to_step.is_timespan)

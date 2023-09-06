@@ -38,6 +38,17 @@ CREATE TABLE make_series_test_table3
 ) ENGINE = Memory;
 INSERT INTO make_series_test_table3 VALUES (parseDateTimeBestEffort('2016-12-31T06:00', 'UTC'), 50), (parseDateTimeBestEffort('2017-01-01', 'UTC'), 4), (parseDateTimeBestEffort('2017-01-02', 'UTC'), 3), (parseDateTimeBestEffort('2017-01-03', 'UTC'), 4), (parseDateTimeBestEffort('2017-01-03T03:00', 'UTC'), 6), (parseDateTimeBestEffort('2017-01-05', 'UTC'), 8), (parseDateTimeBestEffort('2017-01-05T13:40', 'UTC'), 13), (parseDateTimeBestEffort('2017-01-06', 'UTC'), 4), (parseDateTimeBestEffort('2017-01-07', 'UTC'), 3), (parseDateTimeBestEffort('2017-01-08', 'UTC'), 8), (parseDateTimeBestEffort('2017-01-08T21:00', 'UTC'), 8), (parseDateTimeBestEffort('2017-01-09', 'UTC'), 2), (parseDateTimeBestEffort('2017-01-09T12:00', 'UTC'), 11), (parseDateTimeBestEffort('2017-01-10T05:00', 'UTC'), 5);
 
+DROP TABLE IF EXISTS subtable;
+CREATE TABLE subtable
+(
+    `original_time` DateTime64(9, 'UTC'),
+    `data_source_id` String
+)
+ENGINE = Log;
+INSERT INTO subtable (`data_source_id`, `original_time`) VALUES (17, '2023-08-28 15:14:15.774000000');
+INSERT INTO subtable (`data_source_id`, `original_time`) VALUES (17, '2023-08-28 14:14:15.774000000');
+INSERT INTO subtable (`data_source_id`, `original_time`) VALUES (16, '2023-08-28 15:14:15.774000000');
+
 -- This test requies sorting after some of aggregations but I don't know KQL, sorry
 set max_bytes_before_external_group_by = 0;
 set dialect = 'kusto';
@@ -85,3 +96,4 @@ print '--other function and aggregation function 1  without aggregation alias';
 make_series_test_table |  make-series ceiling(avg(Price+1)+1) on Purchase from datetime(2016-09-10)  to datetime(2016-09-13) step 1d by Supplier, Fruit | order by Supplier, Fruit;
 print '--from , to expression';
 make_series_test_table |  make-series avg(Price) on Purchase from datetime(2016-09-10)+1d  to datetime(2016-09-13)+1d step 1d by Supplier, Fruit | order by Supplier, Fruit;
+subtable| project original_time, data_source_id | make-series ECount=count() on original_time from datetime(2023-08-28 07:43:19.860677573)  to datetime(2023-08-28 18:43:42.745090264)  step 2h by data_source_id ;
