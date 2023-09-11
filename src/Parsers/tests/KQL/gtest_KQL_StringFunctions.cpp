@@ -101,6 +101,22 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserTest,
             "SELECT toIntervalNanosecond(129600000000000) AS print_0"
         },
         {
+            "print time('1 d')",
+            "SELECT toIntervalNanosecond(86400000000000) AS print_0"
+        },
+        {
+            "print time('1.5 d')",
+            "SELECT toIntervalNanosecond(129600000000000) AS print_0"
+        },
+        {
+            "print time(1 h)",
+            "SELECT toIntervalNanosecond(3600000000000) AS print_0"
+        },
+        {
+            "print time(1 sec)",
+            "SELECT toIntervalNanosecond(1000000000) AS print_0"
+        },
+        {
             "print extract('x=([0-9.]+)', 1, 'hello x=456|wo' , typeof(bool));",
             "SELECT accurateCastOrNull(toInt64OrNull(kql_extract('hello x=456|wo', 'x=([0-9.]+)', 1)), 'Boolean') AS print_0"
         },
