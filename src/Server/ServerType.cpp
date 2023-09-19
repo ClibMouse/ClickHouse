@@ -99,6 +99,7 @@ bool ServerType::shouldStart(Type server_type, const std::string & server_custom
 bool ServerType::shouldStop(const std::string & port_name) const
 {
     Type port_type;
+    std::string port_custom_name;
 
     if (port_name == "http_port")
         port_type = Type::HTTP;
