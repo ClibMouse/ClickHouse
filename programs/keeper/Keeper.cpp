@@ -76,11 +76,11 @@ int mainEntryClickHouseKeeper(int argc, char ** argv)
 
 // // Weak symbols don't work correctly on Darwin
 // // so we have a stub implementation to avoid linker errors
-// void collectCrashLog(
-//     Int32, UInt64, const String &, const StackTrace &)
-// {}
+void collectCrashLog(
+    Int32, UInt64, const String &, const StackTrace &)
+{}
 
-// #endif
+#endif
 
 namespace DB
 {

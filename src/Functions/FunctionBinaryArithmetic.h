@@ -754,7 +754,6 @@ class FunctionBinaryArithmetic : public IFunction
 {
     static constexpr bool is_plus = IsOperation<Op>::plus;
     static constexpr bool is_minus = IsOperation<Op>::minus;
-    static constexpr bool is_modulo = IsOperation<Op>::modulo;
     static constexpr bool is_modulo_or_zero = IsOperation<Op>::modulo_or_zero;
     static constexpr bool is_multiply = IsOperation<Op>::multiply;
     static constexpr bool is_division = IsOperation<Op>::division;
@@ -1573,8 +1572,7 @@ public:
             }
         }
 
-        /// Special case when the function is plus or minus, one of arguments is Date/DateTime/String and another is Interval.
-        if (auto function_builder = getFunctionForIntervalArithmetic(arguments[0], arguments[1], context))
+        if (auto function_builder = getFunctionForDateTimeArithmetic(arguments[0], arguments[1], context))
         {
             ColumnsWithTypeAndName new_arguments(2);
             for (size_t i = 0; i < 2; ++i)
