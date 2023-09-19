@@ -12,7 +12,7 @@
 #include <Functions/Kusto/KqlFunctionBase.h>
 #include <boost/spirit/home/x3.hpp>
 #include <format>
-
+#include <numeric>
 namespace DB
 {
 namespace ErrorCodes
