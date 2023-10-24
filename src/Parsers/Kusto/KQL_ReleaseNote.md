@@ -1,4 +1,11 @@
 ## KQL implemented features  
+# October, 2023
+## Features
+- Added lookup_contains('dict_name', value_to_search). This function returns a boolean value, specifically, True when value_to_search is found in the dictionary, and False otherwise.
+   ```
+   print lookup_contains('test_rocksDB',1);
+   ```
+
 # July, 2023
 ## Features
 -  Enable kql table function support both heredoc and regular format
