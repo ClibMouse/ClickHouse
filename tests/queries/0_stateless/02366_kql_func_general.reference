@@ -37,6 +37,8 @@ default
 10	First	1
 11	First	2
 12	First	3
+1
+0
 -- gettype
 string
 int
