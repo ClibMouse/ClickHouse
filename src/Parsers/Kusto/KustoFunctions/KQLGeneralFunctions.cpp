@@ -39,6 +39,11 @@ bool Iif::convertImpl(String & out, IParser::Pos & pos)
     return directMapping(out, pos, "If");
 }
 
+bool LookupContains::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "dictHas");
+}
+
 bool Lookup::convertImpl(String & out, IParser::Pos & pos)
 {
     auto temp_pos = pos;
