@@ -45,6 +45,13 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class LookupContains : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "lookup_contains()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
 class GetType : public IParserKQLFunction
 {
 protected:

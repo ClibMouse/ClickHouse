@@ -67,6 +67,10 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_General, ParserTest,
             "SELECT dictGetOrDefault('dictionary_table', 'value', '100', 'default') AS print_0"
         },
         {
+            "print lookup_contains('dictionary_table', 1)",
+            "SELECT dictHas('dictionary_table', 1) AS print_0"
+        },
+        {
             "T | print 1",
             "throws AS print_0"
         },

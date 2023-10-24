@@ -232,6 +232,7 @@ enum class KQLFunction : uint16_t
     iff,
     iif,
     lookup,
+    lookup_contains,
     gettype,
     not_,
 
@@ -503,6 +504,7 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"iff", KQLFunction::iff},
     {"iif", KQLFunction::iif},
     {"lookup", KQLFunction::lookup},
+    {"lookup_contains", KQLFunction::lookup_contains},
     {"gettype", KQLFunction::gettype},
     {"not", KQLFunction::not_},
 
@@ -1184,6 +1186,9 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::lookup:
             return std::make_unique<Lookup>();
+
+        case KQLFunction::lookup_contains:
+            return std::make_unique<LookupContains>();
 
         case KQLFunction::gettype:
             return std::make_unique<GetType>();
