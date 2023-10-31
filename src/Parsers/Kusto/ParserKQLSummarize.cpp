@@ -22,6 +22,8 @@
 #include <memory>
 #include <queue>
 #include <vector>
+#include <sstream>
+#include <string>
 
 namespace DB
 {
@@ -202,7 +204,27 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
             expr_columns = expr_columns + "," + expr_aggregation;
     }
 
-    String converted_columns = getExprFromToken(expr_columns, pos.max_depth);
+    std::unordered_map <String,String> alias_map;
+    auto select_expr = node->as<ASTSelectQuery>()->select();
+    if (select_expr)
+    {
+        std::ranges::for_each(
+            node->as<ASTSelectQuery>()->select()->children,
+            [&alias_map](const ASTPtr & expression)
+            {
+                if (const auto alias = expression->tryGetAlias(); !alias.empty())
+                    {
+                        alias_map[alias] = expression->getColumnNameWithoutAlias();
+                    }
+            });
+    }
+    String converted_columns_raw = getExprFromToken(expr_columns, pos.max_depth);
+    std::istringstream column_stream(converted_columns_raw);
+    String converted_columns;
+    for (String value; std::getline(column_stream, value, ',');) {
+      converted_columns += alias_map.contains(value) ? alias_map[value] + " as " + value : value;
+      converted_columns +=",";
+    }
 
     Tokens token_converted_columns(converted_columns.c_str(), converted_columns.c_str() + converted_columns.size());
     IParser::Pos pos_converted_columns(token_converted_columns, pos.max_depth);
@@ -211,7 +233,7 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
         return false;
 
     node->as<ASTSelectQuery>()->setExpression(ASTSelectQuery::Expression::SELECT, std::move(select_expression_list));
-
+    node->as<ASTSelectQuery>()->setExpression(ASTSelectQuery::Expression::ORDER_BY, nullptr);
     if (groupby)
     {
         String converted_groupby = getExprFromToken(expr_groupby, pos.max_depth);
