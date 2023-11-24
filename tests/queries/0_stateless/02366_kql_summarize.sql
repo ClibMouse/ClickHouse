@@ -151,8 +151,3 @@ Customers | summarize x = hll(Education) | project dcount_hll(x);
 Customers | summarize y = hll(Occupation) | project dcount_hll(y);
 Customers | summarize x = hll(Education), y = hll(Occupation) | project xy = hll_merge(x, y) | project dcount_hll(xy);
 Customers | summarize x = hll(Education), y = hll(Occupation) | summarize xy = hll_merge(x, y) | project dcount_hll(xy);
-
-print '-- summarize optimization  --';
-Customers|project Occupation, Age |where Age > 30 | summarize occ_count = count(*) by Occupation;
-Customers|project prefession = Occupation, Age | where Age > 30 | summarize occ_count = count(*) by prefession;
-Customers|project prefession =  Occupation, Age |where Age > 30 | summarize occ_count = count(*) by prefession |summarize avg(occ_count);
