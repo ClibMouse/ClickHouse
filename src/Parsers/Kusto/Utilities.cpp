@@ -5,7 +5,8 @@
 #include <Parsers/ASTAsterisk.h>
 #include <Parsers/ASTExpressionList.h>
 #include <Parsers/ASTSelectWithUnionQuery.h>
-
+#include <Parsers/ASTSubquery.h>
+#include <Parsers/ASTTablesInSelectQuery.h>
 namespace DB
 {
 String extractLiteralArgumentWithoutQuotes(const std::string & function_name, IParser::Pos & pos)
@@ -80,5 +81,24 @@ ASTPtr wrapInSelectWithUnion(const ASTPtr & select_query)
     select_with_union_query->children.push_back(list_of_selects);
 
     return select_with_union_query;
+}
+
+void apply_subquery(ASTPtr &select_node, ASTPtr &previous_node)
+{
+    ASTPtr node_subquery = std::make_shared<ASTSubquery>();
+    node_subquery->children.push_back(wrapInSelectWithUnion(previous_node));
+
+    ASTPtr node_table_expr = std::make_shared<ASTTableExpression>();
+    node_table_expr->as<ASTTableExpression>()->subquery = node_subquery;
+
+    node_table_expr->children.emplace_back(node_subquery);
+
+    ASTPtr node_table_in_select_query_emlement = std::make_shared<ASTTablesInSelectQueryElement>();
+    node_table_in_select_query_emlement->as<ASTTablesInSelectQueryElement>()->table_expression = node_table_expr;
+
+    ASTPtr tables = std::make_shared<ASTTablesInSelectQuery>();
+
+    tables->children.emplace_back(node_table_in_select_query_emlement);
+    select_node->as<ASTSelectQuery>()->setExpression(ASTSelectQuery::Expression::TABLES, std::move(tables));
 }
 }

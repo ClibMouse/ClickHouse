@@ -3,6 +3,7 @@
 #include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/Kusto/ParserKQLTimespan.h>
 #include <Parsers/Kusto/Utilities.h>
+#include <Parsers/Kusto/ParserKQLQuery.h>
 
 #include <boost/lexical_cast.hpp>
 #include <magic_enum.hpp>
@@ -384,4 +385,36 @@ String IParserKQLFunction::escapeSingleQuotes(const String & input)
     }
     return output;
 }
+
+void IParserKQLFunction::getIdentifiers(IParser::Pos & begin_pos, IParser::Pos & end_pos,std::vector<String> & identifiers)
+{
+    
+    BracketCount bracket_count;
+    auto pos = begin_pos;
+
+    while (!pos->isEnd())
+    {
+        bracket_count.count(pos);
+        if ((pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon || end_pos < pos) && bracket_count.isZero())
+            break;
+
+        if (pos->type == TokenType::BareWord)
+        {
+            const auto identifier = String(pos->begin, pos->end);
+            const auto fun = KQLFunctionFactory::get(identifier);
+            if (!fun)
+            {
+                if (std::optional<Int64> ticks; !ParserKQLTimespan::tryParse(extractTokenWithoutQuotes(pos), ticks) || !ticks)
+                {
+                    if (Poco::toLower(identifier) != "and" && Poco::toLower(identifier) != "or"  && Poco::toLower(identifier) != "by")
+                        identifiers.emplace_back(identifier);
+                }
+            }
+        }
+
+        ++pos;
+    }
+
+}
+
 }

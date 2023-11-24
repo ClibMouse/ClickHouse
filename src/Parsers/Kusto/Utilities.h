@@ -10,4 +10,5 @@ String extractTokenWithoutQuotes(IParser::Pos & pos);
 void setSelectAll(ASTSelectQuery & select_query);
 std::optional<String> wildcardToRegex(const String & wildcard);
 ASTPtr wrapInSelectWithUnion(const ASTPtr & select_query);
+void apply_subquery(ASTPtr &select_node, ASTPtr &previous_node);
 }

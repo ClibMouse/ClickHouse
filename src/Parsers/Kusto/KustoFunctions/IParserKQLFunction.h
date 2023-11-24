@@ -80,6 +80,7 @@ public:
     kqlCallToExpression(std::string_view function_name, std::initializer_list<const std::string_view> params, uint32_t max_depth);
     static String kqlCallToExpression(std::string_view function_name, std::span<const std::string_view> params, uint32_t max_depth);
     static String escapeSingleQuotes(const String & input);
+    static void getIdentifiers(IParser::Pos & begin_pos, IParser::Pos & end_pos,std::vector<String> & identifiers);
 
 protected:
     virtual bool convertImpl(String & out, IParser::Pos & pos) = 0;

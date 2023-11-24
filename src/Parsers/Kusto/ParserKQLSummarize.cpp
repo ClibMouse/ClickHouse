@@ -10,12 +10,16 @@
 #include <Parsers/ExpressionElementParsers.h>
 #include <Parsers/ExpressionListParsers.h>
 #include <Parsers/IParserBase.h>
+#include <Parsers/ASTSubquery.h>
+#include <Parsers/ASTTablesInSelectQuery.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLSummarize.h>
+#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
 #include <Parsers/ParserSelectQuery.h>
 #include <Parsers/ParserSetQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
 #include <Parsers/ParserWithElement.h>
+#include "Utilities.h"
 
 #include <format>
 #include <memory>
@@ -32,6 +36,7 @@ namespace ErrorCodes
     extern const int SYNTAX_ERROR;
 }
 
+
 bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
     ASTPtr select_expression_list;
@@ -46,8 +51,12 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
     uint16_t bracket_count = 0;
     int32_t new_column_index = 1;
 
+    bool require_subquery = false;
     std::vector<String> expr_aggregations;
     std::vector<String> expr_groupbys;
+    std::vector<String> groupby_identifiers;
+    std::unordered_map <String,String> alias_column_map;
+    std::unordered_map <String,String> column_alias_map;
 
     std::unordered_set<String> aggregate_functions(
         {"arg_max",
@@ -98,11 +107,11 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
         auto expr = String(begin_pos->begin, end_pos->end);
         auto equal_pos = begin_pos;
         ++equal_pos;
+        String alias;
         if (!is_groupby)
         {
             if (String(equal_pos->begin, equal_pos->end) != "=")
             {
-                String alias;
                 String aggregate_fun = String(begin_pos->begin, begin_pos->end);
                 if (aggregate_functions.find(aggregate_fun) == aggregate_functions.end())
                 {
@@ -123,7 +132,29 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
                             alias = alias + String(agg_colum_pos->begin, agg_colum_pos->end);
                     }
                 }
-                expr = std::format("{} = {}", alias, expr);
+                
+            }
+            else
+            {
+                alias = String(begin_pos->begin, begin_pos->end);
+                begin_pos = equal_pos;
+                ++begin_pos;
+            }
+
+            if (!require_subquery)
+            {
+                String replacedExpr;
+                while (begin_pos <= end_pos)
+                {
+                    auto token = String(begin_pos->begin, begin_pos->end);
+                    if (alias_column_map.contains(token))
+                        replacedExpr = replacedExpr + " " + alias_column_map[token];
+                    else
+                        replacedExpr = replacedExpr + " " + token;
+                    ++begin_pos;
+                }
+                
+                expr = alias.empty() ? expr : std::format("{} = {}", alias, replacedExpr);
             }
             expr_aggregations.push_back(expr);
         }
@@ -139,7 +170,7 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
                 }
                 else
                 {
-                    String alias;
+                    
                     if (groupby_fun == "bin" || groupby_fun == "bin_at")
                     {
                         auto bin_colum_pos = begin_pos;
@@ -156,12 +187,40 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
                         ++new_column_index;
                     }
 
-                    expr = std::format("{} = {}", alias, expr);
                 }
+                 expr = alias.empty() ? expr : std::format("{} = {}", alias, expr);
             }
+            IParserKQLFunction::getIdentifiers(begin_pos, end_pos, groupby_identifiers);
             expr_groupbys.push_back(expr);
         }
     };
+
+    auto select_expr = node->as<ASTSelectQuery>()->select();
+    if (select_expr)
+    {
+        auto aliais_is_column_only = [&](String &column_name)
+        {
+            Tokens token_column_name(column_name.c_str(), column_name.c_str() + column_name.size());
+            IParser::Pos pos_token_column_name(token_column_name, pos.max_depth);
+            ++pos_token_column_name;
+            return !pos_token_column_name.isValid();
+        };
+
+        std::ranges::for_each(
+            node->as<ASTSelectQuery>()->select()->children,
+            [&](const ASTPtr & expression)
+            //[&alias_column_map, &column_alias_map, &aliais_is_column_only](const ASTPtr & expression)
+            {
+                if (const auto alias = expression->tryGetAlias(); !alias.empty())
+                {
+                    auto column_name = expression->getColumnNameWithoutAlias();
+                    alias_column_map[alias] = column_name;
+                    column_alias_map[column_name] = alias;
+                    if (!aliais_is_column_only(column_name))
+                        require_subquery = true;
+                }
+            });
+    }
 
     while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
     {
@@ -195,34 +254,32 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
     if (!expr_groupby.empty())
         expr_columns = expr_groupby;
 
-    if (!expr_aggregation.empty())
+    if (require_subquery)
     {
-        if (expr_columns.empty())
-            expr_columns = expr_aggregation;
-        else
-            expr_columns = expr_columns + "," + expr_aggregation;
+        if (!expr_aggregation.empty())
+        {
+            if (expr_columns.empty())
+                expr_columns = expr_aggregation;
+            else
+                expr_columns = expr_columns + "," + expr_aggregation;
+        }
     }
-
-    std::unordered_map <String,String> alias_map;
-    auto select_expr = node->as<ASTSelectQuery>()->select();
-    if (select_expr)
-    {
-        std::ranges::for_each(
-            node->as<ASTSelectQuery>()->select()->children,
-            [&alias_map](const ASTPtr & expression)
-            {
-                if (const auto alias = expression->tryGetAlias(); !alias.empty())
-                    {
-                        alias_map[alias] = expression->getColumnNameWithoutAlias();
-                    }
-            });
-    }
+    else
+        expr_columns = expr_aggregation;
     String converted_columns_raw = getExprFromToken(expr_columns, pos.max_depth);
-    std::istringstream column_stream(converted_columns_raw);
     String converted_columns;
-    for (String value; std::getline(column_stream, value, ',');) {
-      converted_columns += alias_map.contains(value) ? alias_map[value] + " as " + value : value;
-      converted_columns +=",";
+    if (require_subquery)
+    {
+        converted_columns = std::move(converted_columns_raw);
+    }
+    else
+    {
+        for (auto identifier : groupby_identifiers) 
+        {
+        converted_columns += alias_column_map.contains(identifier) ? alias_column_map[identifier] + " as " + identifier : identifier;
+        converted_columns +=",";
+        }
+        converted_columns += std::move(converted_columns_raw);
     }
 
     Tokens token_converted_columns(converted_columns.c_str(), converted_columns.c_str() + converted_columns.size());
@@ -231,8 +288,18 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
     if (!ParserNotEmptyExpressionList(true).parse(pos_converted_columns, select_expression_list, expected))
         return false;
 
-    node->as<ASTSelectQuery>()->setExpression(ASTSelectQuery::Expression::SELECT, std::move(select_expression_list));
-    node->as<ASTSelectQuery>()->setExpression(ASTSelectQuery::Expression::ORDER_BY, nullptr);
+    ASTPtr select_node;
+    if (require_subquery)
+    {
+        select_node= std::make_shared<ASTSelectQuery>();
+        apply_subquery(select_node, node);
+    }
+    else
+        select_node = std::move(node);
+
+    select_node->as<ASTSelectQuery>()->setExpression(ASTSelectQuery::Expression::SELECT, std::move(select_expression_list));
+    select_node->as<ASTSelectQuery>()->setExpression(ASTSelectQuery::Expression::ORDER_BY, nullptr);
+
     if (groupby)
     {
         String converted_groupby = getExprFromToken(expr_groupby, pos.max_depth);
@@ -242,9 +309,10 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
 
         if (!ParserNotEmptyExpressionList(false).parse(postoken_converted_groupby, group_expression_list, expected))
             return false;
-        node->as<ASTSelectQuery>()->setExpression(ASTSelectQuery::Expression::GROUP_BY, std::move(group_expression_list));
+        select_node->as<ASTSelectQuery>()->setExpression(ASTSelectQuery::Expression::GROUP_BY, std::move(group_expression_list));
     }
 
+    node = std::move(select_node);
     return true;
 }
 }
