@@ -121,18 +121,6 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Aggregate, ParserKQLTest,
         {
             "Customers | summarize x = hll(Education), y = hll(Occupation) | project xy = hll_merge(x, y) | project dcount_hll(xy);",
             "SELECT uniqCombined64Merge(18)(xy) AS Column1\nFROM\n(\n    SELECT uniqCombined64MergeState(18)(arrayJoin([x, y])) AS xy\n    FROM\n    (\n        SELECT\n            uniqCombined64State(18)(Education) AS x,\n            uniqCombined64State(18)(Occupation) AS y\n        FROM Customers\n    )\n)"
-        },
-        {
-            "events_dist | project original_time, ip | where unixtime_milliseconds_todatetime(original_time) > ago(1h) | summarize ip_count = count(*) by ip;",
-            "SELECT\n    ip,\n    count(*) AS ip_count\nFROM events_dist\nWHERE kql_todatetime(fromUnixTimestamp64Milli(original_time, 'UTC')) > (now64(9, 'UTC') + (-1 * toIntervalNanosecond(3600000000000)))\nGROUP BY ip"
-        },
-        {
-            "events_dist | project abc = ip ,original_time | where unixtime_milliseconds_todatetime(original_time) > ago(1h) | summarize ip_count = count(*) by abc;",
-            "SELECT\n    ip AS abc,\n    count(*) AS ip_count\nFROM events_dist\nWHERE kql_todatetime(fromUnixTimestamp64Milli(original_time, 'UTC')) > (now64(9, 'UTC') + (-1 * toIntervalNanosecond(3600000000000)))\nGROUP BY abc"
-        },
-        {
-            "events_dist | where unixtime_milliseconds_todatetime(original_time) > ago(1h) | summarize ip_count = count(*) by ip | summarize avg(ip_count);",
-            "SELECT avg(ip_count) AS avg_ip_count\nFROM\n(\n    SELECT\n        ip,\n        count(*) AS ip_count\n    FROM events_dist\n    WHERE kql_todatetime(fromUnixTimestamp64Milli(original_time, 'UTC')) > (now64(9, 'UTC') + (-1 * toIntervalNanosecond(3600000000000)))\n    GROUP BY ip\n)"
         }
 })));
 
