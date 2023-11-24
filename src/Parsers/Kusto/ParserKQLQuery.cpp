@@ -60,7 +60,7 @@ const std::unordered_map<std::string, ParserKQLQuery::KQLOperatorDataFlowState> 
     {"order by", {"order by", false, false, false, 4}},
     {"table", {"table", false, false, false, 3}},
     {"print", {"print", false, true, false, 3}},
-    {"summarize", {"summarize", false, true, false, 3}},
+    {"summarize", {"summarize", true, true, false, 3}},
     {"make-series", {"make-series", true, true, false, 5}},
     {"mv-expand", {"mv-expand", true, true, false, 5}},
     {"count", {"count", true, true, false, 3}},
@@ -630,10 +630,9 @@ bool ParserKQLQuery::executeImpl(Pos & pos, ASTPtr & node, Expected & expected)
                 limit_clause = op_str;
             else if (op == "order by" || op == "sort by")
                 order_clause = order_clause.empty() ? op_str : order_clause + "," + op_str;
-            return op == "project" || op == "where" || op == "filter" || op == "limit" || op == "take" ||op == "order by" || op == "sort by";
         };
 
-        bool last_op_processed = set_main_query_clause(last_op, last_pos);
+        set_main_query_clause(last_op, last_pos);
 
         operation_pos.pop_back();
 
@@ -674,6 +673,9 @@ bool ParserKQLQuery::executeImpl(Pos & pos, ASTPtr & node, Expected & expected)
                 return false;
         }
 
+        if (!kql_operator_p->parse(npos, node, expected))
+            return false;
+
         auto set_query_clause = [&](const String & op_str, const String & op_clause)
         {
             auto parser = getOperator(op_str);
@@ -694,10 +696,6 @@ bool ParserKQLQuery::executeImpl(Pos & pos, ASTPtr & node, Expected & expected)
             || (!where_clause.empty() && !set_query_clause("where", where_clause))
             || (!limit_clause.empty() && !set_query_clause("limit", limit_clause)))
             return false;
-
-        if (!last_op_processed)
-            if (!kql_operator_p->parse(npos, node, expected))
-                return false;
     }
 
     if (auto * select_query = node->as<ASTSelectQuery>(); !select_query->select())
