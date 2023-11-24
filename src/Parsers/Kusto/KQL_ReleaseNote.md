@@ -5,25 +5,6 @@
    ```
    print lookup_contains('test_rocksDB',1);
    ```
-- Optimizing the 'summarize' operator.
-
-   KQL:
-   ```
-   events_dist 
-   | project original_time, ip
-   | where unixtime_milliseconds_todatetime(original_time) > ago(1h)
-   | summarize ip_count = count(*) by ip
-   ```
-   Optimal SQL:
-   ```
-   SELECT
-      ip,
-      count(*) AS ip_count
-   FROM events_dist
-   WHERE kql_todatetime(fromUnixTimestamp64Milli(original_time, 'UTC')) > (now64(9, 'UTC') + (-1 * toIntervalNanosecond(3600000000000)))
-   GROUP BY ip
-   ```
-
 
 # July, 2023
 ## Features
