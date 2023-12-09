@@ -36,7 +36,8 @@ template <typename T>
 struct ByteSwapImpl
 {
     using ResultType = T;
-    static constexpr const bool allow_string_or_fixed_string = false;
+    static const constexpr bool allow_interval = true;
+    static const constexpr bool allow_string_or_fixed_string = false;
     static T apply(T x) { return byteSwap<T>(x); }
 
 #if USE_EMBEDDED_COMPILER

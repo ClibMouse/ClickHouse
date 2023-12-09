@@ -215,6 +215,10 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Datetime, ParserKQLTest,
             "SELECT kql_totimespan(-toIntervalNanosecond(86400000000000)) AS print_0"
         },
         {
+            "print (timespan(1.5d) / timespan(0.6d)) * timespan(0.6d)",
+            "SELECT (toIntervalNanosecond(129600000000000) / toIntervalNanosecond(51840000000000)) * toIntervalNanosecond(51840000000000) AS print_0"
+        },
+        {
             "print totimespan('abc')",
             "SELECT kql_totimespan('abc') AS print_0"
         },

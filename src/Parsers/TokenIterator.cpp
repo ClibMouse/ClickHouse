@@ -1,6 +1,7 @@
-#include <unordered_set>
-#include <Parsers/TokenIterator.h>
 #include <base/types.h>
+#include <Parsers/TokenIterator.h>
+
+#include <unordered_set>
 
 namespace DB
 {
@@ -39,6 +40,7 @@ UnmatchedParentheses checkUnmatchedParentheses(TokenIterator begin)
          "in",
          "startswith",
          "startswith_cs"});
+
     /// We have just two kind of parentheses: () and [].
     UnmatchedParentheses stack;
 
@@ -81,8 +83,7 @@ UnmatchedParentheses checkUnmatchedParentheses(TokenIterator begin)
                 stack.push_back(*it);
                 return stack;
             }
-            else if (
-                (stack.back().type == TokenType::OpeningRoundBracket && it->type == TokenType::ClosingRoundBracket)
+            else if ((stack.back().type == TokenType::OpeningRoundBracket && it->type == TokenType::ClosingRoundBracket)
                 || (stack.back().type == TokenType::OpeningSquareBracket && it->type == TokenType::ClosingSquareBracket))
             {
                 /// Valid match.

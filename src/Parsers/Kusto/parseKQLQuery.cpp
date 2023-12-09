@@ -14,7 +14,7 @@
 #include <IO/WriteBufferFromString.h>
 #include <IO/Operators.h>
 #include <Parsers/Kusto/ParserKQLStatement.h>
-#include <Parsers/Kusto/ParserKQLDateTypeTimespan.h>
+#include <Parsers/Kusto/ParserKQLTimespan.h>
 #include <Parsers/Kusto/parseKQLQuery.h>
 
 namespace DB
@@ -260,7 +260,7 @@ UnmatchedParentheses checkKQLUnmatchedParentheses(TokenIterator begin)
             }
             else if (it->type == TokenType::ErrorWrongNumber)
             {
-                if (!ParserKQLDateTypeTimespan().parseConstKQLTimespan(String(it.get().begin, it.get().end)))
+                if (std::optional<Int64> ticks; !ParserKQLTimespan::tryParse(String(it.get().begin, it.get().end), ticks))
                     break;
             }
             else

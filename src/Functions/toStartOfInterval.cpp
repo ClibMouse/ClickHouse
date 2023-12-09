@@ -453,15 +453,12 @@ public:
         return return_type;
     }
 
-    bool useDefaultImplementationForConstants() const override { return true; }
-    ColumnNumbers getArgumentsThatAreAlwaysConstant() const override { return {1, 2}; }
-
     ColumnPtr executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const size_t) const override
     {
         const auto & time_column = arguments[0];
         const auto & interval_column = arguments[1];
         const auto & time_zone = extractTimeZoneFromFunctionArguments(arguments, 2, 0);
-        return dispatchForColumns(time_column, interval_column, result_type, time_zone);
+        return dispatchForTimeColumn(time_column, interval_column, result_type, time_zone);
     }
 
 private:
