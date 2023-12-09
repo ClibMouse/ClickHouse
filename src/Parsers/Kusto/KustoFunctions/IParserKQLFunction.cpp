@@ -324,16 +324,6 @@ void IParserKQLFunction::validateEndOfFunction(const String & fn_name, IParser::
 String IParserKQLFunction::getExpression(IParser::Pos & pos)
 {
     String arg(pos->begin, pos->end);
-    auto parseConstTimespan = [&]()
-    {
-        ParserKQLDateTypeTimespan time_span;
-        ASTPtr node;
-        Expected expected;
-
-        if (time_span.parse(pos, node, expected))
-            arg = boost::lexical_cast<std::string>(time_span.toSeconds());
-    };
-
     if (pos->type == TokenType::BareWord)
     {
         const auto fun = KQLFunctionFactory::get(arg);
@@ -359,8 +349,6 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
                 arg = kqlTicksToInterval(ticks);
         }
     }
-    else if (pos->type == TokenType::ErrorWrongNumber)
-        parseConstTimespan();
     else if (pos->type == TokenType::QuotedIdentifier)
         arg = "'" + escapeSingleQuotes(String(pos->begin + 1, pos->end - 1)) + "'";
     else if (pos->type == TokenType::OpeningSquareBracket)

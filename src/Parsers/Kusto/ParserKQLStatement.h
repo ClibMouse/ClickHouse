@@ -6,7 +6,6 @@
 
 namespace DB
 {
-
 class ParserKQLStatement : public IParserBase
 {
 protected:
