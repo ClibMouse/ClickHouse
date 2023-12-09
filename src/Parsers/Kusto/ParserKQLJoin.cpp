@@ -23,7 +23,7 @@ namespace ErrorCodes
     extern const int SYNTAX_ERROR;
 }
 
-bool ParserKQLJoin ::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
+bool ParserKQLJoin::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
     ASTPtr sub_query_node;
     String str_right_table;
@@ -246,14 +246,14 @@ bool ParserKQLJoin ::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 
             str_attributes = str_attributes.empty() ? str : str_attributes + " and " + str;
         }
-        query_join = std::format("SELECT * FROM tbl {} {} ON {}", join_kind, str_right_table, str_attributes);
+        query_join = std::format("SELECT * FROM tbl {} {} AS right_ ON {}", join_kind, str_right_table, str_attributes);
     }
     else
     {
         for (auto const & str : attribute_list)
             str_attributes = str_attributes.empty() ? str : str_attributes + "," + str;
 
-        query_join = std::format("SELECT * FROM tbl {} {} USING {}", join_kind, str_right_table, str_attributes);
+        query_join = std::format("SELECT * FROM tbl {} {} AS right_ USING {}", join_kind, str_right_table, str_attributes);
     }
 
     if (!parseSQLQueryByString(std::make_unique<ParserSelectQuery>(), query_join, sub_query_node, pos.max_depth))
