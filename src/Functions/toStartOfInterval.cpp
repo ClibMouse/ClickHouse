@@ -361,38 +361,22 @@ public:
         const DataTypeInterval * interval_type = nullptr;
         bool result_type_is_date = false;
         bool result_type_is_datetime = false;
-        bool result_type_is_datetime_64 = false;
         auto check_interval_argument = [&]
         {
             interval_type = checkAndGetDataType<DataTypeInterval>(arguments[1].type.get());
             if (!interval_type)
                 throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type {} of argument of function {}. "
                     "Should be an interval of time", arguments[1].type->getName(), getName());
-            switch (interval_type->getKind()) // NOLINT(bugprone-switch-missing-default-case)
-            {
-                case IntervalKind::Nanosecond:
-                case IntervalKind::Microsecond:
-                case IntervalKind::Millisecond:
-                    result_type_is_datetime_64 = true;
-                    break;
-                case IntervalKind::Second:
-                case IntervalKind::Minute:
-                case IntervalKind::Hour:
-                case IntervalKind::Day:
-                    result_type_is_datetime = true;
-                    break;
-                case IntervalKind::Week:
-                case IntervalKind::Month:
-                case IntervalKind::Quarter:
-                case IntervalKind::Year:
-                    result_type_is_date = true;
-                    break;
-            }
+            result_type_is_date = (interval_type->getKind() == IntervalKind::Year)
+                || (interval_type->getKind() == IntervalKind::Quarter) || (interval_type->getKind() == IntervalKind::Month)
+                || (interval_type->getKind() == IntervalKind::Week);
+            result_type_is_datetime = (interval_type->getKind() == IntervalKind::Day) || (interval_type->getKind() == IntervalKind::Hour)
+                || (interval_type->getKind() == IntervalKind::Minute) || (interval_type->getKind() == IntervalKind::Second);
         };
 
         auto check_timezone_argument = [&]
         {
-            if (!isString(arguments[2].type))
+            if (!WhichDataType(arguments[2].type).isString())
                 throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type {} of argument of function {}. "
                     "This argument is optional and must be a constant string with timezone name",
                     arguments[2].type->getName(), getName());
@@ -449,15 +433,12 @@ public:
         return return_type;
     }
 
-    bool useDefaultImplementationForConstants() const override { return true; }
-    ColumnNumbers getArgumentsThatAreAlwaysConstant() const override { return {1, 2}; }
-
     ColumnPtr executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr & result_type, const size_t) const override
     {
         const auto & time_column = arguments[0];
         const auto & interval_column = arguments[1];
         const auto & time_zone = extractTimeZoneFromFunctionArguments(arguments, 2, 0);
-        return dispatchForColumns(time_column, interval_column, result_type, time_zone);
+        return dispatchForTimeColumn(time_column, interval_column, result_type, time_zone);
     }
 
 private:

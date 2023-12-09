@@ -2197,7 +2197,7 @@ public:
         {
             ASTPtr query;
             --pos;
-            if (!ParserKQLTableFunction().parse(pos, query, expected))
+            if (KQLContext kql_context; !ParserKQLTableFunction(kql_context).parse(pos, query, expected))
                 return false;
             --pos;
             pushResult(query);
@@ -2261,9 +2261,13 @@ std::unique_ptr<Layer> getFunctionLayer(ASTPtr identifier, bool is_table_functio
     const auto function_name = getIdentifierName(identifier);
     const auto function_name_lowercase = Poco::toLower(function_name);
 
-    if (is_table_function
-        && (function_name_lowercase == "getschema" || function_name_lowercase == "view" || function_name_lowercase == "viewifpermitted"))
-        return std::make_unique<ViewLayer>(function_name_lowercase);
+    if (is_table_function)
+    {
+        if (function_name_lowercase == "getschema" || function_name_lowercase == "view" || function_name_lowercase == "viewifpermitted")
+            return std::make_unique<ViewLayer>(function_name_lowercase);
+        if (function_name_lowercase == "kql")
+            return std::make_unique<KustoLayer>();
+    }
 
     if (function_name == "tuple")
         return std::make_unique<TupleLayer>();
@@ -2656,7 +2660,7 @@ Action ParserExpressionImpl::tryParseOperand(Layers & layers, IParser::Pos & pos
     {
         layers.back()->pushOperand(std::move(tmp));
     }
-    else if (pos->type == TokenType::OpeningRoundBracket)
+    else if (pos->type == TokenType::OpeningRoundBracket || String(pos->begin , pos->end) == "kql")
     {
 
         if (subquery_parser.parse(pos, tmp, expected))

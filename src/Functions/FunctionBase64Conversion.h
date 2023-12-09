@@ -76,12 +76,10 @@ struct TryBase64Decode
     static size_t perform(const std::span<const UInt8> src, UInt8 * dst)
     {
         size_t outlen = 0;
-        base64_decode(reinterpret_cast<const char *>(src.data()), src.size(), reinterpret_cast<char *>(dst), &outlen, 0);
+        int rc = base64_decode(reinterpret_cast<const char *>(src.data()), src.size(), reinterpret_cast<char *>(dst), &outlen, 0);
 
-        // during decoding character array can be partially polluted
-        // if fail, revert back and clean
-        if (!outlen)
-            *dst = 0;
+        if (rc != 1)
+            outlen = 0;
 
         return outlen;
     }

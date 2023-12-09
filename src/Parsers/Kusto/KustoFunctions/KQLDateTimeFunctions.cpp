@@ -279,7 +279,7 @@ bool FormatDateTime::convertImpl(String & out, IParser::Pos & pos)
             else if (arg == "m" || arg == "mm")
                 formatspecifier = formatspecifier + "%i";
             else if (arg == "h" || arg == "hh")
-                formatspecifier = formatspecifier + "%h";
+                formatspecifier = formatspecifier + "%I";
             else if (arg == "H" || arg == "HH")
                 formatspecifier = formatspecifier + "%H";
             else if (arg == "d")

@@ -87,7 +87,7 @@ print '--aggregation function 1  without aggregation alias';
 make_series_test_table |  make-series avg(Price+1)+1  on Purchase from datetime(2016-09-10)  to datetime(2016-09-13) step 1d by Supplier, Fruit | order by Supplier, Fruit;
 print '--other function and aggregation function 1  without aggregation alias';
 make_series_test_table |  make-series ceiling(avg(Price+1)+1) on Purchase from datetime(2016-09-10)  to datetime(2016-09-13) step 1d by Supplier, Fruit | order by Supplier, Fruit;
-print '-- defaut with expression';
+print '-- default with expression';
 make_series_test_table |  make-series ceiling(avg(Price+1)+1) default = strlen('123')+1.5 on Purchase from datetime(2016-09-10)  to datetime(2016-09-13) step 1d by Supplier, Fruit | order by Supplier, Fruit;
 print '--other function and aggregation function 1  without aggregation alias';
 make_series_test_table |  make-series ceiling(avg(Price+1)+1) on Purchase from datetime(2016-09-10)  to datetime(2016-09-13) step 1d by Supplier, Fruit | order by Supplier, Fruit;

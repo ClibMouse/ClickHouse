@@ -40,7 +40,6 @@ bool ParserKQLWithOutput::parseImpl(Pos & pos, ASTPtr & node, Expected & expecte
 
 bool ParserKQLWithUnionQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
-    // will support union next phase
     ASTPtr kql_query;
     if (!ParserKQLQuery(kql_context).parse(pos, kql_query, expected))
         return false;

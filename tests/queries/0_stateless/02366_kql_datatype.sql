@@ -94,14 +94,14 @@ print time(2) + 1d;
 print '-- timespan (time)';
 print timespan(null);
 print timespan(2d); --              2 days
---print timespan(1.5h); -- 	        1.5 hour
+print timespan(1.5h); -- 	        1.5 hour
 print timespan(30m); -- 	        30 minutes
 print timespan(10s); -- 	        10 seconds
---print timespan(0.1s); -- 	        0.1 second
+print timespan(0.1s); -- 	        0.1 second
 print timespan(100ms); -- 	        100 millisecond
 print timespan(10microsecond); -- 	10 microseconds
 print timespan(1tick); --           100 nanoseconds
---print timespan(1.5h) / timespan(30m);
+print timespan(1.5h) / timespan(30m);
 print timespan('12.23:12:23') / timespan(1s);
 print (timespan(1.5d) / timespan(0.6d)) * timespan(0.6d);
 print a = timespan(2d), b = timespan(4h), c = timespan(8m), d = timespan(16s), e = timespan(123millis), f = timespan(456micros), g = timespan(789nanos) | extend x = a + b + c + d + e + f + g;
