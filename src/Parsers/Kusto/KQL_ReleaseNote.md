@@ -1,4 +1,8 @@
 ## KQL implemented features  
+# December 2023
+## Features
+- Added support for verbatim strings
+
 # October, 2023
 ## Features
 - Added lookup_contains('dict_name', value_to_search). This function returns a boolean value, specifically, True when value_to_search is found in the dictionary, and False otherwise.

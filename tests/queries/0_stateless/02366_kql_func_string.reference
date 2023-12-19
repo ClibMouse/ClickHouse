@@ -3,6 +3,10 @@
 Latoya	Shen	Professional	Graduate Degree	25
 Peter	Nara	Skilled Manual	Graduate Degree	26
 
+-- Customers |where Education contains @\'degree\'
+Latoya	Shen	Professional	Graduate Degree	25
+Peter	Nara	Skilled Manual	Graduate Degree	26
+
 -- Customers |where Education !contains \'degree\'
 \N	why	Professional	Partial College	38
 Theodore	Diaz	Skilled Manual	Bachelors	28
@@ -19,6 +23,12 @@ Theodore	Diaz	Skilled Manual	Bachelors	28
 Stephanie	Cox	Management abcd defg	Bachelors	33
 Apple		Skilled Manual	Bachelors	28
 
+-- Customers |where Education !contains @\'Degree\'
+\N	why	Professional	Partial College	38
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Apple		Skilled Manual	Bachelors	28
+
 -- Customers | where FirstName endswith \'RE\'
 Theodore	Diaz	Skilled Manual	Bachelors	28
 
@@ -28,7 +38,16 @@ Peter	Nara	Skilled Manual	Graduate Degree	26
 Stephanie	Cox	Management abcd defg	Bachelors	33
 Apple		Skilled Manual	Bachelors	28
 
+-- Customers | where ! FirstName endswith @\'RE\'
+Latoya	Shen	Professional	Graduate Degree	25
+Peter	Nara	Skilled Manual	Graduate Degree	26
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Apple		Skilled Manual	Bachelors	28
+
 --Customers | where FirstName endswith_cs \'re\'
+Theodore	Diaz	Skilled Manual	Bachelors	28
+
+--Customers | where FirstName endswith_cs @\'re\'
 Theodore	Diaz	Skilled Manual	Bachelors	28
 
 -- Customers | where FirstName !endswith_cs \'re\'
@@ -47,12 +66,22 @@ Apple		Skilled Manual	Bachelors	28
 Latoya	Shen	Professional	Graduate Degree	25
 Stephanie	Cox	Management abcd defg	Bachelors	33
 
+-- Customers | where Occupation != @\'Skilled Manual\'
+\N	why	Professional	Partial College	38
+Latoya	Shen	Professional	Graduate Degree	25
+Stephanie	Cox	Management abcd defg	Bachelors	33
+
 -- Customers | where Occupation has \'skilled\'
 Peter	Nara	Skilled Manual	Graduate Degree	26
 Theodore	Diaz	Skilled Manual	Bachelors	28
 Apple		Skilled Manual	Bachelors	28
 
 -- Customers | where Occupation !has \'skilled\'
+\N	why	Professional	Partial College	38
+Latoya	Shen	Professional	Graduate Degree	25
+Stephanie	Cox	Management abcd defg	Bachelors	33
+
+-- Customers | where Occupation !has @\'skilled\'
 \N	why	Professional	Partial College	38
 Latoya	Shen	Professional	Graduate Degree	25
 Stephanie	Cox	Management abcd defg	Bachelors	33
@@ -68,6 +97,8 @@ Latoya	Shen	Professional	Graduate Degree	25
 Stephanie	Cox	Management abcd defg	Bachelors	33
 
 -- Customers | where Occupation hasprefix_cs \'Ab\'
+
+-- Customers | where Occupation hasprefix_cs @\'Ab\'
 
 -- Customers | where Occupation !hasprefix_cs \'Ab\'
 \N	why	Professional	Partial College	38
@@ -87,7 +118,17 @@ Peter	Nara	Skilled Manual	Graduate Degree	26
 Theodore	Diaz	Skilled Manual	Bachelors	28
 Apple		Skilled Manual	Bachelors	28
 
+-- Customers | where Occupation !hasprefix_cs @\'ab\'
+\N	why	Professional	Partial College	38
+Latoya	Shen	Professional	Graduate Degree	25
+Peter	Nara	Skilled Manual	Graduate Degree	26
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Apple		Skilled Manual	Bachelors	28
+
 -- Customers | where Occupation hassuffix \'Ent\'
+Stephanie	Cox	Management abcd defg	Bachelors	33
+
+-- Customers | where Occupation hassuffix @\'Ent\'
 Stephanie	Cox	Management abcd defg	Bachelors	33
 
 -- Customers | where Occupation !hassuffix \'Ent\'
@@ -108,6 +149,11 @@ Theodore	Diaz	Skilled Manual	Bachelors	28
 Stephanie	Cox	Management abcd defg	Bachelors	33
 Apple		Skilled Manual	Bachelors	28
 
+-- Customers |where Education in (@\'Bachelors\',\'High School\')
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Apple		Skilled Manual	Bachelors	28
+
 -- Customers | where Education !in (\'Bachelors\',\'High School\')
 \N	why	Professional	Partial College	38
 Latoya	Shen	Professional	Graduate Degree	25
@@ -116,10 +162,19 @@ Peter	Nara	Skilled Manual	Graduate Degree	26
 -- Customers | where FirstName matches regex \'P.*r\'
 Peter	Nara	Skilled Manual	Graduate Degree	26
 
+-- Customers | where FirstName matches regex @\'P.*r\'
+Peter	Nara	Skilled Manual	Graduate Degree	26
+
 -- Customers | where FirstName startswith \'pet\'
 Peter	Nara	Skilled Manual	Graduate Degree	26
 
 -- Customers | where FirstName !startswith \'pet\'
+Latoya	Shen	Professional	Graduate Degree	25
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Apple		Skilled Manual	Bachelors	28
+
+-- Customers | where FirstName !startswith @\'pet\'
 Latoya	Shen	Professional	Graduate Degree	25
 Theodore	Diaz	Skilled Manual	Bachelors	28
 Stephanie	Cox	Management abcd defg	Bachelors	33
@@ -166,6 +221,9 @@ https://www.test.com/hello word
 -- Customers | project url_encode(\'https://www.test.com/hello word\') | take 1
 https%3A%2F%2Fwww.test.com%2Fhello%20word
 
+-- Customers | project url_encode(@\'https://www.test.com/hello word\') | take 1
+https%3A%2F%2Fwww.test.com%2Fhello%20word
+
 -- Customers | project name_abbr = strcat(substring(FirstName,0,3), \' \', substring(LastName,2))
  y
 Lat en
@@ -175,6 +233,14 @@ Ste x
 App 
 
 -- Customers | project name = strcat(FirstName, \' \', LastName)
+ why
+Latoya Shen
+Peter Nara
+Theodore Diaz
+Stephanie Cox
+Apple 
+
+-- Customers | project name = strcat(FirstName, @\' \', LastName)
  why
 Latoya Shen
 Peter Nara
@@ -227,6 +293,17 @@ Peter	Nara	Skilled Manual	Graduate Degree	26
 Theodore	Diaz	Skilled Manual	Bachelors	28
 Apple		Skilled Manual	Bachelors	28
 
+-- has_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/has-all-operator); TODO: subquery not supported yet
+Peter	Nara	Skilled Manual	Graduate Degree	26
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Apple		Skilled Manual	Bachelors	28
+
+-- has_any (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/has-anyoperator); TODO: subquery not supported yet
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Peter	Nara	Skilled Manual	Graduate Degree	26
+Apple		Skilled Manual	Bachelors	28
+
 -- has_any (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/has-anyoperator); TODO: subquery not supported yet
 Theodore	Diaz	Skilled Manual	Bachelors	28
 Stephanie	Cox	Management abcd defg	Bachelors	33
@@ -239,6 +316,7 @@ Apple		Skilled Manual	Bachelors	28
 1
 3
 3
+3
 2
 2
 1
@@ -246,8 +324,10 @@ Apple		Skilled Manual	Bachelors	28
 
 -- extract ( https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractfunction)
 PINEAPPLE ice cream is 20
+PINEAPPLE ice cream is 20
 PINEAPPLE
 20
+
 
 20
 \N
@@ -262,6 +342,7 @@ alert
 -- extract_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractallfunction)
 [['T','h','e'],['p','ric','e'],['P','INEAPPL','E'],['i','c','e'],['c','rea','m']]
 [['8','d'],['d','7'],['4','1'],['8','3'],['2','9']]
+[['T','h','e'],['p','ric','e'],['P','INEAPPL','E'],['i','c','e'],['c','rea','m']]
 
 -- extract_json (https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/extractjsonfunction)
 
@@ -279,11 +360,13 @@ true
 -- split (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/splitfunction)
 ['aa','bb']
 ['bbb']
+['aa','bb']
 ['']
 ['a','','b']
 ['aa','cc']
 ['aabbcc']
 ['aaa','bbb','ccc']
+[NULL]
 [NULL]
 
 -- strcat_delim (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/strcat-delimfunction); TODO: only support string now.
@@ -295,11 +378,13 @@ qqqqq fffffff \'asd bcd\' "moo moo "
 
 -- base64_encode_fromguid()
 8jMxriJurkmwahbmqbIS6w==
+8jMxriJurkmwahbmqbIS6w==
 -- base64_decode_toarray()
 [NULL]
 [75,117,115,116,111]
 [NULL]
 -- base64_decode_toguid()
+10e99626-bc2b-4c75-bb3e-fe606de25700
 10e99626-bc2b-4c75-bb3e-fe606de25700
 1
 -- base64_encode_tostring
@@ -311,6 +396,7 @@ Kusto1
 \N
 \N
 -- parse_url() same as ADX
+{"Scheme":"scheme","Host":"host","Port":"1234","Path":"/this/is/a/path","Username":"username","Password":"password","Query Parameters":{"k1":"v1","k2":"v2"},"Fragment":"fragment"}
 {"Scheme":"scheme","Host":"host","Port":"1234","Path":"/this/is/a/path","Username":"username","Password":"password","Query Parameters":{"k1":"v1","k2":"v2"},"Fragment":"fragment"}
 {"Scheme":"","Host":"","Port":"","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
 {"Scheme":"http","Host":"2001:db8:3333:4444:5555:6666:7777:8888","Port":"1234","Path":"/filepath/index.htm","Username":"","Password":"","Query Parameters":{},"Fragment":""}
@@ -335,6 +421,7 @@ Kusto1
 {"Scheme":"http","Host":"2001","Port":"db8:3333:4444:5555:6666:7777:8888","Path":"/filepath/index.htm","Username":"","Password":"","Query Parameters":{},"Fragment":""}
 -- parse_urlquery()
 {"Query Parameters":{"k1":"v1","k2":"v2","k3":"v3"}}
+{"Query Parameters":{"k1":"v1","k2":"v2","k3":"v3"}}
 -- strcat --
 a1235.00:00:00
 a111.01:00:00
@@ -343,7 +430,9 @@ ab\'c
 0	1	-1	1
 -- substring()
 CD
+CD
 -- translate()
+kusto		xxx
 kusto		xxx
 -- trim()
 https://www.ibm.com
@@ -367,9 +456,12 @@ asd
 --https://bing.com--	--	https://bing.com--	--https://bing.com	https://bing.com
 -- replace_regex
 Number was: 1
+Number was: 1
 -- has_any_index()
 0	1	-1	-1
+0	1	-1	-1
 -- parse_version()
+1000000020000000300000040
 1000000020000000300000040
 1000000020000000000000000
 1000000020000000000000000
@@ -394,8 +486,10 @@ Number was: 1
 43.321
 
 dsa
+dsa
 ][
 ]3,2,1[
+]\'redaV\',\'htraD\'[
 ]\'redaV\',\'htraD\'[
 Z0000000.00:00:21T51-01-7102
 00:00:30
@@ -405,7 +499,9 @@ Latoya	Shen	Professional	Graduate Degree	25
 ['']
 ['aaa']
 ['aa','b','cc']
+['aa','b','cc']
 ['record1','a','b','c']
+['record1','a','b','c\\nrecord2','x','y','z']
 -- indexof (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/indexoffunction)
 9
 2

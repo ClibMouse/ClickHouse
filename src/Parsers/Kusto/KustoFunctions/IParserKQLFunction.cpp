@@ -190,6 +190,18 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
                 String token;
                 if (pos->type == TokenType::QuotedIdentifier)
                     token = "'" + escapeSingleQuotes(String(pos->begin + 1, pos->end - 1)) + "'";
+                else if (pos->type == TokenType::At)
+                {
+                    ++pos;
+
+                    String verbatim_string;
+                    bool multi_quoted_string = determineMultiQuotedString(verbatim_string, pos);
+
+                    if (multi_quoted_string)
+                        token = "'" + escapeVerbatimString(verbatim_string.substr(1, verbatim_string.length() - 2)) + "'";
+                    else
+                        token = "'" + escapeVerbatimString(String(pos->begin + 1, pos->end - 1)) + "'";
+                }
                 else if (pos->type == TokenType::OpeningSquareBracket)
                 {
                     ++pos;
@@ -321,8 +333,34 @@ void IParserKQLFunction::validateEndOfFunction(const String & fn_name, IParser::
         throw Exception(ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "Too many arguments in function: {}", fn_name);
 }
 
+bool IParserKQLFunction::determineMultiQuotedString(String & verbatim_string, IParser::Pos pos)
+{
+    size_t quote_count = 0;
+
+    while (!pos->isEnd() && (pos->type != TokenType::ClosingRoundBracket))
+    {
+        verbatim_string += getExpression(pos);
+        ++pos;
+    }
+
+    for (const auto & ch : verbatim_string)
+    {
+        if (ch == '\'' || ch == '\"')
+	{
+	    if ((*(&ch + 1) == '\'') || (*(&ch + 1) == '\"'))
+                quote_count++;
+	}
+    }
+
+    if (quote_count)
+        return true;
+    else
+        return false;
+}
+
 String IParserKQLFunction::getExpression(IParser::Pos & pos)
 {
+    static bool verbatim = false;
     String arg(pos->begin, pos->end);
     if (pos->type == TokenType::BareWord)
     {
@@ -349,8 +387,22 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
                 arg = kqlTicksToInterval(ticks);
         }
     }
-    else if (pos->type == TokenType::QuotedIdentifier)
+    else if ((pos->type == TokenType::QuotedIdentifier) && (!verbatim))
         arg = "'" + escapeSingleQuotes(String(pos->begin + 1, pos->end - 1)) + "'";
+    else if (pos->type == TokenType::At)
+    {
+        verbatim = true;
+        ++pos;
+
+        String verbatim_string;
+        bool multi_quoted_string = determineMultiQuotedString(verbatim_string, pos);
+
+        if (multi_quoted_string)
+            arg = "'" + escapeVerbatimString(verbatim_string.substr(1, verbatim_string.length() - 2)) + "'";
+        else
+           arg = "'" + escapeVerbatimString(String(pos->begin + 1, pos->end - 1)) + "'";
+        verbatim = false;
+    }
     else if (pos->type == TokenType::OpeningSquareBracket)
     {
         ++pos;
@@ -381,6 +433,29 @@ String IParserKQLFunction::escapeSingleQuotes(const String & input)
         if (ch == '\'')
             output += ch;
         output += ch;
+    }
+    return output;
+}
+
+String IParserKQLFunction::escapeVerbatimString(const String & input)
+{
+    String output;
+    for (const auto &ch : input)
+    {
+        if (ch == '\\')
+            output = output + '\\' + ch;
+        else if (ch == '\'')
+        {
+            if (*(&ch + 1) != '\'')
+                output = output + '\\' + ch;
+        }
+        else if (ch == '\"')
+        {
+            if (*(&ch + 1) != '\"')
+                output += ch;
+        }
+        else
+            output += ch;
     }
     return output;
 }
