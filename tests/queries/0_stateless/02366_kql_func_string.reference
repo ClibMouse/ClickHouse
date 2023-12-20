@@ -266,7 +266,11 @@ Apple_Apple
 
 --print from_str = strrep("ABC", 2)
 ABCABC
+--print from_str = strrep(@"ABC", 2)
+ABCABC
 --print from_int = strrep(123,3,".")
+123.123.123
+--print from_int = strrep(123,3,@".")
 123.123.123
 --print from_time = strrep(3s,2," ")
 00:00:03 00:00:03
@@ -321,6 +325,7 @@ Apple		Skilled Manual	Bachelors	28
 2
 1
 2
+2
 
 -- extract ( https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractfunction)
 PINEAPPLE ice cream is 20
@@ -341,6 +346,7 @@ alert
 
 -- extract_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractallfunction)
 [['T','h','e'],['p','ric','e'],['P','INEAPPL','E'],['i','c','e'],['c','rea','m']]
+[['8','d'],['d','7'],['4','1'],['8','3'],['2','9']]
 [['8','d'],['d','7'],['4','1'],['8','3'],['2','9']]
 [['T','h','e'],['p','ric','e'],['P','INEAPPL','E'],['i','c','e'],['c','rea','m']]
 
@@ -374,6 +380,8 @@ true
 1-2-A-00:00:01
 1-2-A-55
 1-2-A-7.99
+1-2-A-7.99
+qqqqq fffffff \'asd bcd\' "moo moo "
 qqqqq fffffff \'asd bcd\' "moo moo "
 
 -- base64_encode_fromguid()
@@ -382,6 +390,7 @@ qqqqq fffffff \'asd bcd\' "moo moo "
 -- base64_decode_toarray()
 [NULL]
 [75,117,115,116,111]
+[NULL]
 [NULL]
 -- base64_decode_toguid()
 10e99626-bc2b-4c75-bb3e-fe606de25700
@@ -395,11 +404,13 @@ S3VzdG8x
 Kusto1
 \N
 \N
+\N
 -- parse_url() same as ADX
 {"Scheme":"scheme","Host":"host","Port":"1234","Path":"/this/is/a/path","Username":"username","Password":"password","Query Parameters":{"k1":"v1","k2":"v2"},"Fragment":"fragment"}
 {"Scheme":"scheme","Host":"host","Port":"1234","Path":"/this/is/a/path","Username":"username","Password":"password","Query Parameters":{"k1":"v1","k2":"v2"},"Fragment":"fragment"}
 {"Scheme":"","Host":"","Port":"","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
 {"Scheme":"http","Host":"2001:db8:3333:4444:5555:6666:7777:8888","Port":"1234","Path":"/filepath/index.htm","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"host","Port":"1234","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
 {"Scheme":"http","Host":"host","Port":"1234","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
 {"Scheme":"http","Host":"","Port":"","Path":"/this/is/a/path/index.htm","Username":"","Password":"","Query Parameters":{},"Fragment":""}
 {"Scheme":"http","Host":"","Port":"","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":"fragment"}
@@ -426,7 +437,9 @@ Kusto1
 a1235.00:00:00
 a111.01:00:00
 ab\'c
+ab\'c
 -- strcmp()
+0	1	-1	1
 0	1	-1	1
 -- substring()
 CD
@@ -436,20 +449,25 @@ kusto		xxx
 kusto		xxx
 -- trim()
 https://www.ibm.com
+https://www.ibm.com
 Te st1
  asd 
 asd
 sd
+sd
 -- trim_start()
+www.ibm.com
 www.ibm.com
 Te st1// $
 asdw
+
 
 asd
 -- trim_end()
 https
 - Te st1
 wasd
+
 
 asd
 -- trim, trim_start, trim_end all at once
@@ -471,6 +489,7 @@ Number was: 1
 \N
 \N
 \N
+\N
 1000000020000000300000004
 1000000020000000000000000
 1000000020000000300000000
@@ -479,6 +498,7 @@ Number was: 1
 [1,2,3]
 [{"a":123.5,"b":"{\\"c\\":456}"}]
 -- parse_command_line()
+[NULL]
 [NULL]
 [NULL]
 -- reverse()
@@ -516,6 +536,7 @@ Latoya	Shen	Professional	Graduate Degree	25
 -1
 -1
 9
+9
 2
 1
 -- indexof_regex --
@@ -524,14 +545,16 @@ Latoya	Shen	Professional	Graduate Degree	25
 -1
 -1
 \N
--1
-2
 \N
 -1
 2
 \N
 -1
+2
+\N
 -1
+-1
+2
 2
 2
 2
@@ -541,9 +564,13 @@ Latoya	Shen	Professional	Graduate Degree	25
 5
 6
 6
+6
 3
 1
+1
 34
+0
+0
 0
 0
 -- indexof_regex tabular #1 --
@@ -557,6 +584,7 @@ Latoya	Shen	Professional	Graduate Degree	25
 1
 0
 1
+0
 0
 0
 1
@@ -586,6 +614,7 @@ qwer
 qwerqwer
 -- has_all --
 asdf.qwer
+asdf.qwer
 -- has_any --
 asdf
 asdf.ghkj
@@ -598,6 +627,7 @@ qwer
 [9382,9392,9390,9391,9386]
 [1511,1493,1505,1496,1493,32,45,32,75,117,115,116,111]
 -- make_string --
+Kusto
 Kusto
 Kusto
 Kusto

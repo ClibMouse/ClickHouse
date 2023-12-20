@@ -252,6 +252,9 @@ IParserKQLFunction::getOptionalArgument(const String & function_name, DB::IParse
         return {};
 
     ++pos;
+
+    if (pos->type == DB::TokenType::At)
+        ++pos;
     if (const auto type = pos->type; type == DB::TokenType::ClosingRoundBracket || type == DB::TokenType::ClosingSquareBracket)
         return {};
 
@@ -283,7 +286,6 @@ IParserKQLFunction::getOptionalArgument(const String & function_name, DB::IParse
 
         ++pos;
     }
-
     return std::string(begin, pos->begin);
 }
 

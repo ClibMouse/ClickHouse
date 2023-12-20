@@ -234,8 +234,12 @@ Customers | project strrep(FirstName,2,'_')| order by LastName;
 print '';
 print '--print from_str = strrep("ABC", 2)';
 print from_str = strrep('ABC', 2);
+print '--print from_str = strrep(@"ABC", 2)';
+print from_str = strrep('ABC', 2);
 print '--print from_int = strrep(123,3,".")';
 print from_int = strrep(123, 3, '.');
+print '--print from_int = strrep(123,3,@".")';
+print from_int = strrep(123, 3, @'.');
 print '--print from_time = strrep(3s,2," ")';
 print from_time = strrep(3s, 2, ' ');
 print '';
@@ -270,6 +274,7 @@ print countof("ababa", "ab", "normal");
 print countof("ababa", "aba");
 print countof("ababa", "aba", "regex");
 print countof("abcabc", "a.c", "regex");
+print countof(@"abcabc", @"a.c", @"regex");
 print '';
 print '-- extract ( https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractfunction)';
 print extract('(\\b[A-Z]+\\b).+(\\b\\d+)', 0, 'The price of PINEAPPLE ice cream is 20');
@@ -291,11 +296,13 @@ print '';
 print '-- extract_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractallfunction)';
 Customers | project extract_all('(\\w)(\\w+)(\\w)','The price of PINEAPPLE ice cream is 20') | take 1;
 print extract_all("(\\w)(\\w+)(\\w)", dynamic([1,3]), "82b8be2d-dfa7-4bd1-8f63-24ad26d31449");
+print extract_all(@"(\w)(\w+)(\w)", dynamic([1,3]), @"82b8be2d-dfa7-4bd1-8f63-24ad26d31449");
 Customers | project extract_all(@'(\w)(\w+)(\w)','The price of PINEAPPLE ice cream is 20') | take 1;
 print '';
 print '-- extract_json (https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/extractjsonfunction)';
 print extract_json('', ''); -- { serverError BAD_ARGUMENTS }
 print extract_json('a', ''); -- { serverError BAD_ARGUMENTS }
+print extract_json('a', @''); -- { serverError BAD_ARGUMENTS }
 print extract_json('$.firstName', '');
 print extract_json('$.phoneNumbers[0].type', '');
 print extractjson('$.firstName', '{"firstName":"John","lastName":"doe","age":26,"address":{"streetAddress":"naist street","city":"Nara","postalCode":"630-0192"},"phoneNumbers":[{"type":"iPhone","number":"0123-4567-8888"},{"type":"home","number":"0123-4567-8910"}]}');
@@ -326,7 +333,9 @@ Customers | project strcat_delim('-', '1', '2', strcat('A','b')) | take 1;
 Customers | project strcat_delim('-', '1', '2', 'A' , 1s) | take 1;
 Customers | project strcat_delim('-', '1', '2', 'A' , 55) | take 1;
 Customers | project strcat_delim('-', '1', '2', 'A' , 7.99) | take 1;
+Customers | project strcat_delim(@'-', '1', '2', 'A' , 7.99) | take 1;
 print strcat_delim(' ', "qqqqq", "fffffff", "'asd bcd'", "\"moo moo \"");
+print strcat_delim(' ', "qqqqq", "fffffff", @"'asd bcd'", "\"moo moo \"");
 print '';
 print '-- base64_encode_fromguid()';
 -- print base64_encode_fromguid(guid(null));
@@ -339,6 +348,7 @@ print '-- base64_decode_toarray()';
 print base64_decode_toarray('');
 print base64_decode_toarray('S3VzdG8=');
 print base64_decode_toarray('S3VzdG8===');
+print base64_decode_toarray(@'S3VzdG8===');
 print '-- base64_decode_toguid()';
 print base64_decode_toguid("JpbpECu8dUy7Pv5gbeJXAA==");
 print base64_decode_toguid(@"JpbpECu8dUy7Pv5gbeJXAA==");
@@ -351,6 +361,7 @@ print base64_decode_tostring('');
 print base64_decode_tostring('S3VzdG8x');
 print base64_decode_tostring('S3VzdG8====');
 print base64_decode_tostring('U3RyaW5n0KHR0tGA0L7Rh9C60LA=');
+print base64_decode_tostring(@'U3RyaW5n0KHR0tGA0L7Rh9C60LA=');
 print '-- parse_url() same as ADX';
 print parse_url('scheme://username:password@host:1234/this/is/a/path?k1=v1&k2=v2#fragment');
 print parse_url(@'scheme://username:password@host:1234/this/is/a/path?k1=v1&k2=v2#fragment');
@@ -358,6 +369,7 @@ print parse_url('');
 print parse_url("http://[2001:db8:3333:4444:5555:6666:7777:8888]:1234/filepath/index.htm")
 print parse_url("http://host");
 print parse_url("http://host:1234");
+print parse_url(@"http://host:1234");
 print parse_url("http:///this/is/a/path/index.htm");
 print parse_url("http://#fragment");
 print parse_url("http://host:abcd");
@@ -384,8 +396,10 @@ print '-- strcat --';
 print strcat('a', 1, 2, 3, timespan(5d));
 print strcat('a', null, 9 + 2, 1h + 1d);
 print strcat('a', "b", "'c");
+print strcat('a', "b", @"'c");
 print '-- strcmp()';
 print strcmp('ABC','ABC'), strcmp('abc','ABC'), strcmp('ABC','abc'), strcmp('abcde','abc');
+print strcmp('ABC',@'ABC'), strcmp('abc',@'ABC'), strcmp(@'ABC',@'abc'), strcmp('abcde','abc');
 print '-- substring()';
 print substring("ABCD", -2, 2);
 print substring(@"ABCD", -2, 2);
@@ -394,21 +408,26 @@ print translate('krasp', 'otsku', 'spark'), translate('abc', '', 'ab'), translat
 print translate('krasp', @'otsku', 'spark'), translate(@'abc', '', 'ab'), translate('abc', 'x', @'abc');
 print '-- trim()';
 print trim("--", "--https://www.ibm.com--");
+print trim(@"--", @"--https://www.ibm.com--");
 print trim("[^\w]+", strcat("- ","Te st", "1", "// $"));
 print trim("", " asd ");
 print trim("a$", "asd");
 print trim("^a", "asd");
+print trim(@"^a", @"asd");
 print '-- trim_start()';
 print trim_start("https://", "https://www.ibm.com");
+print trim_start(@"https://", @"https://www.ibm.com");
 print trim_start("[^\w]+", strcat("-  ","Te st", "1", "// $"));
 print trim_start("asd$", "asdw");
 print trim_start("asd$", "asd");
+print trim_start(@"asd$", "asd");
 print trim_start("d$", "asd");
 print '-- trim_end()';
 print trim_end("://www.ibm.com", "https://www.ibm.com");
 print trim_end("[^\w]+", strcat("- ","Te st", "1", "// $"));
 print trim_end("^asd", "wasd");
 print trim_end("^asd", "asd");
+print trim_end(@"^asd", "asd");
 print trim_end("^a", "asd");
 print '-- trim, trim_start, trim_end all at once';
 print str = "--https://bing.com--", pattern = '--' | extend start = trim_start(pattern, str), end = trim_end(pattern, str), both = trim(pattern, str);
@@ -429,6 +448,7 @@ print parse_version('1.2.4.5.6');
 print parse_version('moo'); 
 print parse_version('moo.boo.foo');
 print parse_version(strcat_delim('.', 'moo', 'boo', 'foo'));
+print parse_version(strcat_delim(@'.', @'moo', 'boo', 'foo'));
 print parse_version('');
 print parse_version('....');
 Versions | project parse_version(Version);
@@ -440,6 +460,7 @@ print parse_command_line(55, 'windows'); -- { serverError ILLEGAL_TYPE_OF_ARGUME
 -- print parse_command_line((52 + 3) * 4 % 2, 'windows'); -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
 print parse_command_line('', 'windows');
 print parse_command_line(strrep(' ', 6), 'windows'); 
+print parse_command_line(strrep(@' ', 6), @'windows');
 -- print parse_command_line('echo \"hello world!\" print$?', 'windows'); -> ["echo","hello world!","print$?"]
 -- print parse_command_line("yolo swag 'asd bcd' \"moo moo \"", 'windows'); -> ["yolo","swag","'asd","bcd'","moo moo "]
 -- print parse_command_line(strcat_delim(' ', "yolo", "swag", "\'asd bcd\'", "\"moo moo \""), 'windows'); -> ["yolo","swag","'asd","bcd'","moo moo "]
@@ -481,6 +502,7 @@ print idx9 = indexof('abcdefgabcdefg', 'cde', 1, -1, 3);
 print idx10 = indexof('abcdefgabcdefg','cde', -1);
 print idx11 = indexof('abcdefgabcdefg','cde', -4);
 print idx12 = indexof('abcdefgabcdefg','cde', -5);
+print idx12 = indexof(@'abcdefgabcdefg','cde', -5);
 print idx13 = indexof('abcdefgabcdefg','cde', -105);
 print idx14 = indexof(1d, '.');
 
@@ -490,6 +512,7 @@ print idx2 = indexof_regex("abcabcdefg", "a.c", 0, 9, 2);
 print idx3 = indexof_regex("abcabc", "a.c", 1, -1, 2);
 print idx4 = indexof_regex("ababaa", "a.a", 0, -1, 2);
 print idx5 = indexof_regex("abcabc", "a|ab", -1);
+print idx5 = indexof_regex("abcabc", @"a|ab", -1);
 print idx6 = indexof_regex(int(null), '.');
 print indexof_regex('adsasdasasd', 'sas');
 print indexof_regex('adsasdasasd', 'sas', -1);
@@ -501,6 +524,7 @@ print indexof_regex('adsasdasasd', 'sas', 0, 4);
 print indexof_regex('adsasdasasd', 'sas', 0, 5);
 print indexof_regex('adsasdasasd', 'sas', 0, 99);
 print indexof_regex('adsasdasasd', 'sas', 0, -1, 1);
+print indexof_regex('adsasdasasd', @'sas', 0, -1, 1);
 -- the following case differs from ADX, but conforms to the specification (https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/indexofregexfunction#returns)
 print indexof_regex('adsasdasasd', 'sas', 0, -1, 0);
 print indexof_regex('adsasdasasd', 'sas', 0, -1, 2);
@@ -508,12 +532,17 @@ print indexof_regex('adsasdasasd', 'sas', 0, -1, 3);
 print indexof_regex(123456789, '67');
 print indexof_regex(12345.6789, 67);
 print now = now() | project indexof_regex(strcat('blabla', now, 'blablabla'), now);
+print now = now() | project indexof_regex(strcat(@'blabla', now, 'blablabla'), now);
 print indexof_regex(dynamic([1, 2, 3]), 2);
 print indexof_regex(true, 'rue');
+print indexof_regex(true, @'rue');
 print indexof_regex(guid(74be27de-1e4e-49d9-b579-fe0b331d3642), 42);
 print indexof_regex(1d + 1h + 1m + 1s, '\\d?\\..*:\\d+:\\d{2}');
+print indexof_regex(1d + 1h + 1m + 1s, @'\d?\..*:\d+:\d{2}');
 print indexof_regex("abcabc", "*a|ab", -1); -- { serverError CANNOT_COMPILE_REGEXP }
+print indexof_regex("abcabc", @"*a|ab", -1); -- { serverError CANNOT_COMPILE_REGEXP }
 print indexof_regex("abcabc", strcat("a", "b", "c"));
+print indexof_regex("abcabc", strcat("a", @"b", "c"));
 Customers | project indexof_regex(LastName, Occupation); -- { serverError ILLEGAL_COLUMN }
 Customers | project indexof_regex(LastName, "Diaz", Age, Age, Age); -- { serverError ILLEGAL_COLUMN }
 
@@ -525,6 +554,7 @@ print 'svchost.exe1' has '';
 print 'svchost.exe1' has 'svchost.exe';
 print 'svchost.exe' has 'svchost.exe';
 print 'svchost.exe' has 'svchost.exe1';
+print 'svchost.exe' has @'svchost.exe1';
 print '' has 'svchost.exe1';
 print '' has '';
 print '.' has '';
@@ -546,6 +576,7 @@ StringTest | where Text !has 'asdf.qwer';
 
 print '-- has_all --';
 StringTest | where Text has_all ('asdf', 'qwer');
+StringTest | where Text has_all ('asdf', @'qwer');
 
 print '-- has_any --';
 StringTest | where Text has_any ('asdf', 'qwer');
@@ -561,6 +592,7 @@ print arr = to_utf8("קוסטו - Kusto");
 print '-- make_string --';
 print str = make_string(75, 117, 115, 116, 111);
 print str = make_string(to_utf8("Kusto"));
+print str = make_string(to_utf8(@"Kusto"));
 print str = make_string(dynamic([75, 117, 115]), 116, 111);
 print str = make_string(dynamic([75, 117, 115, 116, 111]));
 MyTable | project t = make_string(col_arr, col1, col2);
