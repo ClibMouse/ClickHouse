@@ -195,7 +195,7 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
                     ++pos;
 
                     String verbatim_string;
-                    bool multi_quoted_string = determineMultiQuotedString(verbatim_string, pos);
+                    bool multi_quoted_string = determineMultiCharString(verbatim_string, pos);
 
                     if (multi_quoted_string)
                         token = "'" + escapeVerbatimString(verbatim_string.substr(1, verbatim_string.length() - 2)) + "'";
@@ -254,7 +254,11 @@ IParserKQLFunction::getOptionalArgument(const String & function_name, DB::IParse
     ++pos;
 
     if (pos->type == DB::TokenType::At)
-        ++pos;
+    {
+        if (String verbatim_string; !determineMultiCharString(verbatim_string, pos))
+            ++pos;
+    }
+
     if (const auto type = pos->type; type == DB::TokenType::ClosingRoundBracket || type == DB::TokenType::ClosingSquareBracket)
         return {};
 
@@ -267,6 +271,7 @@ IParserKQLFunction::getOptionalArgument(const String & function_name, DB::IParse
             "Argument extraction is not implemented for {}::{}",
             magic_enum::enum_type_name<ArgumentState>(),
             magic_enum::enum_name(argument_state));
+
 
     const auto * begin = pos->begin;
     std::stack<DB::TokenType> scopes;
@@ -335,7 +340,7 @@ void IParserKQLFunction::validateEndOfFunction(const String & fn_name, IParser::
         throw Exception(ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "Too many arguments in function: {}", fn_name);
 }
 
-bool IParserKQLFunction::determineMultiQuotedString(String & verbatim_string, IParser::Pos pos)
+bool IParserKQLFunction::determineMultiCharString(String & verbatim_string, IParser::Pos pos)
 {
     size_t quote_count = 0;
 
@@ -352,6 +357,9 @@ bool IParserKQLFunction::determineMultiQuotedString(String & verbatim_string, IP
 	    if ((*(&ch + 1) == '\'') || (*(&ch + 1) == '\"'))
                 quote_count++;
 	}
+
+        if ((ch == '\\') && (*(&ch + 1) == '\\'))
+	    quote_count++;
     }
 
     if (quote_count)
@@ -397,7 +405,7 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
         ++pos;
 
         String verbatim_string;
-        bool multi_quoted_string = determineMultiQuotedString(verbatim_string, pos);
+        bool multi_quoted_string = determineMultiCharString(verbatim_string, pos);
 
         if (multi_quoted_string)
             arg = "'" + escapeVerbatimString(verbatim_string.substr(1, verbatim_string.length() - 2)) + "'";

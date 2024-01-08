@@ -88,6 +88,6 @@ protected:
     static bool directMapping(
         String & out, IParser::Pos & pos, std::string_view ch_fn, const Interval & argument_count_interval = {0, Interval::max_bound});
     static void validateEndOfFunction(const String & fn_name, IParser::Pos & pos);
-    static bool determineMultiQuotedString(String & verbatim_string, IParser::Pos pos);
+    static bool determineMultiCharString(String & verbatim_string, IParser::Pos pos);
 };
 }
