@@ -403,7 +403,7 @@ public:
                     type_arg3->getName(), getName());
             if (value_is_date && result_type == ResultType::Date) /// weird why this is && instead of || but too afraid to change it
                 throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT,
-                    "The timezone argument of function {} with interval type {} is allowed only when the 1st argument has type DateTime or DateTimt64",
+                    "The timezone argument of function {} with interval type {} is allowed only when the 1st argument has type DateTime or DateTime64",
                     getName(), interval_type->getKind().toString());
         };
 
@@ -426,24 +426,28 @@ public:
         }
 
         auto return_type = std::invoke(
-            [&arguments, &interval_type, &result_type_is_date, &result_type_is_datetime]() -> std::shared_ptr<IDataType>
-            {
-                if (result_type_is_date)
-                    return std::make_shared<DataTypeDate>();
-                else if (result_type_is_datetime)
-                    return std::make_shared<DataTypeDateTime>(extractTimeZoneNameFromFunctionArguments(arguments, 2, 0, false));
-                else
+            [&arguments, &interval_type, &result_type]() -> std::shared_ptr<IDataType>
+            {   
+                switch (result_type)
                 {
-                    auto scale = 0;
+                    case ResultType::Date:
+                        return std::make_shared<DataTypeDate>();
+                    case ResultType::DateTime:                        
+                        return std::make_shared<DataTypeDateTime>(extractTimeZoneNameFromFunctionArguments(arguments, 2, 0, false));
+                    case ResultType::DateTime64:
+                    {
+                        UInt32 scale = 0;
+                        if (interval_type->getKind() == IntervalKind::Nanosecond)
+                            scale = 9;
+                        else if (interval_type->getKind() == IntervalKind::Microsecond)
+                            scale = 6;
+                        else if (interval_type->getKind() == IntervalKind::Millisecond)
+                            scale = 3;
 
-                    if (interval_type->getKind() == IntervalKind::Nanosecond)
-                        scale = 9;
-                    else if (interval_type->getKind() == IntervalKind::Microsecond)
-                        scale = 6;
-                    else if (interval_type->getKind() == IntervalKind::Millisecond)
-                        scale = 3;
+                        return std::make_shared<DataTypeDateTime64>(scale, extractTimeZoneNameFromFunctionArguments(arguments, 2, 0, false));
+                    }
 
-                    return std::make_shared<DataTypeDateTime64>(scale, extractTimeZoneNameFromFunctionArguments(arguments, 2, 0, false));
+                    std::unreachable();
                 }
             });
 
@@ -489,13 +493,19 @@ private:
             if (time_column_vec)
                 return dispatchForIntervalColumn(assert_cast<const DataTypeDate &>(time_column_type), *time_column_vec, interval_column, result_type, time_zone);
         }
-        throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal column for 1st argument of function {}, expected a Date, DateTime or DateTime64", getName());
+        else if (isDate32(time_column_type))
+        {
+            const auto * time_column_vec = checkAndGetColumn<ColumnDate32>(time_column_col);
+            if (time_column_vec)
+                return dispatchForIntervalColumn(assert_cast<const DataTypeDate32 &>(time_column_type), *time_column_vec, interval_column, result_type, time_zone);
+        }
+        throw Exception(ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal column for 1st argument of function {}, expected a Date, Date32, DateTime or DateTime64", getName());
     }
 
     template <typename TimeDataType, typename TimeColumnType>
     ColumnPtr dispatchForIntervalColumn(
         const TimeDataType & time_data_type, const TimeColumnType & time_column, const ColumnWithTypeAndName & interval_column,
-        const DataTypePtr & result_type, const DateLUTImpl & time_zone, UInt16 scale = 1) const
+        const DataTypePtr & result_type, const DateLUTImpl & time_zone, const UInt16 scale = 1) const
     {
         const auto * interval_type = checkAndGetDataType<DataTypeInterval>(interval_column.type.get());
         if (!interval_type)
@@ -506,7 +516,7 @@ private:
             throw Exception(ErrorCodes::ILLEGAL_COLUMN, "Illegal column for 2nd argument of function {}, must be a const time interval", getName());
 
         const auto num_units = interval_column_const_int64->getValue<Int64>();
-        switch (interval_type->getKind())
+        switch (interval_type->getKind()) // NOLINT(bugprone-switch-missing-default-case)
         {
             case IntervalKind::Nanosecond:
                 return execute<TimeDataType, TimeColumnType, DataTypeDateTime64, IntervalKind::Nanosecond>(time_data_type, time_column, num_units, result_type, time_zone, scale);
@@ -548,17 +558,17 @@ private:
 
         auto result_col = result_type->createColumn();
         auto [result_null_map_data, result_value_data] = std::invoke(
-            [&result_col]() -> std::pair<NullMap *, typename ToColumnType::Container &>
+            [&result_col]() -> std::pair<NullMap *, typename ResultColumnType::Container &>
             {
                 if constexpr (execution_error_policy == ExecutionErrorPolicy::Null)
                 {
                     auto & nullable_column = assert_cast<ColumnNullable &>(*result_col);
-                    auto & nested_column = assert_cast<ToColumnType &>(nullable_column.getNestedColumn());
+                    auto & nested_column = assert_cast<ResultColumnType &>(nullable_column.getNestedColumn());
                     return {&nullable_column.getNullMapData(), nested_column.getData()};
                 }
                 else if constexpr (execution_error_policy == ExecutionErrorPolicy::Throw)
                 {
-                    auto & target_column = assert_cast<ToColumnType &>(*result_col);
+                    auto & target_column = assert_cast<ResultColumnType &>(*result_col);
                     return {nullptr, target_column.getData()};
                 }
             });
@@ -582,7 +592,7 @@ private:
             try
             {
                 result_value_data[i]
-                    = static_cast<ToFieldType>(Transform<unit>::execute(time_data[i], num_units, time_zone, scale_multiplier, name));
+                    = static_cast<ResultFieldType>(Transform<unit>::execute(time_data[i], num_units, time_zone, scale_multiplier, name));
                 if constexpr (execution_error_policy == ExecutionErrorPolicy::Null)
                     (*result_null_map_data)[i] = false;
             }
@@ -596,6 +606,7 @@ private:
         return result_col;
     }
 };
+}
 
 REGISTER_FUNCTION(ToStartOfInterval)
 {

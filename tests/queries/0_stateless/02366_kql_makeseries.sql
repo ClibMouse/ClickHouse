@@ -49,7 +49,6 @@ INSERT INTO subtable (`data_source_id`, `original_time`) VALUES (17, '2023-08-28
 INSERT INTO subtable (`data_source_id`, `original_time`) VALUES (17, '2023-08-28 14:14:15.774000000');
 INSERT INTO subtable (`data_source_id`, `original_time`) VALUES (16, '2023-08-28 15:14:15.774000000');
 
--- This test requies sorting after some of aggregations but I don't know KQL, sorry
 set max_bytes_before_external_group_by = 0;
 set dialect = 'kusto';
 
