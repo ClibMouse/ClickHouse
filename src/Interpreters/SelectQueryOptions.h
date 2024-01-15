@@ -50,6 +50,8 @@ struct SelectQueryOptions
     /// This allows to skip double access check in some specific cases (e.g. insert into table with materialized view)
     bool ignore_access_check = false;
 
+    bool is_projection_optimized = false;
+
     /// These two fields are used to evaluate shardNum() and shardCount() function when
     /// prefer_localhost_replica == 1 and local instance is selected. They are needed because local
     /// instance might have multiple shards and scalars can only hold one value.
@@ -80,6 +82,13 @@ struct SelectQueryOptions
     {
         SelectQueryOptions out = *this;
         out.is_create_parameterized_view = true;
+        return out;
+    }
+
+    SelectQueryOptions isProjectionOptmized(bool value = false) const
+    {
+        SelectQueryOptions out = *this;
+        out.is_projection_optimized = value;
         return out;
     }
 
