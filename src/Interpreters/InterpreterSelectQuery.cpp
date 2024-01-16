@@ -2325,9 +2325,10 @@ ASTPtr InterpreterSelectQuery::create_proj_optimized_ast(const ASTPtr & ast, con
     {
         auto tuples = makeASTFunction("tuple");
         for (auto key : primary_keys)
+        {
             tuples->children[0]->as<ASTExpressionList>()->children.push_back(std::make_shared<ASTIdentifier>(key));
-
-        select_query->select()->children.push_back(tuples);
+            select_query->select()->children.push_back(std::make_shared<ASTIdentifier>(key));
+        }
         in_function->arguments->children.push_back(tuples);
     }
     in_function->arguments->children.push_back(subquery);
