@@ -84,7 +84,7 @@ bool DatatypeDynamic::convertImpl(String & out, IParser::Pos & pos)
     while (!pos->isEnd() && pos->type != TokenType::ClosingRoundBracket)
     {
         if (const auto token_type = pos->type; token_type == TokenType::BareWord || token_type == TokenType::Number
-            || token_type == TokenType::QuotedIdentifier || token_type == TokenType::StringLiteral)
+            || token_type == TokenType::QuotedIdentifier || token_type == TokenType::StringLiteral || token_type == TokenType::At)
         {
             if (const std::string_view token(pos->begin, pos->end); token_type == TokenType::BareWord && !ALLOWED_FUNCTIONS.contains(token))
             {
@@ -95,6 +95,8 @@ bool DatatypeDynamic::convertImpl(String & out, IParser::Pos & pos)
 
                 --pos;
             }
+	    else if (token_type == TokenType::At)
+                ++pos;
 
             out.append(getConvertedArgument(function_name, pos));
         }
@@ -116,6 +118,9 @@ bool DatatypeGuid::convertImpl(String & out, IParser::Pos & pos)
     String guid_str;
 
     ++pos;
+    if (pos->type == TokenType::At)
+        ++pos;
+
     if (pos->type == TokenType::QuotedIdentifier || pos->type == TokenType::StringLiteral)
         guid_str = String(pos->begin + 1, pos->end - 1);
     else
