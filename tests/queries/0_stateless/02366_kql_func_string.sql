@@ -508,3 +508,6 @@ print t = isutf8('؄');
 print '-- isascii --';
 print str = isascii('ab১২ufghi🐂🐇🐒');
 print str = isascii('abc');
+
+print replace_string('Hello, number is 10, 20', 'is', 'was');
+print replace_string('Hello, number is 10, 20 and is 23, 24, is', 'is', 'was');

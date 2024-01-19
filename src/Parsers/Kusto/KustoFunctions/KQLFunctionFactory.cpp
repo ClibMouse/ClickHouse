@@ -81,6 +81,7 @@ enum class KQLFunction : uint16_t
     replace_regex,
     reverse,
     split,
+    replace_string,
     strcat,
     strcat_delim,
     strcmp,
@@ -348,6 +349,8 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"replace_regex", KQLFunction::replace_regex},
     {"reverse", KQLFunction::reverse},
     {"split", KQLFunction::split},
+    {"replace_string", KQLFunction::replace_string},
+    {"replace_string", KQLFunction::replace_string},
     {"strcat", KQLFunction::strcat},
     {"strcat_delim", KQLFunction::strcat_delim},
     {"strcmp", KQLFunction::strcmp},
@@ -748,6 +751,9 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::split:
             return std::make_unique<Split>();
+
+	case KQLFunction::replace_string:
+	    return std::make_unique<ReplaceString>();
 
         case KQLFunction::strcat:
             return std::make_unique<StrCat>();
