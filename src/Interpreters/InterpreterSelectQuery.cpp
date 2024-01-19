@@ -10,6 +10,7 @@
 #include <Parsers/ASTInterpolateElement.h>
 #include <Parsers/ASTSelectWithUnionQuery.h>
 #include <Parsers/ASTSelectIntersectExceptQuery.h>
+#include <Parsers/ASTSubquery.h>
 #include <Parsers/ASTTablesInSelectQuery.h>
 #include <Parsers/ExpressionListParsers.h>
 #include <Parsers/parseQuery.h>
@@ -633,6 +634,27 @@ InterpreterSelectQuery::InterpreterSelectQuery(
             /// Restore original view name. Save rewritten subquery for future usage in StorageView.
             query_info.view_query = view->restoreViewName(getSelectQuery(), view_table);
             view = nullptr;
+        }
+
+        /// Optimization leveraging projection feature
+        if (storage && context->getSettings().optimize_project_query
+           && query.where() && !query.hasJoin()
+           && metadata_snapshot->hasProjections()
+           && !options.is_projection_optimized
+        )
+        {
+            if (const auto & column_sizes = storage->getColumnSizes(); !column_sizes.empty() && metadata_snapshot->hasPrimaryKey())
+            {
+                const auto primary_keys = metadata_snapshot->getPrimaryKeyColumns();
+                const auto main_table_name = getTableName(query.tables());
+                bool optimized = false;
+                auto pkoptimized_where_ast = pkOptimization(metadata_snapshot->getProjections(), query.where(), primary_keys, main_table_name, optimized);
+                if (optimized)
+                {
+                    query.setExpression(ASTSelectQuery::Expression::WHERE, std::move(pkoptimized_where_ast));
+                    options.is_projection_optimized = true;
+                }
+            }
         }
 
         if (try_move_to_prewhere
@@ -2154,6 +2176,166 @@ bool InterpreterSelectQuery::shouldMoveToPrewhere() const
     return settings.optimize_move_to_prewhere && (!query.final() || settings.optimize_move_to_prewhere_if_final);
 }
 
+ASTPtr InterpreterSelectQuery::pkOptimization(
+    const ProjectionsDescription & projections,
+    const ASTPtr & where_ast,
+    const Names & primary_keys,
+    const String & main_table,
+    bool & optimized) const
+{
+    NameSet proj_pks = {};
+    for (auto & projection: projections)
+    {
+        if (projection.type == ProjectionDescription::Type::Normal)
+        {
+            //sorting key of projection
+            const auto & projection_primary_key = projection.metadata->getSortingKey().column_names.at(0);
+            proj_pks.insert(projection_primary_key);
+            auto projection_columns = projection.getRequiredColumns();
+
+            // projection columns needs to include projection primary key and main table primary key
+            // in order to use this optimization
+            bool proj_col_include_ppk = std::find(projection_columns.begin(), projection_columns.end(), projection_primary_key) != projection_columns.end();
+            bool proj_col_include_mpk = std::find(projection_columns.begin(), projection_columns.end(), primary_keys[0]) != projection_columns.end();
+
+            if (!proj_col_include_ppk || !proj_col_include_mpk)
+            {
+                return where_ast;
+            }
+        }
+
+    }
+
+    const auto and_function = makeASTFunction("and");
+
+    //for keys in where_ast
+    NameSet optimized_where_keys = {};
+    analyze_where_ast(where_ast, and_function, proj_pks, optimized_where_keys, primary_keys, main_table, optimized);
+    if (optimized)
+    {
+        and_function->arguments->children.push_back(where_ast->clone());
+        return and_function;
+    }
+    return where_ast;
+}
+
+void InterpreterSelectQuery::analyze_where_ast(
+    const ASTPtr & ast,
+    const ASTPtr & func,
+    NameSet & proj_pks,
+    NameSet & optimized_where_keys,
+    const Names & primary_keys,
+    const String & main_table,
+    bool & optimized) const
+{
+    if (optimized)
+        return;
+
+    // Does not support other condition except for "="
+    if (const auto * ast_function_node = ast->as<ASTFunction>())
+    {
+        auto arg_size = ast_function_node->arguments ? ast_function_node->arguments->children.size() : 0;
+        if(ast_function_node->name == "equals" && arg_size == 2)
+        {
+            auto lhs_argument = ast_function_node->arguments->children.at(0);
+            auto rhs_argument = ast_function_node->arguments->children.at(1);
+            String lhs = getIdentifier(lhs_argument);
+            String rhs = getIdentifier(rhs_argument);
+            auto col_name = (lhs != "") ? lhs:rhs;
+            bool contains_pk = false;
+            if (std::find(primary_keys.begin(), primary_keys.end(), col_name) != primary_keys.end())
+                contains_pk = true;
+
+            if (proj_pks.contains(col_name) && !optimized_where_keys.contains(col_name) && !contains_pk)
+            {
+                optimized_where_keys.insert(col_name);
+                ASTPtr new_ast = create_proj_optimized_ast(ast, primary_keys, main_table);
+                auto * function_node = func->as<ASTFunction>();
+                function_node->arguments->children.push_back(new_ast);
+                optimized = true;
+                return;
+            }
+        }
+        else if (ast_function_node->name == "and" || ast_function_node->name == "or")
+        {
+            for (size_t i = 0; i < arg_size; i++)
+            {
+                auto argument = ast_function_node->arguments->children[i];
+                analyze_where_ast(argument, func, proj_pks, optimized_where_keys, primary_keys, main_table, optimized);
+            }
+        }
+        else /* TBD: conditions that are not "=" */
+        {
+            return;
+        }
+    }
+    else
+    {
+        return;
+    }
+}
+
+/**
+ * @brief Manually rewrite the WHERE query, Insert a new where condition in order to
+ * leverage projection features
+ *
+ * For example, a qualified table with projection
+ * CREATE TABLE test_a(`src` String,`dst` String, `other_cols` String,
+ * PROJECTION p1(SELECT src, dst ORDER BY dst)) ENGINE = MergeTree ORDER BY src;
+ *
+ * A qualified SELECT query would looks like this
+ * select * from test_a where dst='-42';
+ * The where key is the projection table primary key.
+ * The following code will convert this select query to the following
+ * select * from test_a where src in (select src from test_a where dst='-42') and dst='-42';
+ */
+ASTPtr InterpreterSelectQuery::create_proj_optimized_ast(const ASTPtr & ast, const Names & primary_keys, const String & main_table) const
+{
+    auto select_query = std::make_shared<ASTSelectQuery>();
+    select_query->setExpression(ASTSelectQuery::Expression::SELECT, std::make_shared<ASTExpressionList>());
+    const auto select_with_union_query = std::make_shared<ASTSelectWithUnionQuery>();
+    select_with_union_query->list_of_selects = std::make_shared<ASTExpressionList>();
+
+    auto tables_elem = std::make_shared<ASTTablesInSelectQueryElement>();
+    auto table_expr = std::make_shared<ASTTableExpression>();
+
+    table_expr->database_and_table_name = std::make_shared<ASTTableIdentifier>(main_table);
+    table_expr->children.push_back(table_expr->database_and_table_name);
+
+    tables_elem->table_expression = std::move(table_expr);
+    tables_elem->children.push_back(tables_elem->table_expression);
+
+    auto tables_in_select = std::make_shared<ASTTablesInSelectQuery>();
+    tables_in_select->children.push_back(std::move(tables_elem));
+    select_query->setExpression(ASTSelectQuery::Expression::TABLES, tables_in_select);
+    select_query->setExpression(ASTSelectQuery::Expression::WHERE, ast->clone());
+
+    select_with_union_query->list_of_selects->children.push_back(select_query);
+
+    auto subquery = std::make_shared<ASTSubquery>();
+    subquery->children.push_back(select_with_union_query);
+
+    auto in_function = makeASTFunction("in");
+    if (primary_keys.size() == 1)
+    {
+        select_query->select()->children.push_back(std::make_shared<ASTIdentifier>(primary_keys[0]));
+        in_function->arguments->children.push_back(std::make_shared<ASTIdentifier>(primary_keys[0]));
+    }
+    else
+    {
+        auto tuples = makeASTFunction("tuple");
+        for (auto key : primary_keys)
+        {
+            tuples->children[0]->as<ASTExpressionList>()->children.push_back(std::make_shared<ASTIdentifier>(key));
+            select_query->select()->children.push_back(std::make_shared<ASTIdentifier>(key));
+        }
+        in_function->arguments->children.push_back(tuples);
+    }
+    in_function->arguments->children.push_back(subquery);
+    const auto indexHintFunc = makeASTFunction("indexHint", in_function);
+    return indexHintFunc;
+}
+
 /// Note that this is const and accepts the analysis ref to be able to use it to do analysis for parallel replicas
 /// without affecting the final analysis multiple times
 void InterpreterSelectQuery::applyFiltersToPrewhereInAnalysis(ExpressionAnalysisResult & analysis) const
@@ -2184,7 +2366,6 @@ void InterpreterSelectQuery::applyFiltersToPrewhereInAnalysis(ExpressionAnalysis
         analysis.filter_info = nullptr;
     }
 }
-
 
 void InterpreterSelectQuery::addPrewhereAliasActions()
 {
@@ -3320,5 +3501,24 @@ bool InterpreterSelectQuery::isQueryWithFinal(const SelectQueryInfo & info)
     return result;
 }
 
+String InterpreterSelectQuery::getIdentifier(ASTPtr & argument) const
+{
+    if (const auto * id = argument->as<ASTIdentifier>())
+        return id->name();
+    else if (argument->as<ASTLiteral>())
+        return "";
+    else
+        return getIdentifier(argument->children.at(0));
+}
+
+String InterpreterSelectQuery::getTableName(const ASTPtr & tables_in_select_query_ast) const
+{
+    const auto & tables_in_select_query = tables_in_select_query_ast->as<ASTTablesInSelectQuery &>();
+    const auto & tables_element = tables_in_select_query.children[0]->as<ASTTablesInSelectQueryElement &>();
+    const auto & table_expression = tables_element.table_expression->as<ASTTableExpression &>();
+    auto table_name = table_expression.database_and_table_name->as<ASTTableIdentifier>()->getTableId().table_name;
+
+    return table_name;
+}
 
 }

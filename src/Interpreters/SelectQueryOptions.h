@@ -54,6 +54,8 @@ struct SelectQueryOptions
     /// Bypass setting constraints for some internal queries such as projection ASTs.
     bool ignore_setting_constraints = false;
 
+    bool is_projection_optimized = false;
+
     /// These two fields are used to evaluate shardNum() and shardCount() function when
     /// prefer_localhost_replica == 1 and local instance is selected. They are needed because local
     /// instance might have multiple shards and scalars can only hold one value.
@@ -84,6 +86,13 @@ struct SelectQueryOptions
     {
         SelectQueryOptions out = *this;
         out.is_create_parameterized_view = true;
+        return out;
+    }
+
+    SelectQueryOptions isProjectionOptmized(bool value = false) const
+    {
+        SelectQueryOptions out = *this;
+        out.is_projection_optimized = value;
         return out;
     }
 
