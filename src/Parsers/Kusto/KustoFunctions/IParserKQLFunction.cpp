@@ -363,7 +363,7 @@ bool IParserKQLFunction::determineMultiCharString(String & verbatim_string, IPar
     }
 
     if (quote_count)
-        return true;
+        return (quote_count > 0);
     else
         return false;
 }

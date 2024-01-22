@@ -10,6 +10,10 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_IP, ParserRegexTest,
             "print res = base64_decode_tostring('S3VzdG8====')",
             R"(SELECT IF\(\(length\(\'S3VzdG8====\'\) % 4\) != 0, NULL, IF\(countMatches\(substring\(\'S3VzdG8====\', 1, length\(\'S3VzdG8====\'\) - 2\), \'=\'\) > 0, NULL, IF\(isValidUTF8\(tryBase64Decode\(\'S3VzdG8====\'\) AS decoded_str_\d+\), decoded_str_\d+, NULL\)\)\) AS res)"
         },
+        {
+            "print res = base64_decode_tostring(@'S3VzdG8====')",
+            R"(SELECT IF\(\(length\(\'S3VzdG8====\'\) % 4\) != 0, NULL, IF\(countMatches\(substring\(\'S3VzdG8====\', 1, length\(\'S3VzdG8====\'\) - 2\), \'=\'\) > 0, NULL, IF\(isValidUTF8\(tryBase64Decode\(\'S3VzdG8====\'\) AS decoded_str_\d+\), decoded_str_\d+, NULL\)\)\) AS res)"
+        },
 })));
 
 INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserTest,
@@ -29,7 +33,15 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserTest,
             "SELECT IF((length('S3VzdG8=') % 4) != 0, [NULL], IF(length(tryBase64Decode('S3VzdG8=')) = 0, [NULL], IF(countMatches(substring('S3VzdG8=', 1, length('S3VzdG8=') - 2), '=') > 0, [NULL], arrayMap(x -> reinterpretAsUInt8(x), splitByRegexp('', base64Decode(assumeNotNull(IF(length(tryBase64Decode('S3VzdG8=')) = 0, '', 'S3VzdG8=')))))))) AS print_0"
         },
         {
+            "print base64_decode_toarray(@'S3VzdG8=')",
+            "SELECT IF((length('S3VzdG8=') % 4) != 0, [NULL], IF(length(tryBase64Decode('S3VzdG8=')) = 0, [NULL], IF(countMatches(substring('S3VzdG8=', 1, length('S3VzdG8=') - 2), '=') > 0, [NULL], arrayMap(x -> reinterpretAsUInt8(x), splitByRegexp('', base64Decode(assumeNotNull(IF(length(tryBase64Decode('S3VzdG8=')) = 0, '', 'S3VzdG8=')))))))) AS print_0"
+        },
+        {
             "print replace_regex('Hello, World!', '.', '\\0\\0')",
+            "SELECT replaceRegexpAll('Hello, World!', '.', '\\0\\0') AS print_0"
+        },
+        {
+            "print replace_regex(@'Hello, World!', '.', '\\0\\0')",
             "SELECT replaceRegexpAll('Hello, World!', '.', '\\0\\0') AS print_0"
         },
         {
@@ -41,7 +53,15 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserTest,
             "SELECT if(empty([]), -1, indexOf(arrayMap(x -> (x IN splitByChar(' ', 'this is an example')), if(empty([]), [''], arrayMap(x -> toString(x), []))), 1) - 1) AS print_0"
         },
         {
+            "print has_any_index(@'this is an example', dynamic([]))",
+            "SELECT if(empty([]), -1, indexOf(arrayMap(x -> (x IN splitByChar(' ', 'this is an example')), if(empty([]), [''], arrayMap(x -> toString(x), []))), 1) - 1) AS print_0"
+        },
+        {
             "print translate('krasp', 'otsku', 'spark')",
+            "SELECT if(length('otsku') = 0, '', translate('spark', 'krasp', multiIf(length('otsku') = 0, 'krasp', (length('krasp') - length('otsku')) > 0, concat('otsku', repeat(substr('otsku', length('otsku'), 1), toUInt16(length('krasp') - length('otsku')))), (length('krasp') - length('otsku')) < 0, substr('otsku', 1, length('krasp')), 'otsku'))) AS print_0"
+        },
+        {
+            "print translate(@'krasp', 'otsku', @'spark')",
             "SELECT if(length('otsku') = 0, '', translate('spark', 'krasp', multiIf(length('otsku') = 0, 'krasp', (length('krasp') - length('otsku')) > 0, concat('otsku', repeat(substr('otsku', length('otsku'), 1), toUInt16(length('krasp') - length('otsku')))), (length('krasp') - length('otsku')) < 0, substr('otsku', 1, length('krasp')), 'otsku'))) AS print_0"
         },
         {
@@ -54,6 +74,10 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserTest,
         },
         {
             "print trim('--', '--https://bing.com--')",
+            "SELECT replaceRegexpOne(replaceRegexpOne('--https://bing.com--', concat('--', '$'), ''), concat('^', '--'), '') AS print_0"
+        },
+        {
+            "print trim(@'--', @'--https://bing.com--')",
             "SELECT replaceRegexpOne(replaceRegexpOne('--https://bing.com--', concat('--', '$'), ''), concat('^', '--'), '') AS print_0"
         },
         {
@@ -177,6 +201,10 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserTest,
             "SELECT reverse(ifNull(kql_tostring('clickhouse'), '')) AS print_0"
         },
         {
+            "print reverse(@'clickhouse')",
+            "SELECT reverse(ifNull(kql_tostring('clickhouse'), '')) AS print_0"
+        },
+        {
             "print parse_csv('aa,b,cc')",
             "SELECT if(CAST(position('aa,b,cc', '\\n'), 'UInt8'), splitByChar(',', substring('aa,b,cc', 1, position('aa,b,cc', '\\n') - 1)), splitByChar(',', substring('aa,b,cc', 1, length('aa,b,cc')))) AS print_0"
         },
@@ -194,6 +222,10 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserTest,
         },
         {
             "print indexof('abcdefg','cde',0,3)",
+            "SELECT kql_indexof(kql_tostring('abcdefg'), kql_tostring('cde'), 0, 3, 1) AS print_0"
+        },
+        {
+            "print indexof(@'abcdefg','cde',0,3)",
             "SELECT kql_indexof(kql_tostring('abcdefg'), kql_tostring('cde'), 0, 3, 1) AS print_0"
         },
         {
