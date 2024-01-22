@@ -299,5 +299,13 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_String, ParserTest,
         {
             "Customers | project t = isascii(FirstName)",
             "SELECT NOT toBool(arrayExists(x -> ((x < 0) OR (x > 127)), arrayMap(x -> ascii(x), splitByString('', assumeNotNull(FirstName))))) AS t\nFROM Customers"
+        },
+        {
+            "print replace_string('Hello, number is 10, 20', 'is', 'was')",
+            "SELECT replaceAll('Hello, number is 10, 20', 'is', 'was') AS print_0"
+        },
+        {
+            "print replace_string('Hello, number is 10, 20 and is 23, 24, is', 'is', 'was')",
+            "SELECT replaceAll('Hello, number is 10, 20 and is 23, 24, is', 'is', 'was') AS print_0"
         }
 })));

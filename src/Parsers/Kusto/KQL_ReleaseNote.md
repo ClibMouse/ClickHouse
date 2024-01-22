@@ -1,4 +1,11 @@
 ## KQL implemented features  
+# January, 2024
+## Features
+- Added replace_string(text, lookup, rewrite). This function returns the text after replacing all matches of lookup with evaluations of rewrite.
+  ```
+  print replace_string('Number is 1', 'is', 'was')
+  ```
+
 # October, 2023
 ## Features
 - Added lookup_contains('dict_name', value_to_search). This function returns a boolean value, specifically, True when value_to_search is found in the dictionary, and False otherwise.
