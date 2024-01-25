@@ -139,6 +139,7 @@ bool ParserKQLBase::setSubQuerySource(
             table_expr->as<ASTTablesInSelectQueryElement>()->table_expression
                 = source->children.at(0)->as<ASTTablesInSelectQueryElement>()->table_expression;
         }
+        table_expr->children[table_index] = table_expr->as<ASTTablesInSelectQueryElement>()->table_expression;
         apply_alias();
         return true;
     }
@@ -192,6 +193,7 @@ bool ParserKQLBase::setSubQuerySource(
         table_expr->as<ASTTablesInSelectQueryElement>()->table_expression
             = source->children.at(0)->as<ASTTablesInSelectQueryElement>()->table_expression;
     }
+    table_expr->children[table_index] = table_expr->as<ASTTablesInSelectQueryElement>()->table_expression;
     apply_alias();
 
     table_expr->children.at(0) = table_expr->as<ASTTablesInSelectQueryElement>()->table_expression;
@@ -737,7 +739,7 @@ bool ParserKQLSubquery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 
     ASTPtr node_table_in_select_query_element = std::make_shared<ASTTablesInSelectQueryElement>();
     node_table_in_select_query_element->as<ASTTablesInSelectQueryElement>()->table_expression = node_table_expr;
-
+    node_table_in_select_query_element->children.emplace_back(node_table_expr);
     ASTPtr res = std::make_shared<ASTTablesInSelectQuery>();
 
     res->children.emplace_back(node_table_in_select_query_element);
