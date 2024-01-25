@@ -2235,13 +2235,13 @@ void InterpreterSelectQuery::analyze_where_ast(
     if (const auto * ast_function_node = ast->as<ASTFunction>())
     {
         auto arg_size = ast_function_node->arguments ? ast_function_node->arguments->children.size() : 0;
-        if(ast_function_node->name == "equals" && arg_size == 2)
+        if (ast_function_node->name == "equals" && arg_size == 2)
         {
             auto lhs_argument = ast_function_node->arguments->children.at(0);
             auto rhs_argument = ast_function_node->arguments->children.at(1);
             String lhs = getIdentifier(lhs_argument);
             String rhs = getIdentifier(rhs_argument);
-            auto col_name = (lhs != "") ? lhs:rhs;
+            auto col_name = (!lhs.empty()) ? lhs:rhs;
             bool contains_pk = false;
             if (std::find(primary_keys.begin(), primary_keys.end(), col_name) != primary_keys.end())
                 contains_pk = true;
@@ -2324,7 +2324,7 @@ ASTPtr InterpreterSelectQuery::create_proj_optimized_ast(const ASTPtr & ast, con
     else
     {
         auto tuples = makeASTFunction("tuple");
-        for (auto key : primary_keys)
+        for (const auto & key : primary_keys)
         {
             tuples->children[0]->as<ASTExpressionList>()->children.push_back(std::make_shared<ASTIdentifier>(key));
             select_query->select()->children.push_back(std::make_shared<ASTIdentifier>(key));
