@@ -646,9 +646,8 @@ InterpreterSelectQuery::InterpreterSelectQuery(
             if (const auto & column_sizes = storage->getColumnSizes(); !column_sizes.empty() && metadata_snapshot->hasPrimaryKey())
             {
                 const auto primary_keys = metadata_snapshot->getPrimaryKeyColumns();
-                const auto main_table_name = getTableName(query.tables());
                 bool optimized = false;
-                auto pkoptimized_where_ast = pkOptimization(metadata_snapshot->getProjections(), query.where(), primary_keys, main_table_name, optimized);
+                auto pkoptimized_where_ast = pkOptimization(metadata_snapshot->getProjections(), query.where(), primary_keys, optimized);
                 if (optimized)
                 {
                     query.setExpression(ASTSelectQuery::Expression::WHERE, std::move(pkoptimized_where_ast));
@@ -2180,7 +2179,6 @@ ASTPtr InterpreterSelectQuery::pkOptimization(
     const ProjectionsDescription & projections,
     const ASTPtr & where_ast,
     const Names & primary_keys,
-    const String & main_table,
     bool & optimized) const
 {
     NameSet proj_pks = {};
@@ -2210,7 +2208,7 @@ ASTPtr InterpreterSelectQuery::pkOptimization(
 
     //for keys in where_ast
     NameSet optimized_where_keys = {};
-    analyze_where_ast(where_ast, and_function, proj_pks, optimized_where_keys, primary_keys, main_table, optimized);
+    analyze_where_ast(where_ast, and_function, proj_pks, optimized_where_keys, primary_keys, optimized);
     if (optimized)
     {
         and_function->arguments->children.push_back(where_ast->clone());
@@ -2225,7 +2223,6 @@ void InterpreterSelectQuery::analyze_where_ast(
     NameSet & proj_pks,
     NameSet & optimized_where_keys,
     const Names & primary_keys,
-    const String & main_table,
     bool & optimized) const
 {
     if (optimized)
@@ -2249,7 +2246,7 @@ void InterpreterSelectQuery::analyze_where_ast(
             if (proj_pks.contains(col_name) && !optimized_where_keys.contains(col_name) && !contains_pk)
             {
                 optimized_where_keys.insert(col_name);
-                ASTPtr new_ast = create_proj_optimized_ast(ast, primary_keys, main_table);
+                ASTPtr new_ast = create_proj_optimized_ast(ast, primary_keys);
                 auto * function_node = func->as<ASTFunction>();
                 function_node->arguments->children.push_back(new_ast);
                 optimized = true;
@@ -2261,7 +2258,7 @@ void InterpreterSelectQuery::analyze_where_ast(
             for (size_t i = 0; i < arg_size; i++)
             {
                 auto argument = ast_function_node->arguments->children[i];
-                analyze_where_ast(argument, func, proj_pks, optimized_where_keys, primary_keys, main_table, optimized);
+                analyze_where_ast(argument, func, proj_pks, optimized_where_keys, primary_keys, optimized);
             }
         }
         else /* TBD: conditions that are not "=" */
@@ -2279,6 +2276,7 @@ void InterpreterSelectQuery::analyze_where_ast(
  * @brief Manually rewrite the WHERE query, Insert a new where condition in order to
  * leverage projection features
  *
+ * Storage is not empty while calling this function
  * For example, a qualified table with projection
  * CREATE TABLE test_a(`src` String,`dst` String, `other_cols` String,
  * PROJECTION p1(SELECT src, dst ORDER BY dst)) ENGINE = MergeTree ORDER BY src;
@@ -2289,7 +2287,7 @@ void InterpreterSelectQuery::analyze_where_ast(
  * The following code will convert this select query to the following
  * select * from test_a where src in (select src from test_a where dst='-42') and dst='-42';
  */
-ASTPtr InterpreterSelectQuery::create_proj_optimized_ast(const ASTPtr & ast, const Names & primary_keys, const String & main_table) const
+ASTPtr InterpreterSelectQuery::create_proj_optimized_ast(const ASTPtr & ast, const Names & primary_keys) const
 {
     auto select_query = std::make_shared<ASTSelectQuery>();
     select_query->setExpression(ASTSelectQuery::Expression::SELECT, std::make_shared<ASTExpressionList>());
@@ -2299,7 +2297,7 @@ ASTPtr InterpreterSelectQuery::create_proj_optimized_ast(const ASTPtr & ast, con
     auto tables_elem = std::make_shared<ASTTablesInSelectQueryElement>();
     auto table_expr = std::make_shared<ASTTableExpression>();
 
-    table_expr->database_and_table_name = std::make_shared<ASTTableIdentifier>(main_table);
+    table_expr->database_and_table_name = std::make_shared<ASTTableIdentifier>(table_id);
     table_expr->children.push_back(table_expr->database_and_table_name);
 
     tables_elem->table_expression = std::move(table_expr);
@@ -3509,16 +3507,6 @@ String InterpreterSelectQuery::getIdentifier(ASTPtr & argument) const
         return "";
     else
         return getIdentifier(argument->children.at(0));
-}
-
-String InterpreterSelectQuery::getTableName(const ASTPtr & tables_in_select_query_ast) const
-{
-    const auto & tables_in_select_query = tables_in_select_query_ast->as<ASTTablesInSelectQuery &>();
-    const auto & tables_element = tables_in_select_query.children[0]->as<ASTTablesInSelectQueryElement &>();
-    const auto & table_expression = tables_element.table_expression->as<ASTTableExpression &>();
-    auto table_name = table_expression.database_and_table_name->as<ASTTableIdentifier>()->getTableId().table_name;
-
-    return table_name;
 }
 
 }
