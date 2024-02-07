@@ -929,6 +929,7 @@ TotalTemporaryFiles
 Tradeoff
 Transactional
 TwoColumnList
+Tukey
 UBSan
 UDFs
 UInt
@@ -1317,6 +1318,7 @@ cryptographic
 csv
 csvwithnames
 csvwithnamesandtypes
+ctukey
 curdate
 currentDatabase
 currentProfiles
@@ -2241,8 +2243,9 @@ seektable
 sequenceCount
 sequenceMatch
 sequenceNextNode
-seriesPeriodDetectFFT
 seriesDecomposeSTL
+seriesOutliersDetectTukey
+seriesPeriodDetectFFT
 serverTimeZone
 serverTimezone
 serverUUID
@@ -2528,6 +2531,7 @@ tryDecrypt
 tskv
 tsv
 tui
+tukey
 tumbleEnd
 tumbleStart
 tupleConcat
