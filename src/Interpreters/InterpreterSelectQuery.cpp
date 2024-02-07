@@ -2200,8 +2200,7 @@ ASTPtr InterpreterSelectQuery::pkOptimization(
     }
 
     //for keys in where_ast
-    NameSet optimized_where_keys = {};
-    auto new_where_ast = analyze_where_ast(where_ast, proj_pks, optimized_where_keys, primary_keys);
+    auto new_where_ast = analyze_where_ast(where_ast, proj_pks, primary_keys);
 
     return new_where_ast;
 }
@@ -2209,7 +2208,6 @@ ASTPtr InterpreterSelectQuery::pkOptimization(
 ASTPtr InterpreterSelectQuery::analyze_where_ast(
     const ASTPtr & ast,
     NameSet & proj_pks,
-    NameSet & optimized_where_keys,
     const Names & primary_keys) const
 {
     // Does not support other condition except for "="
@@ -2227,9 +2225,8 @@ ASTPtr InterpreterSelectQuery::analyze_where_ast(
             if (std::find(primary_keys.begin(), primary_keys.end(), col_name) != primary_keys.end())
                 contains_pk = true;
 
-            if (proj_pks.contains(col_name) && !optimized_where_keys.contains(col_name) && !contains_pk)
+            if (proj_pks.contains(col_name) && !contains_pk)
             {
-                optimized_where_keys.insert(col_name);
                 ASTPtr new_ast = create_proj_optimized_ast(ast, primary_keys);
                 auto and_func = makeASTFunction("and");
                 and_func->arguments->children.push_back(new_ast);
@@ -2243,7 +2240,7 @@ ASTPtr InterpreterSelectQuery::analyze_where_ast(
             for (size_t i = 0; i < arg_size; i++)
             {
                 auto argument = ast_function_node->arguments->children[i];
-                auto new_ast = analyze_where_ast(argument, proj_pks, optimized_where_keys, primary_keys);
+                auto new_ast = analyze_where_ast(argument, proj_pks, primary_keys);
                 current_func->arguments->children.push_back(std::move(new_ast));
             }
             return current_func;
