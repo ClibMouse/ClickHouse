@@ -646,13 +646,9 @@ InterpreterSelectQuery::InterpreterSelectQuery(
             if (const auto & column_sizes = storage->getColumnSizes(); !column_sizes.empty() && metadata_snapshot->hasPrimaryKey())
             {
                 const auto primary_keys = metadata_snapshot->getPrimaryKeyColumns();
-                bool optimized = false;
-                auto pkoptimized_where_ast = pkOptimization(metadata_snapshot->getProjections(), query.where(), primary_keys, optimized);
-                if (optimized)
-                {
-                    query.setExpression(ASTSelectQuery::Expression::WHERE, std::move(pkoptimized_where_ast));
-                    options.is_projection_optimized = true;
-                }
+                auto pkoptimized_where_ast = pkOptimization(metadata_snapshot->getProjections(), query.where(), primary_keys);
+                query.setExpression(ASTSelectQuery::Expression::WHERE, std::move(pkoptimized_where_ast));
+                options.is_projection_optimized = true;
             }
         }
 
@@ -2178,8 +2174,7 @@ bool InterpreterSelectQuery::shouldMoveToPrewhere() const
 ASTPtr InterpreterSelectQuery::pkOptimization(
     const ProjectionsDescription & projections,
     const ASTPtr & where_ast,
-    const Names & primary_keys,
-    bool & optimized) const
+    const Names & primary_keys) const
 {
     NameSet proj_pks = {};
     for (auto & projection: projections)
@@ -2204,30 +2199,19 @@ ASTPtr InterpreterSelectQuery::pkOptimization(
 
     }
 
-    const auto and_function = makeASTFunction("and");
-
     //for keys in where_ast
     NameSet optimized_where_keys = {};
-    analyze_where_ast(where_ast, and_function, proj_pks, optimized_where_keys, primary_keys, optimized);
-    if (optimized)
-    {
-        and_function->arguments->children.push_back(where_ast->clone());
-        return and_function;
-    }
-    return where_ast;
+    auto new_where_ast = analyze_where_ast(where_ast, proj_pks, optimized_where_keys, primary_keys);
+
+    return new_where_ast;
 }
 
-void InterpreterSelectQuery::analyze_where_ast(
+ASTPtr InterpreterSelectQuery::analyze_where_ast(
     const ASTPtr & ast,
-    const ASTPtr & func,
     NameSet & proj_pks,
     NameSet & optimized_where_keys,
-    const Names & primary_keys,
-    bool & optimized) const
+    const Names & primary_keys) const
 {
-    if (optimized)
-        return;
-
     // Does not support other condition except for "="
     if (const auto * ast_function_node = ast->as<ASTFunction>())
     {
@@ -2247,29 +2231,25 @@ void InterpreterSelectQuery::analyze_where_ast(
             {
                 optimized_where_keys.insert(col_name);
                 ASTPtr new_ast = create_proj_optimized_ast(ast, primary_keys);
-                auto * function_node = func->as<ASTFunction>();
-                function_node->arguments->children.push_back(new_ast);
-                optimized = true;
-                return;
+                auto and_func = makeASTFunction("and");
+                and_func->arguments->children.push_back(new_ast);
+                and_func->arguments->children.push_back(ast);
+                return and_func;
             }
         }
         else if (ast_function_node->name == "and" || ast_function_node->name == "or")
         {
+            auto current_func = makeASTFunction(ast_function_node->name);
             for (size_t i = 0; i < arg_size; i++)
             {
                 auto argument = ast_function_node->arguments->children[i];
-                analyze_where_ast(argument, func, proj_pks, optimized_where_keys, primary_keys, optimized);
+                auto new_ast = analyze_where_ast(argument, proj_pks, optimized_where_keys, primary_keys);
+                current_func->arguments->children.push_back(std::move(new_ast));
             }
-        }
-        else /* TBD: conditions that are not "=" */
-        {
-            return;
+            return current_func;
         }
     }
-    else
-    {
-        return;
-    }
+    return ast;
 }
 
 /**

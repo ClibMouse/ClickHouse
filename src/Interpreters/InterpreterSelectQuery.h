@@ -164,10 +164,10 @@ private:
 
     ASTSelectQuery & getSelectQuery() { return query_ptr->as<ASTSelectQuery &>(); }
 
-    ASTPtr pkOptimization(const ProjectionsDescription & projections, const ASTPtr & where_ast, const Names & primary_keys, bool & optimized) const;
+    ASTPtr pkOptimization(const ProjectionsDescription & projections, const ASTPtr & where_ast, const Names & primary_keys) const;
     ASTPtr create_proj_optimized_ast(const ASTPtr & ast, const Names & primary_keys) const;
 
-    void analyze_where_ast(const ASTPtr & ast, const ASTPtr & func, NameSet & proj_pks, NameSet & optimized_where_keys, const Names & primary_keys, bool & optimized) const;
+    ASTPtr analyze_where_ast(const ASTPtr & ast, NameSet & proj_pks, NameSet & optimized_where_keys, const Names & primary_keys) const;
     void addPrewhereAliasActions();
     void applyFiltersToPrewhereInAnalysis(ExpressionAnalysisResult & analysis) const;
     bool shouldMoveToPrewhere() const;
