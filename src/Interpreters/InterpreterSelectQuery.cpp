@@ -15,6 +15,7 @@
 #include <Parsers/ExpressionListParsers.h>
 #include <Parsers/parseQuery.h>
 #include <Parsers/FunctionParameterValuesVisitor.h>
+#include <Parsers/formatAST.h>
 
 #include <Access/Common/AccessFlags.h>
 #include <Access/ContextAccess.h>
@@ -2227,15 +2228,19 @@ ASTPtr InterpreterSelectQuery::analyze_where_ast(
 
             if (proj_pks.contains(col_name) && !contains_pk)
             {
-                ASTPtr new_ast = create_proj_optimized_ast(ast, primary_keys);
+                ASTPtr rewrite_ast = create_proj_optimized_ast(ast, primary_keys);
                 auto and_func = makeASTFunction("and");
-                and_func->arguments->children.push_back(new_ast);
-                and_func->arguments->children.push_back(ast);
+                and_func->arguments->children.push_back(rewrite_ast);
+                and_func->arguments->children.push_back(ast->clone());
                 return and_func;
             }
         }
         else if (ast_function_node->name == "and" || ast_function_node->name == "or")
         {
+            auto is_optimized = isoptimized(ast, arg_size);
+            if (is_optimized)
+                return ast;
+
             auto current_func = makeASTFunction(ast_function_node->name);
             for (size_t i = 0; i < arg_size; i++)
             {
@@ -2311,6 +2316,37 @@ ASTPtr InterpreterSelectQuery::create_proj_optimized_ast(const ASTPtr & ast, con
     return indexHintFunc;
 }
 
+bool InterpreterSelectQuery::isoptimized(const ASTPtr & ast, size_t & arg_size) const
+{
+    ASTPtr left, right;
+    const auto * ast_func = ast->as<ASTFunction>();
+    if (arg_size == 2 && ast_func->name == "and")
+    {
+        for (size_t i = 0; i < arg_size; i++)
+        {
+            auto argument = (ast_func->arguments->children[i])->as<ASTFunction>();
+            if (argument->name == "indexHint")
+            {
+                if (auto in_func = argument->arguments->children[0]->as<ASTFunction>())
+                {
+                    if(in_func->name == "in")
+                    {
+                        if (auto select = in_func->arguments->children[1]->as<ASTSubquery>()->children[0]->as<ASTSelectWithUnionQuery>()->list_of_selects->children[0])
+                            left = select->as<ASTSelectQuery>()->where();
+                    }
+                }
+            }
+            else if(argument->name == "equals" && argument->arguments->children.size() == 2)
+            {
+                right = ast_func->arguments->children[i];
+            }
+        }
+        if (left && right
+           && serializeAST(*left) == serializeAST(*right))
+            return true;
+    }
+    return false;
+}
 /// Note that this is const and accepts the analysis ref to be able to use it to do analysis for parallel replicas
 /// without affecting the final analysis multiple times
 void InterpreterSelectQuery::applyFiltersToPrewhereInAnalysis(ExpressionAnalysisResult & analysis) const
