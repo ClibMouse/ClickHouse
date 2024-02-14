@@ -2200,10 +2200,43 @@ ASTPtr InterpreterSelectQuery::pkOptimization(
 
     }
 
-    //for keys in where_ast
-    auto new_where_ast = analyze_where_ast(where_ast, proj_pks, primary_keys);
+    return findwhere(where_ast, proj_pks, primary_keys);
+}
 
-    return new_where_ast;
+ASTPtr InterpreterSelectQuery::findwhere(const ASTPtr & func, NameSet & proj_pks, const Names & primary_keys) const
+{
+    if (auto subquery = func->as<ASTSubquery>())
+    {
+        if (auto select = subquery->children.at(0)->as<ASTSelectWithUnionQuery>()->list_of_selects->children.at(0)->as<ASTSelectQuery>())
+        {
+            if (auto tables = select->tables())
+            {
+                auto table_elements = tables->as<ASTTablesInSelectQuery>()->children[0]->as<ASTTablesInSelectQueryElement>();
+                auto select_table_expression = table_elements->table_expression->as<ASTTableExpression>();
+                auto select_table_id = select_table_expression->database_and_table_name->as<ASTTableIdentifier>()->getTableId();
+                if (select_table_id.getTableName() != table_id.getTableName()
+                || (select_table_id.hasDatabase() && select_table_id.getDatabaseName() != table_id.getDatabaseName())
+                || (!select_table_id.hasDatabase() && context->getCurrentDatabase() != table_id.getDatabaseName()))
+                    return func;
+            }
+
+            if (!select->where())
+                return func;
+            auto new_where = findwhere(select->where(), proj_pks, primary_keys);
+            select->setExpression(ASTSelectQuery::Expression::WHERE, std::move(new_where));
+        }
+        return func;
+    }
+    else if (auto func_node = func->as<ASTFunction>())
+    {
+        if (func_node->name == "in")
+        {
+            auto new_in_argument = findwhere(func_node->arguments->children[1], proj_pks, primary_keys);
+            auto result = makeASTFunction("in", func_node->arguments->children[0], new_in_argument);
+            return result;
+        }
+    }
+    return analyze_where_ast(func, proj_pks, primary_keys);
 }
 
 ASTPtr InterpreterSelectQuery::analyze_where_ast(

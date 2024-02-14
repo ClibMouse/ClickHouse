@@ -18,7 +18,7 @@ FROM test_a
 PREWHERE dst = \'-42\'
 WHERE (dst = \'-42\') AND indexHint(src IN (
     SELECT src
-    FROM default.test_a
+    FROM projection_optimization_test.test_a
     WHERE dst = \'-42\'
 ))
 SELECT
@@ -41,11 +41,11 @@ FROM test_b
 PREWHERE (c1 = \'43\') AND (c2 = \'44\') AND (c3 = \'45\') AND (dst = \'-42\')
 WHERE ((c1 = \'43\') AND (c2 = \'44\') AND (c3 = \'45\') AND (dst = \'-42\')) AND (indexHint(src IN (
     SELECT src
-    FROM default.test_b
+    FROM projection_optimization_test.test_b
     WHERE c1 = \'43\'
 )) AND indexHint(src IN (
     SELECT src
-    FROM default.test_b
+    FROM projection_optimization_test.test_b
     WHERE dst = \'-42\'
 )))
 SELECT
@@ -55,6 +55,73 @@ FROM test_b
 PREWHERE (lower(id) = \'43\') AND (id2 = \'44\')
 WHERE ((lower(id) = \'43\') AND (id2 = \'44\')) AND indexHint(src IN (
     SELECT src
-    FROM default.test_b
+    FROM projection_optimization_test.test_b
     WHERE lower(c1 AS id) = \'43\'
 ))
+SELECT src2
+FROM test_c
+PREWHERE src IN ((
+    SELECT
+        src,
+        dst
+    FROM test_c
+    WHERE indexHint((src, src2) IN (
+        SELECT
+            src,
+            src2
+        FROM projection_optimization_test.test_c
+        WHERE dst = \'44\'
+    )) AND (dst = \'44\')
+) AS _subquery1)
+SELECT src2
+FROM
+(
+    SELECT
+        src2,
+        dst,
+        c1,
+        c2
+    FROM
+    (
+        SELECT
+            src2,
+            dst,
+            c1,
+            c2,
+            c3,
+            other_cols
+        FROM test_c
+        PREWHERE c1 = \'43\'
+        WHERE (c1 = \'43\') AND (((indexHint((src, src2) IN (
+            SELECT
+                src,
+                src2
+            FROM projection_optimization_test.test_c
+            WHERE c1 = \'43\'
+        )) AND (c1 = \'43\')) AND ((indexHint((src, src2) IN ((
+            SELECT
+                src,
+                src2
+            FROM projection_optimization_test.test_c
+            WHERE c1 = \'43\'
+        ) AS _subquery2)) AND (c1 = \'43\')) AND (((c1 = \'43\') AND indexHint((src, src2) IN ((
+            SELECT
+                src,
+                src2
+            FROM projection_optimization_test.test_c
+            WHERE c1 = \'43\'
+        ) AS _subquery3))) AND (c2 = \'44\')))) AND (src2 = \'42\'))
+    )
+    WHERE (c2 = \'44\') AND (src2 = \'42\')
+)
+WHERE src2 = \'42\'
+SELECT src2
+FROM test_c
+PREWHERE src2 = \'44\'
+WHERE (src2 = \'44\') AND ((src = \'44\') OR (indexHint((src, src2) IN (
+    SELECT
+        src,
+        src2
+    FROM projection_optimization_test.test_c
+    WHERE dst = \'-42\'
+)) AND (dst = \'-42\')))
