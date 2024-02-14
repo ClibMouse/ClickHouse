@@ -2235,6 +2235,16 @@ ASTPtr InterpreterSelectQuery::findwhere(const ASTPtr & func, NameSet & proj_pks
             auto result = makeASTFunction("in", func_node->arguments->children[0], new_in_argument);
             return result;
         }
+        else if (func_node->name == "and" || func_node->name == "or")
+        {
+            auto new_and_or = makeASTFunction(func_node->name);
+            for (auto & argument : func_node->arguments->children)
+            {
+                auto update_argument = findwhere(argument, proj_pks, primary_keys);
+                new_and_or->arguments->children.push_back(std::move(update_argument));
+            }
+            return new_and_or;
+        }
     }
     return analyze_where_ast(func, proj_pks, primary_keys);
 }
