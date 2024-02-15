@@ -166,7 +166,6 @@ private:
 
     ASTPtr pkOptimization(const ProjectionsDescription & projections, const ASTPtr & where_ast, const Names & primary_keys) const;
     ASTPtr create_proj_optimized_ast(const ASTPtr & ast, const Names & primary_keys) const;
-    ASTPtr findwhere(const ASTPtr & func, NameSet & proj_pks, const Names & primary_keys) const;
     bool isoptimized(const ASTPtr & ast, size_t & arg_size) const;
 
     ASTPtr analyze_where_ast(const ASTPtr & ast, NameSet & proj_pks, const Names & primary_keys) const;

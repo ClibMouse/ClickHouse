@@ -2200,53 +2200,7 @@ ASTPtr InterpreterSelectQuery::pkOptimization(
 
     }
 
-    return findwhere(where_ast, proj_pks, primary_keys);
-}
-
-ASTPtr InterpreterSelectQuery::findwhere(const ASTPtr & func, NameSet & proj_pks, const Names & primary_keys) const
-{
-    if (auto subquery = func->as<ASTSubquery>())
-    {
-        if (auto select = subquery->children.at(0)->as<ASTSelectWithUnionQuery>()->list_of_selects->children.at(0)->as<ASTSelectQuery>())
-        {
-            if (auto tables = select->tables())
-            {
-                auto table_elements = tables->as<ASTTablesInSelectQuery>()->children[0]->as<ASTTablesInSelectQueryElement>();
-                auto select_table_expression = table_elements->table_expression->as<ASTTableExpression>();
-                auto select_table_id = select_table_expression->database_and_table_name->as<ASTTableIdentifier>()->getTableId();
-                if (select_table_id.getTableName() != table_id.getTableName()
-                || (select_table_id.hasDatabase() && select_table_id.getDatabaseName() != table_id.getDatabaseName())
-                || (!select_table_id.hasDatabase() && context->getCurrentDatabase() != table_id.getDatabaseName()))
-                    return func;
-            }
-
-            if (!select->where())
-                return func;
-            auto new_where = findwhere(select->where(), proj_pks, primary_keys);
-            select->setExpression(ASTSelectQuery::Expression::WHERE, std::move(new_where));
-        }
-        return func;
-    }
-    else if (auto func_node = func->as<ASTFunction>())
-    {
-        if (func_node->name == "in")
-        {
-            auto new_in_argument = findwhere(func_node->arguments->children[1], proj_pks, primary_keys);
-            auto result = makeASTFunction("in", func_node->arguments->children[0], new_in_argument);
-            return result;
-        }
-        else if (func_node->name == "and" || func_node->name == "or")
-        {
-            auto new_and_or = makeASTFunction(func_node->name);
-            for (auto & argument : func_node->arguments->children)
-            {
-                auto update_argument = findwhere(argument, proj_pks, primary_keys);
-                new_and_or->arguments->children.push_back(std::move(update_argument));
-            }
-            return new_and_or;
-        }
-    }
-    return analyze_where_ast(func, proj_pks, primary_keys);
+    return analyze_where_ast(where_ast, proj_pks, primary_keys);
 }
 
 ASTPtr InterpreterSelectQuery::analyze_where_ast(
@@ -2254,10 +2208,10 @@ ASTPtr InterpreterSelectQuery::analyze_where_ast(
     NameSet & proj_pks,
     const Names & primary_keys) const
 {
-    // Does not support other condition except for "="
-    if (const auto * ast_function_node = ast->as<ASTFunction>())
+    if (const auto ast_function_node = ast->as<ASTFunction>())
     {
         auto arg_size = ast_function_node->arguments ? ast_function_node->arguments->children.size() : 0;
+        // Does not support other condition except for "="
         if (ast_function_node->name == "equals" && arg_size == 2)
         {
             auto lhs_argument = ast_function_node->arguments->children.at(0);
@@ -2278,6 +2232,21 @@ ASTPtr InterpreterSelectQuery::analyze_where_ast(
                 return and_func;
             }
         }
+        else if (ast_function_node->name == "in")
+        {
+            if (ast_function_node->arguments->children[1]->as<ASTSubquery>())
+            {
+                //src in (subquery)
+                auto new_in_argument = analyze_where_ast(ast_function_node->arguments->children[1], proj_pks, primary_keys);
+                auto result = makeASTFunction("in", ast_function_node->arguments->children[0], new_in_argument);
+                return result;
+            }
+            else
+            {
+                ASTPtr rewrite_ast = create_proj_optimized_ast(ast, primary_keys);
+                return rewrite_ast;
+            }
+        }
         else if (ast_function_node->name == "and" || ast_function_node->name == "or")
         {
             auto is_optimized = isoptimized(ast, arg_size);
@@ -2292,6 +2261,27 @@ ASTPtr InterpreterSelectQuery::analyze_where_ast(
                 current_func->arguments->children.push_back(std::move(new_ast));
             }
             return current_func;
+        }
+    }
+    else if (auto subquery = ast->as<ASTSubquery>())
+    {
+        if (auto select = subquery->children.at(0)->as<ASTSelectWithUnionQuery>()->list_of_selects->children.at(0)->as<ASTSelectQuery>())
+        {
+            if (auto tables = select->tables())
+            {
+                auto table_elements = tables->as<ASTTablesInSelectQuery>()->children[0]->as<ASTTablesInSelectQueryElement>();
+                auto select_table_expression = table_elements->table_expression->as<ASTTableExpression>();
+                auto select_table_id = select_table_expression->database_and_table_name->as<ASTTableIdentifier>()->getTableId();
+                if (select_table_id.getTableName() != table_id.getTableName()
+                || (select_table_id.hasDatabase() && select_table_id.getDatabaseName() != table_id.getDatabaseName())
+                || (!select_table_id.hasDatabase() && context->getCurrentDatabase() != table_id.getDatabaseName()))
+                    return ast;
+            }
+
+            if (!select->where())
+                return ast;
+            auto new_where = analyze_where_ast(select->where(), proj_pks, primary_keys);
+            select->setExpression(ASTSelectQuery::Expression::WHERE, std::move(new_where));
         }
     }
     return ast;
@@ -2372,14 +2362,14 @@ bool InterpreterSelectQuery::isoptimized(const ASTPtr & ast, size_t & arg_size) 
             {
                 if (auto in_func = argument->arguments->children[0]->as<ASTFunction>())
                 {
-                    if(in_func->name == "in")
+                    if (in_func->name == "in")
                     {
                         if (auto select = in_func->arguments->children[1]->as<ASTSubquery>()->children[0]->as<ASTSelectWithUnionQuery>()->list_of_selects->children[0])
                             left = select->as<ASTSelectQuery>()->where();
                     }
                 }
             }
-            else if(argument->name == "equals" && argument->arguments->children.size() == 2)
+            else if (argument->name == "equals" && argument->arguments->children.size() == 2)
             {
                 right = ast_func->arguments->children[i];
             }
