@@ -1,5 +1,12 @@
 #include "KQLTimeSeriesFunctions.h"
+#include "KQLFunctionFactory.h"
+#include <Parsers/CommonParsers.h>
+#include <format>
 
+namespace DB::ErrorCodes
+{
+extern const int NOT_IMPLEMENTED;
+}
 namespace DB
 {
 
@@ -106,6 +113,36 @@ bool SeriesFillLinear::convertImpl(String & out, IParser::Pos & pos)
     String res = String(pos->begin, pos->end);
     out = res;
     return false;
+}
+
+bool SeriesDecomposeAnomalies::convertImpl(String & out, IParser::Pos & pos)
+{
+    const auto fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const auto series = getArgument(fn_name, pos);
+    const auto threshold = getOptionalArgument(fn_name, pos);
+    const auto seasonality = getOptionalArgument(fn_name, pos);
+    const auto trend = getOptionalArgument(fn_name, pos);
+    const auto test_points = getOptionalArgument(fn_name, pos);
+    const auto ad_method = getOptionalArgument(fn_name, pos);
+
+    if(test_points && *test_points != "0")
+        throw DB::Exception(DB::ErrorCodes::NOT_IMPLEMENTED, "only 0 test_points are supported");
+
+    if(trend && *trend != "linefit")
+        throw DB::Exception(DB::ErrorCodes::NOT_IMPLEMENTED, "only linefit value for trend is supported");
+
+    out = std::format(
+        "ad_flag, ad_score, baseline FROM ( Select seriesDecomposeAnomaliesDetection({0},{1},{2},{3}) AS r) ARRAY JOIN "
+        "r[1] AS ad_flag, r[2] AS ad_score, r[3] AS baseline",
+        series,
+        threshold.value_or("1.5"),
+        seasonality.value_or("-1"),
+        ad_method.value_or("ctukey"));
+
+    return true;
 }
 
 }
