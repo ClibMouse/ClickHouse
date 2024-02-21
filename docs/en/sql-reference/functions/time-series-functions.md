@@ -167,15 +167,15 @@ Result:
 └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## seriesDecomposeAnomaliesDetection
+## seriesAnomaliesDetectDecompose
 
 Detect anomalies in series data by decomposing it into its constituent components through [series decomposition](#seriesDecomposeSTL) and then analyzing the residual component to detect unusual patterns.
 
 **Syntax**
 
 ``` sql
-seriesDecomposeAnomaliesDetection(series);
-seriesDecomposeAnomaliesDetection(series, threshold, seasonality, AD_method);
+seriesAnomaliesDetectDecompose(series);
+seriesAnomaliesDetectDecompose(series, threshold, seasonality, AD_method);
 ```
 
 **Arguments**
@@ -204,7 +204,7 @@ Type: [Array](../../sql-reference/data-types/array.md).
 Query:
 
 ``` sql
-SELECT seriesDecomposeAnomaliesDetection([4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2], 1.5, -1, 'tukey') AS print_0;
+SELECT seriesAnomaliesDetectDecompose([4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2, 4, 3, 2], 1.5, -1, 'tukey') AS print_0;
 ```
 
 Result:
