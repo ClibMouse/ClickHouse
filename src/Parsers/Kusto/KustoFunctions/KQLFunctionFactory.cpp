@@ -195,6 +195,7 @@ enum class KQLFunction : uint16_t
     series_fill_const,
     series_fill_forward,
     series_fill_linear,
+    series_decompose_anomalies,
 
     ipv4_compare,
     ipv4_is_in_range,
@@ -466,6 +467,7 @@ const std::unordered_map<String, KQLFunction> KQL_FUNCTIONS{
     {"series_fill_const", KQLFunction::series_fill_const},
     {"series_fill_forward", KQLFunction::series_fill_forward},
     {"series_fill_linear", KQLFunction::series_fill_linear},
+    {"series_decompose_anomalies", KQLFunction::series_decompose_anomalies},
 
     {"ipv4_compare", KQLFunction::ipv4_compare},
     {"ipv4_is_in_range", KQLFunction::ipv4_is_in_range},
@@ -1084,6 +1086,9 @@ std::unique_ptr<IParserKQLFunction> KQLFunctionFactory::get(const String & kql_f
 
         case KQLFunction::series_fill_linear:
             return std::make_unique<SeriesFillLinear>();
+
+        case KQLFunction::series_decompose_anomalies:
+            return std::make_unique<SeriesDecomposeAnomalies>();
 
         case KQLFunction::ipv4_compare:
             return std::make_unique<Ipv4Compare>();
