@@ -9,6 +9,7 @@
 #include <format>
 #include <regex>
 #include <unordered_set>
+#include <iostream>
 
 namespace DB::ErrorCodes
 {
@@ -95,8 +96,12 @@ bool DatatypeDynamic::convertImpl(String & out, IParser::Pos & pos)
 
                 --pos;
             }
-	    else if (token_type == TokenType::At)
+	        else if (token_type == TokenType::At)
+            {
                 ++pos;
+                if(pos->type != DB::TokenType::StringLiteral && pos->type != DB::TokenType::QuotedIdentifier)
+                    throw Exception(ErrorCodes::SYNTAX_ERROR, "Verbatim string expecteds a string literal to follow @");
+            }
 
             out.append(getConvertedArgument(function_name, pos));
         }
