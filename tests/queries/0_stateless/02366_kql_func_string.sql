@@ -608,3 +608,7 @@ print t = isutf8('؄');
 print '-- isascii --';
 print str = isascii('ab১২ufghi🐂🐇🐒');
 print str = isascii('abc');
+
+print @"hello"@; -- { clientError SYNTAX_ERROR }
+print "hello"@; -- { clientError SYNTAX_ERROR }
+print @; -- { clientError SYNTAX_ERROR }

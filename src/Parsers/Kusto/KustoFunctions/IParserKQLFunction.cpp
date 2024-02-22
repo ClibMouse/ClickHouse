@@ -193,7 +193,8 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
                 else if (pos->type == TokenType::At)
                 {
                     ++pos;
-
+                    if(pos->type != DB::TokenType::StringLiteral && pos->type != DB::TokenType::QuotedIdentifier)
+                        throw Exception(ErrorCodes::SYNTAX_ERROR, "Verbatim string expecteds a string literal to follow");
                     String verbatim_string;
                     bool multi_quoted_string = determineMultiCharString(verbatim_string, pos);
 
@@ -353,19 +354,15 @@ bool IParserKQLFunction::determineMultiCharString(String & verbatim_string, IPar
     for (const auto & ch : verbatim_string)
     {
         if (ch == '\'' || ch == '\"')
-	{
-	    if ((*(&ch + 1) == '\'') || (*(&ch + 1) == '\"'))
+	    {
+	        if ((*(&ch + 1) == '\'') || (*(&ch + 1) == '\"'))
                 quote_count++;
-	}
+	    }
 
-	if ((ch == '\\') && (*(&ch + 1) == '\\'))
-	    quote_count++;
+	    if ((ch == '\\') && (*(&ch + 1) == '\\'))
+	        quote_count++;
     }
-
-    if (quote_count)
-        return (quote_count > 0);
-    else
-        return false;
+    return quote_count > 0;
 }
 
 String IParserKQLFunction::getExpression(IParser::Pos & pos)
@@ -403,6 +400,10 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
     {
         verbatim = true;
         ++pos;
+        if(pos->type != DB::TokenType::StringLiteral && pos->type != DB::TokenType::QuotedIdentifier)
+        {
+            throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Verbatim string expected a string literal to follow @");
+        }
 
         String verbatim_string;
         bool multi_quoted_string = determineMultiCharString(verbatim_string, pos);
