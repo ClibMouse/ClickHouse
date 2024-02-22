@@ -114,7 +114,7 @@ public:
         auto get_decompose_res = get_decompose->execute(decompose_cols, decompose_res_type, input_rows_count);
 
         const ColumnArray * decompose_res_array = checkAndGetColumn<ColumnArray>(get_decompose_res.get());
-        auto root_decompose_data = &decompose_res_array->getData();
+        const auto *root_decompose_data = &decompose_res_array->getData();
         const IColumn::Offsets & root_decompose_offsets = decompose_res_array->getOffsets();
 
         const ColumnArray * decompose_data_array = checkAndGetColumn<ColumnArray>(root_decompose_data);
@@ -134,7 +134,7 @@ public:
         auto root_offsets = ColumnArray::ColumnOffsets::create();
         auto & root_offsets_data = root_offsets->getData();
 
-        for (size_t i = 0; i < root_decompose_offsets.size(); i++)
+        for (auto root_decompose_offset : root_decompose_offsets)
         {
             //extract residual component of the decomposed series
             ColumnArray::Offset residual_start_offset = nested_decompose_offsets[prev_decompose_offset + 1];
@@ -200,7 +200,7 @@ public:
 
             root_offsets_data.push_back(res_col_offsets->size());
 
-            prev_decompose_offset = root_decompose_offsets[i];
+            prev_decompose_offset = root_decompose_offset;
         }
 
         ColumnArray::MutablePtr nested_array_col = ColumnArray::create(std::move(res), std::move(res_col_offsets));
