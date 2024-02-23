@@ -135,8 +135,7 @@ bool SeriesDecomposeAnomalies::convertImpl(String & out, IParser::Pos & pos)
         throw DB::Exception(DB::ErrorCodes::NOT_IMPLEMENTED, "only linefit value for trend is supported");
 
     out = std::format(
-        "ad_flag, ad_score, baseline FROM ( Select seriesDecomposeAnomaliesDetection({0},{1},{2},{3}) AS r) ARRAY JOIN "
-        "r[1] AS ad_flag, r[2] AS ad_score, r[3] AS baseline",
+        "seriesDecomposeAnomaliesDetection({0},{1},{2},{3})",
         series,
         threshold.value_or("1.5"),
         seasonality.value_or("-1"),
