@@ -2208,6 +2208,7 @@ ASTPtr InterpreterSelectQuery::analyze_where_ast(
     NameSet & proj_pks,
     const Names & primary_keys) const
 {
+    bool contains_pk = false;
     if (const auto ast_function_node = ast->as<ASTFunction>())
     {
         auto arg_size = ast_function_node->arguments ? ast_function_node->arguments->children.size() : 0;
@@ -2219,32 +2220,61 @@ ASTPtr InterpreterSelectQuery::analyze_where_ast(
             String lhs = getIdentifier(lhs_argument);
             String rhs = getIdentifier(rhs_argument);
             auto col_name = (!lhs.empty()) ? lhs:rhs;
-            bool contains_pk = false;
+            contains_pk = false;
             if (std::find(primary_keys.begin(), primary_keys.end(), col_name) != primary_keys.end())
                 contains_pk = true;
 
             if (proj_pks.contains(col_name) && !contains_pk)
             {
                 ASTPtr rewrite_ast = create_proj_optimized_ast(ast, primary_keys);
-                auto and_func = makeASTFunction("and");
-                and_func->arguments->children.push_back(rewrite_ast);
-                and_func->arguments->children.push_back(ast->clone());
+                auto and_func = makeASTFunction("and", std::move(rewrite_ast), ast->clone());
                 return and_func;
             }
         }
         else if (ast_function_node->name == "in")
         {
+            ASTPtr rewrite_ast;
             if (ast_function_node->arguments->children[1]->as<ASTSubquery>())
             {
                 //src in (subquery)
                 auto new_in_argument = analyze_where_ast(ast_function_node->arguments->children[1], proj_pks, primary_keys);
-                auto result = makeASTFunction("in", ast_function_node->arguments->children[0], new_in_argument);
-                return result;
+                rewrite_ast = makeASTFunction("in", std::move(ast_function_node->arguments->children[0]), std::move(new_in_argument));
+                return rewrite_ast;
             }
             else
             {
-                ASTPtr rewrite_ast = create_proj_optimized_ast(ast, primary_keys);
-                return rewrite_ast;
+                auto lhs_argument = ast_function_node->arguments->children.at(0);
+                contains_pk = false;
+                bool proj_pks_contains = false;
+                if (auto func = lhs_argument->as<ASTFunction>())
+                {
+                    if (func->name == "tuple")
+                    {
+                        for (auto key : func->arguments->children)
+                        {
+                            String col_name = getIdentifier(key);
+                            if (std::find(primary_keys.begin(), primary_keys.end(), col_name) != primary_keys.end())
+                                contains_pk = true;
+                            if (proj_pks.contains(col_name))
+                                proj_pks_contains = true;
+                        }
+                    }
+                }
+                else
+                {
+                    String col_name = getIdentifier(lhs_argument);
+                    if (std::find(primary_keys.begin(), primary_keys.end(), col_name) != primary_keys.end())
+                        contains_pk = true;
+                    if (proj_pks.contains(col_name))
+                        proj_pks_contains = true;
+                }
+
+                if (proj_pks_contains && !contains_pk)
+                {
+                    rewrite_ast = create_proj_optimized_ast(ast, primary_keys);
+                    auto and_func = makeASTFunction("and", std::move(rewrite_ast), ast->clone());
+                    return and_func;
+                }
             }
         }
         else if (ast_function_node->name == "and" || ast_function_node->name == "or")
