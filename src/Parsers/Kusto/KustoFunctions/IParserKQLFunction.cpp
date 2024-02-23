@@ -192,16 +192,8 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
                     token = "'" + escapeSingleQuotes(String(pos->begin + 1, pos->end - 1)) + "'";
                 else if (pos->type == TokenType::At)
                 {
+                    token = "'" + iterativelyEscapeString(pos) + "'";
                     ++pos;
-                    if(pos->type != DB::TokenType::StringLiteral && pos->type != DB::TokenType::QuotedIdentifier)
-                        throw Exception(ErrorCodes::SYNTAX_ERROR, "Verbatim string expecteds a string literal to follow");
-                    String verbatim_string;
-                    bool multi_quoted_string = determineMultiCharString(verbatim_string, pos);
-
-                    if (multi_quoted_string)
-                        token = "'" + escapeVerbatimString(verbatim_string.substr(1, verbatim_string.length() - 2)) + "'";
-                    else
-                        token = "'" + escapeVerbatimString(String(pos->begin + 1, pos->end - 1)) + "'";
                 }
                 else if (pos->type == TokenType::OpeningSquareBracket)
                 {
@@ -254,12 +246,6 @@ IParserKQLFunction::getOptionalArgument(const String & function_name, DB::IParse
 
     ++pos;
 
-    if (pos->type == DB::TokenType::At)
-    {
-        if (String verbatim_string; !determineMultiCharString(verbatim_string, pos))
-            ++pos;
-    }
-
     if (const auto type = pos->type; type == DB::TokenType::ClosingRoundBracket || type == DB::TokenType::ClosingSquareBracket)
         return {};
 
@@ -273,10 +259,11 @@ IParserKQLFunction::getOptionalArgument(const String & function_name, DB::IParse
             magic_enum::enum_type_name<ArgumentState>(),
             magic_enum::enum_name(argument_state));
 
-    const auto * begin = pos->begin;
+    String arg = "";
     std::stack<DB::TokenType> scopes;
     while (isValidKQLPos(pos) && (!scopes.empty() || (pos->type != DB::TokenType::Comma && pos->type != DB::TokenType::ClosingRoundBracket)))
     {
+        const auto * begin = pos->begin;
         const auto token_type = pos->type;
         if (isOpeningBracket(token_type))
             scopes.push(token_type);
@@ -288,11 +275,19 @@ IParserKQLFunction::getOptionalArgument(const String & function_name, DB::IParse
 
             scopes.pop();
         }
-
-        ++pos;
+        if (token_type == DB::TokenType::At)
+        {
+            arg += "'" + iterativelyEscapeString(pos) + "'";
+            ++pos;
+            ++pos; 
+        }
+        else
+        {
+            ++pos;
+            arg += String(begin, pos->begin);
+        }
     }
-
-    return std::string(begin, pos->begin);
+    return arg;
 }
 
 String IParserKQLFunction::getKQLFunctionName(IParser::Pos & pos)
@@ -341,33 +336,8 @@ void IParserKQLFunction::validateEndOfFunction(const String & fn_name, IParser::
         throw Exception(ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "Too many arguments in function: {}", fn_name);
 }
 
-bool IParserKQLFunction::determineMultiCharString(String & verbatim_string, IParser::Pos pos)
-{
-    size_t quote_count = 0;
-
-    while (!pos->isEnd() && (pos->type != TokenType::ClosingRoundBracket))
-    {
-        verbatim_string += getExpression(pos);
-        ++pos;
-    }
-
-    for (const auto & ch : verbatim_string)
-    {
-        if (ch == '\'' || ch == '\"')
-	    {
-	        if ((*(&ch + 1) == '\'') || (*(&ch + 1) == '\"'))
-                quote_count++;
-	    }
-
-	    if ((ch == '\\') && (*(&ch + 1) == '\\'))
-	        quote_count++;
-    }
-    return quote_count > 0;
-}
-
 String IParserKQLFunction::getExpression(IParser::Pos & pos)
 {
-    static bool verbatim = false;
     String arg(pos->begin, pos->end);
     if (pos->type == TokenType::BareWord)
     {
@@ -394,25 +364,12 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
                 arg = kqlTicksToInterval(ticks);
         }
     }
-    else if ((pos->type == TokenType::QuotedIdentifier) && (!verbatim))
+    else if ((pos->type == TokenType::QuotedIdentifier))
         arg = "'" + escapeSingleQuotes(String(pos->begin + 1, pos->end - 1)) + "'";
     else if (pos->type == TokenType::At)
     {
-        verbatim = true;
+        arg = "'" + iterativelyEscapeString(pos) + "'";
         ++pos;
-        if(pos->type != DB::TokenType::StringLiteral && pos->type != DB::TokenType::QuotedIdentifier)
-        {
-            throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Verbatim string expected a string literal to follow @");
-        }
-
-        String verbatim_string;
-        bool multi_quoted_string = determineMultiCharString(verbatim_string, pos);
-
-        if (multi_quoted_string)
-            arg = "'" + escapeVerbatimString(verbatim_string.substr(1, verbatim_string.length() - 2)) + "'";
-        else
-           arg = "'" + escapeVerbatimString(String(pos->begin + 1, pos->end - 1)) + "'";
-        verbatim = false;
     }
     else if (pos->type == TokenType::OpeningSquareBracket)
     {
@@ -448,25 +405,68 @@ String IParserKQLFunction::escapeSingleQuotes(const String & input)
     return output;
 }
 
-String IParserKQLFunction::escapeVerbatimString(const String & input)
+String IParserKQLFunction::escapeVerbatimString(const String & input, bool is_outer_quote_double)
 {
     String output;
     for (const auto &ch : input)
     {
         if (ch == '\\')
             output = output + '\\' + ch;
-        else if (ch == '\'')
+        else if (ch == '\'' && !is_outer_quote_double)
         {
             if (*(&ch + 1) != '\'')
                 output = output + '\\' + ch;
         }
-        else if (ch == '\"')
+        else if (ch == '\"' && is_outer_quote_double)
         {
             if (*(&ch + 1) != '\"')
                 output += ch;
         }
+        else if (ch == '\'' ) // && is_outer_double_quoted 
+                output = output + '\\' + ch;
         else
             output += ch;
+    }
+    return output;
+}
+
+String IParserKQLFunction::iterativelyEscapeString(IParser::Pos pos)
+{
+    String output = "";
+    while (pos->type == DB::TokenType::At || pos->type == DB::TokenType::StringLiteral || pos->type == DB::TokenType::QuotedIdentifier)
+    {
+        if(pos->type == DB::TokenType::At)
+        {
+            ++pos;
+            if(pos->type != DB::TokenType::StringLiteral && pos->type != DB::TokenType::QuotedIdentifier)
+            {
+                throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Verbatim string expected a string literal to follow @");
+            }
+            if(pos->end - pos->begin < 2 || (*(pos->begin) != '\'' && *(pos->begin) != '\"'))
+            {   
+                throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Internal Error: misformed vertbatim string tokens");
+            }
+            String verbatimString = "";
+            bool is_outer_quote_double = *(pos->begin) == '\"' ? true : false; 
+            do
+            {
+                verbatimString += String(pos->begin, pos->end);
+                ++pos;
+                if((pos->type == DB::TokenType::StringLiteral || pos->type == DB::TokenType::QuotedIdentifier) && 
+                    (pos->end - pos->begin < 2 || (*(pos->begin) != '\'' && *(pos->begin) != '\"')))
+                {   
+                    throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Internal Error: misformed vertbatim string tokens");
+                }
+            }
+            while ((pos->type == DB::TokenType::StringLiteral || pos->type == DB::TokenType::QuotedIdentifier) && 
+            ((*(pos->begin) == '\'' && !is_outer_quote_double) || (*(pos->begin) == '\"' && is_outer_quote_double)));
+            output += escapeVerbatimString(String(verbatimString.begin() +1, verbatimString.end() -1), is_outer_quote_double);
+        }
+        else
+        {
+            output += String(pos->begin +1, pos->end -1);
+            ++pos;
+        }
     }
     return output;
 }

@@ -80,7 +80,8 @@ public:
     kqlCallToExpression(std::string_view function_name, std::initializer_list<const std::string_view> params, uint32_t max_depth, uint32_t max_backtracks);
     static String kqlCallToExpression(std::string_view function_name, std::span<const std::string_view> params, uint32_t max_depth, uint32_t max_backtracks);
     static String escapeSingleQuotes(const String & input);
-    static String escapeVerbatimString(const String & input);
+    static String escapeVerbatimString(const String & input, bool is_outer_quote_double);
+    static String iterativelyEscapeString(IParser::Pos pos);
 
 protected:
     virtual bool convertImpl(String & out, IParser::Pos & pos) = 0;
@@ -88,6 +89,5 @@ protected:
     static bool directMapping(
         String & out, IParser::Pos & pos, std::string_view ch_fn, const Interval & argument_count_interval = {0, Interval::max_bound});
     static void validateEndOfFunction(const String & fn_name, IParser::Pos & pos);
-    static bool determineMultiCharString(String & verbatim_string, IParser::Pos pos);
 };
 }
