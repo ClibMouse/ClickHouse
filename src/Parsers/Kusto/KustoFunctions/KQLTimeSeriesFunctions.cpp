@@ -61,9 +61,14 @@ bool SeriesOutliers::convertImpl(String & out, IParser::Pos & pos)
 
 bool SeriesPeriodsDetect::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    const auto fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const auto series = getArgument(fn_name, pos);
+    out = std::format("seriesPeriodDetectFFT({0})", series);
+
+    return true;
 }
 
 bool SeriesPeriodsValidate::convertImpl(String & out, IParser::Pos & pos)
@@ -135,7 +140,7 @@ bool SeriesDecomposeAnomalies::convertImpl(String & out, IParser::Pos & pos)
         throw DB::Exception(DB::ErrorCodes::NOT_IMPLEMENTED, "only linefit value for trend is supported");
 
     out = std::format(
-        "seriesDecomposeAnomaliesDetection({0},{1},{2},{3})",
+        "seriesDecomposeAnomaliesDetection({0},{1},{2},'{3}')",
         series,
         threshold.value_or("1.5"),
         seasonality.value_or("-1"),
