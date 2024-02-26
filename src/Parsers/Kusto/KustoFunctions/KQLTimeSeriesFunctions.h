@@ -116,4 +116,11 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class SeriesDecompose : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "series_decompose()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
 }
