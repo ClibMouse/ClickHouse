@@ -668,3 +668,15 @@ a\'\'aa
 \\\'a\\\'a
 \\\\a\\\\\\\\a\\\\
 12\\\\3\\\\12\\\\3\\\\12\\\\3
+<<<<<<< HEAD
+=======
+]\'b\\\\\\\\\',\'a\\\\\'[
+a\\
+['\\\\aa','b','\\\\cc']
+3
+5
+qqqqq\\\\fffffff\\\\\'asd bcd\'\\\\"moo moo "
+tsko\\\\
+https:\\\\www.ibm.com
+www.ibm.com
+>>>>>>> 4b7ed0a458f (add additional verbatim string functional tests)
