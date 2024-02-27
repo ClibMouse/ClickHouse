@@ -418,11 +418,19 @@ std::string genHaystackOpExpr(
 
     ++token_pos;
 
-    if (!tokens.empty() && (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier))
+    if (!tokens.empty() && (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier || token_pos->type == DB::TokenType::At))
+    {
+	    if (token_pos->type == DB::TokenType::At)
+        {
+                ++token_pos;
+                if(token_pos->type != DB::TokenType::StringLiteral && token_pos->type != DB::TokenType::QuotedIdentifier)
+                    throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Verbatim string expecteds a string literal to follow");
+        }
         new_expr = translate(
             tokens.back(),
             "'" + left_wildcards + left_space + DB::IParserKQLFunction::escapeSingleQuotes(String(token_pos->begin + 1, token_pos->end - 1))
                 + right_space + right_wildcards + "'");
+    }
     else if (!tokens.empty() && token_pos->type == DB::TokenType::BareWord)
     {
         auto tmp_arg = DB::IParserKQLFunction::getExpression(token_pos);
