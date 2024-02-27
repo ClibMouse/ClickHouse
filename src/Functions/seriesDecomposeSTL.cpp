@@ -88,10 +88,19 @@ public:
                 || checkAndGetColumn<ColumnUInt32>(period_ptr.get())
                 || checkAndGetColumn<ColumnUInt64>(period_ptr.get()))
                 period = period_ptr->getUInt(i);
+            else if (checkAndGetColumn<ColumnFloat32>(period_ptr.get())
+                || checkAndGetColumn<ColumnFloat64>(period_ptr.get()))
+            {
+                auto period_val = period_ptr->getFloat64(i);
+                if (isnan(period_val) || !std::isfinite(period_val) || period_val < 0.0)
+                    throw Exception(ErrorCodes::BAD_ARGUMENTS, "The second argument for function {} should be a positive number", getName());
+
+                period = static_cast<int>(std::round(period_val));
+            }
             else
                 throw Exception(
                     ErrorCodes::ILLEGAL_COLUMN,
-                    "Illegal column {} of second argument of function {}",
+                    "Illegal column {} of second argument of function {}. Should be a positive number",
                     arguments[1].column->getName(),
                     getName());
 
