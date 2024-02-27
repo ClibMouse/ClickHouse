@@ -929,6 +929,7 @@ TotalTemporaryFiles
 Tradeoff
 Transactional
 TwoColumnList
+Tukey
 UBSan
 UDFs
 UInt
@@ -1317,6 +1318,7 @@ cryptographic
 csv
 csvwithnames
 csvwithnamesandtypes
+ctukey
 curdate
 currentDatabase
 currentProfiles
@@ -1790,6 +1792,7 @@ llvm
 loadDefaultCAFile
 localhost
 localread
+loess
 logTrace
 logagent
 loghouse
@@ -2240,6 +2243,9 @@ seektable
 sequenceCount
 sequenceMatch
 sequenceNextNode
+seriesAnomaliesDetectDecompose
+seriesDecomposeSTL
+seriesOutliersDetectTukey
 seriesPeriodDetectFFT
 serverTimeZone
 serverTimezone
@@ -2526,6 +2532,7 @@ tryDecrypt
 tskv
 tsv
 tui
+tukey
 tumbleEnd
 tumbleStart
 tupleConcat
