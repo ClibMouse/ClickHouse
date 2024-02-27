@@ -957,6 +957,7 @@ Tradeoff
 Transactional
 Tukey
 TwoColumnList
+Tukey
 UBSan
 UDFs
 UInt
@@ -2305,6 +2306,7 @@ seektable
 sequenceCount
 sequenceMatch
 sequenceNextNode
+seriesAnomaliesDetectDecompose
 seriesDecomposeSTL
 seriesOutliersDetectTukey
 seriesPeriodDetectFFT
