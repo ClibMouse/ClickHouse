@@ -635,3 +635,21 @@ print strcat(@"\a", @"\a");
 print strcat(@"\'a", @"\'a");
 print strcat(@"\\a\\", @"\\a\\");
 print from_int = strrep(@"12\\3", 3, @'\\');
+<<<<<<< HEAD
+=======
+print reverse(dynamic(['\\a', @"\\b"]))
+print trim_end(@"\\", @"a\\\\");
+print trim_end(@"\\", "a\\\\");
+print result=parse_csv(@'\\aa,b,\\cc');
+print indexof_regex('ad\\\\sasdasasd', @'\\sas', 0, -1, 1);
+print indexof_regex(@'ad\\\\sasdasasd', @'\\sas', 0, -1, 1);
+print strcat_delim(@'\\', "qqqqq", "fffffff", @"'asd bcd'", "\"moo moo \"");
+print translate('kra\\sp', @'\\otsku', '\\spark')
+print translate('kra\\sp', @'\\otsku', '\\spark')
+print translate(@'kra\\sp', @'\\otsku', @'\\spark')
+print translate(@'kra\\sp', @'\\otsku', @'\\spark')
+print translate(@'kra\\sp', @'\\otsku', @'''spark')
+print parse_urlquery(@'k1=v1\\&k2=v2""&k3=v3''');
+print trim(@"https\\", @"https:\\www.ibm.com");
+print trim(@"https:\\", "https:\\www.ibm.com");
+>>>>>>> 4b7ed0a458f (add additional verbatim string functional tests)
