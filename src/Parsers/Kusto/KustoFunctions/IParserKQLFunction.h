@@ -80,7 +80,7 @@ public:
     kqlCallToExpression(std::string_view function_name, std::initializer_list<const std::string_view> params, uint32_t max_depth, uint32_t max_backtracks);
     static String kqlCallToExpression(std::string_view function_name, std::span<const std::string_view> params, uint32_t max_depth, uint32_t max_backtracks);
     static String escapeSingleQuotes(const String & input);
-    static String escapeVerbatimString(const String & input, bool is_outer_quote_double);
+    static String escapeVerbatimString(const String & input, const bool is_outer_quote_double);
     static String iterativelyEscapeString(IParser::Pos pos);
 
 protected:

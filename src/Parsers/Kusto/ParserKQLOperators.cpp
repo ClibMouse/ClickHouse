@@ -229,8 +229,8 @@ String genEqOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
     new_expr += ch_op + " ";
     ++token_pos;
 
-    if (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier)
-        new_expr += "lower('" + DB::IParserKQLFunction::escapeSingleQuotes(String(token_pos->begin + 1, token_pos->end - 1)) + "')";
+    if (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier || token_pos->type == DB::TokenType::At)
+        new_expr += "lower('" + DB::IParserKQLFunction::iterativelyEscapeString(token_pos) + "')";
     else
         new_expr += "lower(" + DB::IParserKQLFunction::getExpression(token_pos) + ")";
 
@@ -328,8 +328,8 @@ String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
             && token_pos->type != DB::TokenType::OpeningRoundBracket && token_pos->type != DB::TokenType::OpeningSquareBracket
             && token_pos->type != DB::TokenType::ClosingSquareBracket && tmp_arg != "~" && tmp_arg != "dynamic")
         {
-            if (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier)
-                new_expr += "lower('" + DB::IParserKQLFunction::escapeSingleQuotes(String(token_pos->begin + 1, token_pos->end - 1)) + "')";
+            if (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier || token_pos->type == DB::TokenType::At)
+                new_expr += "lower('" + DB::IParserKQLFunction::iterativelyEscapeString(token_pos) + "')";
             else
                 new_expr += "lower(" + tmp_arg + ")";
         }
@@ -422,16 +422,12 @@ std::string genHaystackOpExpr(
 
     if (!tokens.empty() && (token_pos->type == DB::TokenType::StringLiteral || token_pos->type == DB::TokenType::QuotedIdentifier || token_pos->type == DB::TokenType::At))
     {
-	    if (token_pos->type == DB::TokenType::At)
-        {
-                ++token_pos;
-                if(token_pos->type != DB::TokenType::StringLiteral && token_pos->type != DB::TokenType::QuotedIdentifier)
-                    throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Verbatim string expecteds a string literal to follow");
-        }
         new_expr = translate(
             tokens.back(),
-            "'" + left_wildcards + left_space + DB::IParserKQLFunction::escapeSingleQuotes(String(token_pos->begin + 1, token_pos->end - 1))
+            "'" + left_wildcards + left_space + DB::IParserKQLFunction::iterativelyEscapeString(token_pos)
                 + right_space + right_wildcards + "'");
+        if (token_pos->type == DB::TokenType::At)
+            ++token_pos;
     }
     else if (!tokens.empty() && token_pos->type == DB::TokenType::BareWord)
     {
