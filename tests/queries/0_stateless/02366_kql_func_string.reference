@@ -9,6 +9,7 @@ Peter	Nara	Skilled Manual	Graduate Degree	26
 
 -- Customers |where Education !contains \'degree\'
 \N	why	Professional	Partial College	38
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Theodore	Diaz	Skilled Manual	Bachelors	28
 Stephanie	Cox	Management abcd defg	Bachelors	33
 Apple		Skilled Manual	Bachelors	28
@@ -19,12 +20,14 @@ Peter	Nara	Skilled Manual	Graduate Degree	26
 
 -- Customers |where Education !contains \'Degree\'
 \N	why	Professional	Partial College	38
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Theodore	Diaz	Skilled Manual	Bachelors	28
 Stephanie	Cox	Management abcd defg	Bachelors	33
 Apple		Skilled Manual	Bachelors	28
 
 -- Customers |where Education !contains @\'Degree\'
 \N	why	Professional	Partial College	38
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Theodore	Diaz	Skilled Manual	Bachelors	28
 Stephanie	Cox	Management abcd defg	Bachelors	33
 Apple		Skilled Manual	Bachelors	28
@@ -33,12 +36,14 @@ Apple		Skilled Manual	Bachelors	28
 Theodore	Diaz	Skilled Manual	Bachelors	28
 
 -- Customers | where ! FirstName endswith \'RE\'
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Peter	Nara	Skilled Manual	Graduate Degree	26
 Stephanie	Cox	Management abcd defg	Bachelors	33
 Apple		Skilled Manual	Bachelors	28
 
 -- Customers | where ! FirstName endswith @\'RE\'
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Peter	Nara	Skilled Manual	Graduate Degree	26
 Stephanie	Cox	Management abcd defg	Bachelors	33
@@ -51,6 +56,7 @@ Theodore	Diaz	Skilled Manual	Bachelors	28
 Theodore	Diaz	Skilled Manual	Bachelors	28
 
 -- Customers | where FirstName !endswith_cs \'re\'
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Peter	Nara	Skilled Manual	Graduate Degree	26
 Stephanie	Cox	Management abcd defg	Bachelors	33
@@ -63,11 +69,13 @@ Apple		Skilled Manual	Bachelors	28
 
 -- Customers | where Occupation != \'Skilled Manual\'
 \N	why	Professional	Partial College	38
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Stephanie	Cox	Management abcd defg	Bachelors	33
 
 -- Customers | where Occupation != @\'Skilled Manual\'
 \N	why	Professional	Partial College	38
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Stephanie	Cox	Management abcd defg	Bachelors	33
 
@@ -78,11 +86,13 @@ Apple		Skilled Manual	Bachelors	28
 
 -- Customers | where Occupation !has \'skilled\'
 \N	why	Professional	Partial College	38
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Stephanie	Cox	Management abcd defg	Bachelors	33
 
 -- Customers | where Occupation !has @\'skilled\'
 \N	why	Professional	Partial College	38
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Stephanie	Cox	Management abcd defg	Bachelors	33
 
@@ -93,6 +103,7 @@ Apple		Skilled Manual	Bachelors	28
 
 -- Customers | where Occupation !has \'Skilled\'
 \N	why	Professional	Partial College	38
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Stephanie	Cox	Management abcd defg	Bachelors	33
 
@@ -102,6 +113,7 @@ Stephanie	Cox	Management abcd defg	Bachelors	33
 
 -- Customers | where Occupation !hasprefix_cs \'Ab\'
 \N	why	Professional	Partial College	38
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Peter	Nara	Skilled Manual	Graduate Degree	26
 Theodore	Diaz	Skilled Manual	Bachelors	28
@@ -113,6 +125,7 @@ Stephanie	Cox	Management abcd defg	Bachelors	33
 
 -- Customers | where Occupation !hasprefix_cs \'ab\'
 \N	why	Professional	Partial College	38
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Peter	Nara	Skilled Manual	Graduate Degree	26
 Theodore	Diaz	Skilled Manual	Bachelors	28
@@ -120,6 +133,7 @@ Apple		Skilled Manual	Bachelors	28
 
 -- Customers | where Occupation !hasprefix_cs @\'ab\'
 \N	why	Professional	Partial College	38
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Peter	Nara	Skilled Manual	Graduate Degree	26
 Theodore	Diaz	Skilled Manual	Bachelors	28
@@ -133,6 +147,7 @@ Stephanie	Cox	Management abcd defg	Bachelors	33
 
 -- Customers | where Occupation !hassuffix \'Ent\'
 \N	why	Professional	Partial College	38
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Peter	Nara	Skilled Manual	Graduate Degree	26
 Theodore	Diaz	Skilled Manual	Bachelors	28
@@ -156,6 +171,7 @@ Apple		Skilled Manual	Bachelors	28
 
 -- Customers | where Education !in (\'Bachelors\',\'High School\')
 \N	why	Professional	Partial College	38
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Peter	Nara	Skilled Manual	Graduate Degree	26
 
@@ -169,12 +185,14 @@ Peter	Nara	Skilled Manual	Graduate Degree	26
 Peter	Nara	Skilled Manual	Graduate Degree	26
 
 -- Customers | where FirstName !startswith \'pet\'
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Theodore	Diaz	Skilled Manual	Bachelors	28
 Stephanie	Cox	Management abcd defg	Bachelors	33
 Apple		Skilled Manual	Bachelors	28
 
 -- Customers | where FirstName !startswith @\'pet\'
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Theodore	Diaz	Skilled Manual	Bachelors	28
 Stephanie	Cox	Management abcd defg	Bachelors	33
@@ -183,6 +201,7 @@ Apple		Skilled Manual	Bachelors	28
 -- Customers | where FirstName startswith_cs \'pet\'
 
 -- Customers | where FirstName !startswith_cs \'pet\'
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Peter	Nara	Skilled Manual	Graduate Degree	26
 Theodore	Diaz	Skilled Manual	Bachelors	28
@@ -201,11 +220,13 @@ Stephanie	Cox	Management abcd defg	Bachelors	33
 Peter	Nara	Skilled Manual	Graduate Degree	26
 Latoya	Shen	Professional	Graduate Degree	25
 \N	why	Professional	Partial College	38
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 
 -- print isnotempty(1.2345)
 1
 
 -- Customers | where isnotnull(FirstName)
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
 Latoya	Shen	Professional	Graduate Degree	25
 Peter	Nara	Skilled Manual	Graduate Degree	26
 Theodore	Diaz	Skilled Manual	Bachelors	28
@@ -226,6 +247,7 @@ https%3A%2F%2Fwww.test.com%2Fhello%20word
 
 -- Customers | project name_abbr = strcat(substring(FirstName,0,3), \' \', substring(LastName,2))
  y
+Vin rb\\\\atim
 Lat en
 Pet ra
 The az
@@ -234,6 +256,7 @@ App
 
 -- Customers | project name = strcat(FirstName, \' \', LastName)
  why
+Vinny Verb\\\\atim
 Latoya Shen
 Peter Nara
 Theodore Diaz
@@ -242,6 +265,7 @@ Apple
 
 -- Customers | project name = strcat(FirstName, @\' \', LastName)
  why
+Vinny Verb\\\\atim
 Latoya Shen
 Peter Nara
 Theodore Diaz
@@ -250,6 +274,7 @@ Apple
 
 -- Customers | project FirstName, strlen(FirstName)
 \N	\N
+Vinny	5
 Latoya	6
 Peter	5
 Theodore	8
@@ -258,6 +283,7 @@ Apple	5
 
 -- Customers | project strrep(FirstName,2,\'_\')
 _
+Vinny_Vinny
 Latoya_Latoya
 Peter_Peter
 Theodore_Theodore
@@ -277,6 +303,7 @@ ABCABC
 
 -- Customers | project toupper(FirstName)
 \N
+VINNY
 LATOYA
 PETER
 THEODORE
@@ -285,6 +312,7 @@ APPLE
 
 -- Customers | project tolower(FirstName)
 \N
+vinny
 latoya
 peter
 theodore
@@ -579,6 +607,7 @@ Latoya	Shen	Professional	Graduate Degree	25
 -1
 -1
 -1
+-1
 -- has --
 1
 0
@@ -668,8 +697,6 @@ a\'\'aa
 \\\'a\\\'a
 \\\\a\\\\\\\\a\\\\
 12\\\\3\\\\12\\\\3\\\\12\\\\3
-<<<<<<< HEAD
-=======
 ]\'b\\\\\\\\\',\'a\\\\\'[
 a\\
 ['\\\\aa','b','\\\\cc']
@@ -679,4 +706,26 @@ qqqqq\\\\fffffff\\\\\'asd bcd\'\\\\"moo moo "
 tsko\\\\
 https:\\\\www.ibm.com
 www.ibm.com
->>>>>>> 4b7ed0a458f (add additional verbatim string functional tests)
+1
+1
+1
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
+1
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Apple		Skilled Manual	Bachelors	28
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
+Theodore	Diaz	Skilled Manual	Bachelors	28
+Stephanie	Cox	Management abcd defg	Bachelors	33
+Peter	Nara	Skilled Manual	Graduate Degree	26
+Apple		Skilled Manual	Bachelors	28
+Vinny	Verb\\\\atim	operato\\r"	"kusto"	46
+1
+1
+1
+1
+0

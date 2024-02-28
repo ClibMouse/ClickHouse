@@ -279,7 +279,7 @@ IParserKQLFunction::getOptionalArgument(const String & function_name, DB::IParse
         {
             arg += "'" + iterativelyEscapeString(pos) + "'";
             ++pos;
-            ++pos; 
+            ++pos;
         }
         else
         {
@@ -405,16 +405,16 @@ String IParserKQLFunction::escapeSingleQuotes(const String & input)
     return output;
 }
 
-String IParserKQLFunction::escapeVerbatimString(const String & input, bool is_outer_quote_double)
+String IParserKQLFunction::escapeVerbatimString(const String & input, const bool is_outer_quote_double)
 {
     String output;
-    for (const auto &ch : input)
+    for (const auto & ch : input)
     {
         if (ch == '\\')
             output = output + '\\' + ch;
-        else if (ch == '\'' && !is_outer_quote_double)
+        else if (ch == '\'')
         {
-            if (*(&ch + 1) != '\'')
+            if ((*(&ch + 1) != '\'' && !is_outer_quote_double) || is_outer_quote_double) 
                 output = output + '\\' + ch;
         }
         else if (ch == '\"' && is_outer_quote_double)
@@ -422,8 +422,6 @@ String IParserKQLFunction::escapeVerbatimString(const String & input, bool is_ou
             if (*(&ch + 1) != '\"')
                 output += ch;
         }
-        else if (ch == '\'' ) // && is_outer_double_quoted 
-                output = output + '\\' + ch;
         else
             output += ch;
     }
@@ -435,37 +433,33 @@ String IParserKQLFunction::iterativelyEscapeString(IParser::Pos pos)
     String output = "";
     while (pos->type == DB::TokenType::At || pos->type == DB::TokenType::StringLiteral || pos->type == DB::TokenType::QuotedIdentifier)
     {
-        if(pos->type == DB::TokenType::At)
+        if (pos->type == DB::TokenType::At)
         {
             ++pos;
-            if(pos->type != DB::TokenType::StringLiteral && pos->type != DB::TokenType::QuotedIdentifier)
-            {
+            if (pos->type != DB::TokenType::StringLiteral && pos->type != DB::TokenType::QuotedIdentifier)
                 throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Verbatim string expected a string literal to follow @");
-            }
-            if(pos->end - pos->begin < 2 || (*(pos->begin) != '\'' && *(pos->begin) != '\"'))
-            {   
+            if (pos->end - pos->begin < 2 || (*(pos->begin) != '\'' && *(pos->begin) != '\"'))
                 throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Internal Error: misformed vertbatim string tokens");
-            }
             String verbatimString = "";
-            bool is_outer_quote_double = *(pos->begin) == '\"' ? true : false; 
+            const bool is_outer_quote_double = (*(pos->begin) == '\"');
             do
             {
                 verbatimString += String(pos->begin, pos->end);
                 ++pos;
-                if((pos->type == DB::TokenType::StringLiteral || pos->type == DB::TokenType::QuotedIdentifier) && 
-                    (pos->end - pos->begin < 2 || (*(pos->begin) != '\'' && *(pos->begin) != '\"')))
-                {   
+                if ((pos->type == DB::TokenType::StringLiteral || pos->type == DB::TokenType::QuotedIdentifier)
+                    && (pos->end - pos->begin < 2 || (*(pos->begin) != '\'' && *(pos->begin) != '\"')))
+                {
                     throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Internal Error: misformed vertbatim string tokens");
                 }
-            }
-            while ((pos->type == DB::TokenType::StringLiteral || pos->type == DB::TokenType::QuotedIdentifier) && 
-            ((*(pos->begin) == '\'' && !is_outer_quote_double) || (*(pos->begin) == '\"' && is_outer_quote_double)));
-            output += escapeVerbatimString(String(verbatimString.begin() +1, verbatimString.end() -1), is_outer_quote_double);
+            } while ((pos->type == DB::TokenType::StringLiteral || pos->type == DB::TokenType::QuotedIdentifier)
+                     && ((*(pos->begin) == '\'' && !is_outer_quote_double) || (*(pos->begin) == '\"' && is_outer_quote_double)));
+            output += escapeVerbatimString(String(verbatimString.begin() + 1, verbatimString.end() - 1), is_outer_quote_double);
         }
         else
         {
-            output += String(pos->begin +1, pos->end -1);
+            output += escapeSingleQuotes(String(pos->begin + 1, pos->end - 1));
             ++pos;
+            break;
         }
     }
     return output;
