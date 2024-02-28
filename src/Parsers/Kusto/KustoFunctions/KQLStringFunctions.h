@@ -207,6 +207,13 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class ReplaceString : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "replace_string()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
 class StrCat : public IParserKQLFunction
 {
 protected:
