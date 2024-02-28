@@ -649,3 +649,8 @@ true
 -- replace_string --
 Hello, number was 10, 20
 Hello, number was 10, 20 and was 23, 24, was
+Two One
+@@@@
+ba
+\\b\\b
+abc

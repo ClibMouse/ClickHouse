@@ -609,12 +609,15 @@ print '-- isascii --';
 print str = isascii('ab১২ufghi🐂🐇🐒');
 print str = isascii('abc');
 
-<<<<<<< HEAD
 print @"hello"@; -- { clientError SYNTAX_ERROR }
 print "hello"@; -- { clientError SYNTAX_ERROR }
 print @; -- { clientError SYNTAX_ERROR }
-=======
+
 print '-- replace_string --';
 print replace_string('Hello, number is 10, 20', 'is', 'was');
 print replace_string('Hello, number is 10, 20 and is 23, 24, is', 'is', 'was');
->>>>>>> ce133fde44a (Added the support for the replace_string function)
+print replace_string("one One", "one", "Two" );
+print replace_string("&&", "&", "@@" );
+print replace_string("aaaaaaa", "aaaaaa", "b");
+print replace_string("\\a\\b", "\\a", "\\b");
+print replace_string("abc", "d", "e");
