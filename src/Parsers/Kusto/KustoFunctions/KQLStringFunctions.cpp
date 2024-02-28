@@ -538,6 +538,11 @@ bool Split::convertImpl(String & out, IParser::Pos & pos)
     return true;
 }
 
+bool ReplaceString::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "replaceAll");
+}
+
 bool StrCat::convertImpl(String & out, IParser::Pos & pos)
 {
     const auto function_name = getKQLFunctionName(pos);
