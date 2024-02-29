@@ -7,6 +7,7 @@
 #include <Parsers/ASTSelectWithUnionQuery.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLStatement.h>
+#include <Parsers/Kusto/Utilities.h>
 #include <Parsers/CommonParsers.h>
 
 namespace DB
@@ -86,7 +87,7 @@ bool ParserKQLTableFunction::parseImpl(Pos & pos, ASTPtr & node, Expected & expe
         {
             ++paren_count;
             auto pos_start = pos;
-            while (!pos->isEnd())
+            while (isValidKQLPos(pos))
             {
                 if (pos->type == TokenType::ClosingRoundBracket)
                     --paren_count;
@@ -97,7 +98,7 @@ bool ParserKQLTableFunction::parseImpl(Pos & pos, ASTPtr & node, Expected & expe
                     break;
                 ++pos;
             }
-            if (pos->isEnd() && paren_count != 0)
+            if (!isValidKQLPos(pos) && paren_count != 0)
                 return false;
 
             kql_statement = String(pos_start->begin, (--pos)->end);

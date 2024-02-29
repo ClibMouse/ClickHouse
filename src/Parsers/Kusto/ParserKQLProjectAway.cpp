@@ -2,6 +2,7 @@
 #include <Parsers/ExpressionListParsers.h>
 #include <Parsers/Kusto/ParserKQLProjectAway.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
+#include <Parsers/Kusto/Utilities.h>
 #include <Parsers/ParserSelectQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
 #include "Utilities.h"
@@ -31,7 +32,7 @@ bool ParserKQLProjectAway::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expe
             regular_columns.push_back(column);
     };
 
-    while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    while (isValidKQLPos(pos) && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
     {
         if (pos->type == TokenType::OpeningRoundBracket)
             ++bracket_count;

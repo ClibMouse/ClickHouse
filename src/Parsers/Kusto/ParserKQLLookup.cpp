@@ -9,6 +9,7 @@
 #include <Parsers/IParserBase.h>
 #include <Parsers/Kusto/ParserKQLLookup.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
+#include <Parsers/Kusto/Utilities.h>
 #include <Parsers/ParserSelectQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
 #include <Common/StringUtils/StringUtils.h>
@@ -27,7 +28,7 @@ bool ParserKQLLookup::updatePipeLine(OperationsPos & operations, String & query)
 {
     Pos pos = operations.back().second;
 
-    if (pos->isEnd() || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
+    if (!isValidKQLPos(pos) || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
         throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near lookup operator");
 
     Pos start_pos = operations.front().second;
@@ -58,7 +59,7 @@ bool ParserKQLLookup::updatePipeLine(OperationsPos & operations, String & query)
     Pos right_table_start_pos = pos;
 
     size_t paren_count = 0;
-    while (!pos->isEnd() && pos->type != TokenType::Semicolon)
+    while (isValidKQLPos(pos) && pos->type != TokenType::Semicolon)
     {
         if (pos->type == TokenType::OpeningRoundBracket)
             ++paren_count;

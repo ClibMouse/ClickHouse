@@ -6,6 +6,7 @@
 #include <Parsers/Kusto/ParserKQLMakeSeries.h>
 #include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
+#include <Parsers/Kusto/Utilities.h>
 #include <Parsers/ParserSelectQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
 
@@ -151,7 +152,7 @@ bool ParserKQLMakeSeries ::parseAggregationColumns(AggregationColumns & aggregat
     BracketCount bracket_count;
     auto begin = pos;
     size_t column_index = 1;
-    while (!pos->isEnd())
+    while (isValidKQLPos(pos))
     {
         bracket_count.count(pos);
         if ((pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon) && bracket_count.isZero())
@@ -178,7 +179,7 @@ bool ParserKQLMakeSeries ::parseAxisColumn(String & axis_column, Pos & pos)
 {
     auto begin = pos;
     BracketCount bracket_count;
-    while (!pos->isEnd())
+    while (isValidKQLPos(pos))
     {
         bracket_count.count(pos);
         if ((pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon) && bracket_count.isZero())
@@ -207,7 +208,7 @@ bool ParserKQLMakeSeries ::parseFromToStepClause(FromToStepClause & from_to_step
     auto end_pos = begin;
 
     BracketCount bracket_count;
-    while (!pos->isEnd())
+    while (isValidKQLPos(pos))
     {
         bracket_count.count(pos);
         if ((pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon) && bracket_count.isZero())
@@ -295,7 +296,7 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
         Tokens tokens(src.c_str(), src.c_str() + src.size());
         IParser::Pos pos(tokens, max_depth);
         String res;
-        while (!pos->isEnd())
+        while (isValidKQLPos(pos))
         {
             auto tmp = String(pos->begin, pos->end);
             if (tmp == "kql_datetime" || tmp == "kql_todatetime")
@@ -304,7 +305,7 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
                 auto datetime_start_pos = pos;
                 auto datetime_end_pos = pos;
                 BracketCount bracket_count;
-                while (!pos->isEnd())
+                while (isValidKQLPos(pos))
                 {
                     bracket_count.count(pos);
                     if (pos->type == TokenType::ClosingRoundBracket && bracket_count.isZero())
@@ -338,7 +339,7 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
         std::vector<String> group_expression_tokens;
         Tokens tokens(group_expression.c_str(), group_expression.c_str() + group_expression.size());
         IParser::Pos pos(tokens, max_depth);
-        while (!pos->isEnd())
+        while (isValidKQLPos(pos))
         {
             if (String(pos->begin, pos->end) == "AS")
             {

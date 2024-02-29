@@ -5,6 +5,7 @@
 #include <Parsers/IParserBase.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLSort.h>
+#include <Parsers/Kusto/Utilities.h>
 
 namespace DB
 {
@@ -56,7 +57,7 @@ bool ParserKQLSort::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
                 auto nulls_pos = tmp_pos;
                 ++tmp_pos;
                 tmp = String(tmp_pos->begin, tmp_pos->end);
-                if (tmp_pos->isEnd() || (tmp != "first" && tmp != "last"))
+                if (!isValidKQLPos(tmp_pos) || (tmp != "first" && tmp != "last"))
                     throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid nulls position of sort operator");
 
                 nulls_position = "nulls " + tmp;
@@ -82,7 +83,7 @@ bool ParserKQLSort::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 
     auto paren_count = 0;
     auto begin = pos;
-    while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    while (isValidKQLPos(pos) && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
     {
         if (pos->type == TokenType::ClosingRoundBracket)
             --paren_count;
