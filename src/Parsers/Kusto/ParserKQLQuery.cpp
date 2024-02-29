@@ -33,6 +33,7 @@
 #include <Parsers/Kusto/ParserKQLTop.h>
 #include <Parsers/Kusto/ParserKQLTopHitter.h>
 #include <Parsers/Kusto/ParserKQLTopNested.h>
+#include <Parsers/Kusto/Utilities.h>
 #include <Parsers/ParserSelectWithUnionQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
 
@@ -126,44 +127,44 @@ bool ParserKQLBase::setSubQuerySource(
         if (!select_query || !select_query->as<ASTSelectQuery>()->tables()
             || select_query->as<ASTSelectQuery>()->tables()->as<ASTTablesInSelectQuery>()->children.empty())
             return false;
-        table_expr = select_query->as<ASTSelectQuery>()->tables()->as<ASTTablesInSelectQuery>()->children[table_index];
+        table_expr = select_query->as<ASTSelectQuery>()->tables()->as<ASTTablesInSelectQuery>()->children.at(table_index);
 
         if (!src_is_subquery)
         {
             table_expr->as<ASTTablesInSelectQueryElement>()->table_expression
-                = source->as<ASTSelectQuery>()->tables()->children[0]->as<ASTTablesInSelectQueryElement>()->table_expression;
+                = source->as<ASTSelectQuery>()->tables()->children.at(0)->as<ASTTablesInSelectQueryElement>()->table_expression;
         }
         else
         {
             table_expr->as<ASTTablesInSelectQueryElement>()->table_expression
-                = source->children[0]->as<ASTTablesInSelectQueryElement>()->table_expression;
+                = source->children.at(0)->as<ASTTablesInSelectQueryElement>()->table_expression;
         }
-        table_expr->children[table_index] = table_expr->as<ASTTablesInSelectQueryElement>()->table_expression;
+        table_expr->children.at(table_index) = table_expr->as<ASTTablesInSelectQueryElement>()->table_expression;
         apply_alias();
         return true;
     }
 
     if (!select_query || select_query->as<ASTTablesInSelectQuery>()->children.empty()
-        || !select_query->as<ASTTablesInSelectQuery>()->children[table_index]->as<ASTTablesInSelectQueryElement>()->table_expression
+        || !select_query->as<ASTTablesInSelectQuery>()->children.at(table_index)->as<ASTTablesInSelectQueryElement>()->table_expression
         || select_query->as<ASTTablesInSelectQuery>()
-               ->children[table_index]
+               ->children.at(table_index)
                ->as<ASTTablesInSelectQueryElement>()
                ->table_expression->as<ASTTableExpression>()
                ->subquery->children.empty()
         || select_query->as<ASTTablesInSelectQuery>()
-               ->children[table_index]
+               ->children.at(table_index)
                ->as<ASTTablesInSelectQueryElement>()
                ->table_expression->as<ASTTableExpression>()
-               ->subquery->children[0]
+               ->subquery->children.at(0)
                ->as<ASTSelectWithUnionQuery>()
                ->list_of_selects->children.empty()
         || select_query->as<ASTTablesInSelectQuery>()
-               ->children[table_index]
+               ->children.at(table_index)
                ->as<ASTTablesInSelectQueryElement>()
                ->table_expression->as<ASTTableExpression>()
-               ->subquery->children[0]
+               ->subquery->children.at(0)
                ->as<ASTSelectWithUnionQuery>()
-               ->list_of_selects->children[0]
+               ->list_of_selects->children.at(0)
                ->as<ASTSelectQuery>()
                ->tables()
                ->as<ASTTablesInSelectQuery>()
@@ -171,28 +172,28 @@ bool ParserKQLBase::setSubQuerySource(
         return false;
 
     table_expr = select_query->as<ASTTablesInSelectQuery>()
-                     ->children[table_index]
+                     ->children.at(table_index)
                      ->as<ASTTablesInSelectQueryElement>()
                      ->table_expression->as<ASTTableExpression>()
-                     ->subquery->children[0]
+                     ->subquery->children.at(0)
                      ->as<ASTSelectWithUnionQuery>()
-                     ->list_of_selects->children[0]
+                     ->list_of_selects->children.at(0)
                      ->as<ASTSelectQuery>()
                      ->tables()
                      ->as<ASTTablesInSelectQuery>()
-                     ->children[0];
+                     ->children.at(0);
 
     if (!src_is_subquery)
     {
         table_expr->as<ASTTablesInSelectQueryElement>()->table_expression
-            = source->as<ASTSelectQuery>()->tables()->children[0]->as<ASTTablesInSelectQueryElement>()->table_expression;
+            = source->as<ASTSelectQuery>()->tables()->children.at(0)->as<ASTTablesInSelectQueryElement>()->table_expression;
     }
     else
     {
         table_expr->as<ASTTablesInSelectQueryElement>()->table_expression
-            = source->children[0]->as<ASTTablesInSelectQueryElement>()->table_expression;
+            = source->children.at(0)->as<ASTTablesInSelectQueryElement>()->table_expression;
     }
-    table_expr->children[table_index] = table_expr->as<ASTTablesInSelectQueryElement>()->table_expression;
+    table_expr->children.at(table_index) = table_expr->as<ASTTablesInSelectQueryElement>()->table_expression;
     apply_alias();
 
     return true;
@@ -210,7 +211,7 @@ String ParserKQLBase::getExprFromPipe(Pos & pos)
 {
     BracketCount bracket_count;
     auto end = pos;
-    while (!end->isEnd() && end->type != TokenType::Semicolon)
+    while (isValidKQLPos(end) && end->type != TokenType::Semicolon)
     {
         bracket_count.count(end);
         if (end->type == TokenType::PipeMark && bracket_count.isZero())
@@ -229,7 +230,7 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
     comma_pos.push_back(pos);
 
     size_t paren_count = 0;
-    while (!pos->isEnd() && pos->type != TokenType::Semicolon)
+    while (isValidKQLPos(pos) && pos->type != TokenType::Semicolon)
     {
         if (pos->type == TokenType::PipeMark && paren_count == 0)
             break;
@@ -432,7 +433,7 @@ std::unique_ptr<ParserKQLBase> ParserKQLQuery::getOperator(const std::string_vie
 
 bool ParserKQLQuery::getOperations(Pos & pos, Expected & expected, OperationsPos & operation_pos)
 {
-    if (pos->isEnd())
+    if (!isValidKQLPos(pos))
         return false;
     if (String table_name(pos->begin, pos->end); table_name == "print" || table_name == "range")
         operation_pos.emplace_back(table_name, pos);
@@ -443,7 +444,7 @@ bool ParserKQLQuery::getOperations(Pos & pos, Expected & expected, OperationsPos
 
     uint16_t bracket_count = 0;
 
-    while (!pos->isEnd() && pos->type != TokenType::Semicolon)
+    while (isValidKQLPos(pos) && pos->type != TokenType::Semicolon)
     {
         if (pos->type == TokenType::OpeningRoundBracket)
             ++bracket_count;
@@ -453,8 +454,9 @@ bool ParserKQLQuery::getOperations(Pos & pos, Expected & expected, OperationsPos
         if (pos->type == TokenType::PipeMark && bracket_count == 0)
         {
             ++pos;
-            if (pos->isEnd())
+            if (!isValidKQLPos(pos))
                 return false;
+
             String kql_operator(pos->begin, pos->end);
 
             auto validate_kql_operator = [&]
@@ -462,18 +464,28 @@ bool ParserKQLQuery::getOperations(Pos & pos, Expected & expected, OperationsPos
                 if (kql_operator == "order" || kql_operator == "sort")
                 {
                     ++pos;
+                    if (!isValidKQLPos(pos))
+                        return false;
+
                     if (ParserKeyword("by").ignore(pos, expected))
                     {
                         kql_operator = "order by";
                         --pos;
                     }
                 }
-                else
+                else if (kql_operator != "getschema" && kql_operator != "count")
                 {
                     auto op_pos_begin = pos;
                     ++pos;
+                    if (!isValidKQLPos(pos))
+                        return false;
+
                     if (ParserToken(TokenType::Minus).ignore(pos, expected))
+                    {
+                        if (!isValidKQLPos(pos))
+                            return false;
                         kql_operator = String(op_pos_begin->begin, pos->end);
+                    }
                     else
                         --pos;
                 }
@@ -485,6 +497,8 @@ bool ParserKQLQuery::getOperations(Pos & pos, Expected & expected, OperationsPos
             if (!validate_kql_operator())
                 return false;
             ++pos;
+            if (!isValidKQLPos(pos) && kql_operator != "getschema" && kql_operator != "count")
+                return false;
 
             if ((kql_operator == "print" || kql_operator == "range") && !operation_pos.empty())
                 throw Exception(ErrorCodes::SYNTAX_ERROR, "{} must be the first operator in the query", kql_operator);
@@ -501,7 +515,7 @@ bool ParserKQLQuery::pre_process(String & source, Pos & pos)
 {
     bool need_preprocess = false;
     auto begin = pos;
-    while (!pos->isEnd() && pos->type != TokenType::Semicolon)
+    while (isValidKQLPos(pos) && pos->type != TokenType::Semicolon)
     {
         if (pos->type == TokenType::HereDoc)
             need_preprocess = true;
@@ -727,12 +741,12 @@ bool ParserKQLSubquery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 
     node_table_expr->children.emplace_back(node_subquery);
 
-    ASTPtr node_table_in_select_query_emlement = std::make_shared<ASTTablesInSelectQueryElement>();
-    node_table_in_select_query_emlement->as<ASTTablesInSelectQueryElement>()->table_expression = node_table_expr;
-    node_table_in_select_query_emlement->children.emplace_back(node_table_expr);
+    ASTPtr node_table_in_select_query_element = std::make_shared<ASTTablesInSelectQueryElement>();
+    node_table_in_select_query_element->as<ASTTablesInSelectQueryElement>()->table_expression = node_table_expr;
+    node_table_in_select_query_element->children.emplace_back(node_table_expr);
     ASTPtr res = std::make_shared<ASTTablesInSelectQuery>();
 
-    res->children.emplace_back(node_table_in_select_query_emlement);
+    res->children.emplace_back(node_table_in_select_query_element);
 
     node = res;
     return true;

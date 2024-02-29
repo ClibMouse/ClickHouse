@@ -89,3 +89,8 @@ StormEvents | where startswith "W" | summarize Count=count() by State; -- { clie
 
 print '-- Missing table in the pipeline --';
 | where State contains "enn" | where event_count > 10 | project State, event_count; -- { clientError SYNTAX_ERROR }
+
+SET max_query_size = 55;
+SET dialect='kusto';
+Customers | where Education contains 'degree' | order by LastName; -- { serverError 62 }
+SET max_query_size=262144;

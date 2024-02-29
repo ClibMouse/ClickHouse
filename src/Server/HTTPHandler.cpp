@@ -967,12 +967,9 @@ catch (...)
     }
 }
 
-void HTTPHandler::formatExceptionForClient(int exception_code, HTTPServerRequest & request, HTTPServerResponse & response, Output & used_output)
+void HTTPHandler::formatExceptionForClient(int exception_code, HTTPServerRequest & request, HTTPServerResponse & response, [[maybe_unused]] Output & used_output)
 {
-    if (used_output.out_holder)
-        used_output.out_holder->setExceptionCode(exception_code);
-    else
-        response.set("X-ClickHouse-Exception-Code", toString<int>(exception_code));
+    response.set("X-ClickHouse-Exception-Code", toString<int>(exception_code));
 
     /// FIXME: make sure that no one else is reading from the same stream at the moment.
 

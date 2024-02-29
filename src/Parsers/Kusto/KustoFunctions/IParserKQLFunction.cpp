@@ -76,7 +76,7 @@ bool IParserKQLFunction::directMapping(
 
     int argument_count = 0;
     const auto begin = pos;
-    while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    while (isValidKQLPos(pos) && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
     {
         if (pos != begin)
             out.append(", ");
@@ -151,11 +151,11 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
     if (pos->type == TokenType::ClosingRoundBracket || pos->type == TokenType::ClosingSquareBracket)
         return {};
 
-    if (pos->isEnd() || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
+    if (!isValidKQLPos(pos) || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
         throw Exception(ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "Need more argument(s) in function: {}", fn_name);
 
     std::vector<String> tokens;
-    while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    while (isValidKQLPos(pos) && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
     {
         if (pos->type == TokenType::OpeningRoundBracket)
             ++round_bracket_count;
@@ -199,7 +199,7 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
                 {
                     ++pos;
                     String array_index;
-                    while (!pos->isEnd() && pos->type != TokenType::ClosingSquareBracket)
+                    while (isValidKQLPos(pos) && pos->type != TokenType::ClosingSquareBracket)
                     {
                         array_index += getExpression(pos);
                         ++pos;
@@ -261,7 +261,7 @@ IParserKQLFunction::getOptionalArgument(const String & function_name, DB::IParse
 
     String arg = "";
     std::stack<DB::TokenType> scopes;
-    while (!pos->isEnd() && (!scopes.empty() || (pos->type != DB::TokenType::Comma && pos->type != DB::TokenType::ClosingRoundBracket)))
+    while (isValidKQLPos(pos) && (!scopes.empty() || (pos->type != DB::TokenType::Comma && pos->type != DB::TokenType::ClosingRoundBracket)))
     {
         const auto * begin = pos->begin;
         const auto token_type = pos->type;
@@ -375,7 +375,7 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
     {
         ++pos;
         String array_index;
-        while (!pos->isEnd() && pos->type != TokenType::ClosingSquareBracket)
+        while (isValidKQLPos(pos) && pos->type != TokenType::ClosingSquareBracket)
         {
             array_index += getExpression(pos);
             ++pos;

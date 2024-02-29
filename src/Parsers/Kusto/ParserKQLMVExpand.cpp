@@ -6,6 +6,7 @@
 #include <Parsers/Kusto/ParserKQLMakeSeries.h>
 #include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/Kusto/ParserKQLMVExpand.h>
+#include <Parsers/Kusto/Utilities.h>
 #include <Parsers/ParserSetQuery.h>
 #include <Parsers/ParserSelectQuery.h>
 
@@ -50,7 +51,7 @@ bool ParserKQLMVExpand::parseColumnArrayExprs(ColumnArrayExprs & column_array_ex
     String to_type;
     --expr_end_pos;
 
-    while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    while (isValidKQLPos(pos) && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
     {
         if (pos->type == TokenType::OpeningRoundBracket)
             ++bracket_count;
@@ -126,9 +127,9 @@ bool ParserKQLMVExpand::parseColumnArrayExprs(ColumnArrayExprs & column_array_ex
 
         if (String(pos->begin, pos->end) == "limit")
             break;
-        if (!pos->isEnd())
+        if (isValidKQLPos(pos))
             ++pos;
-        if (pos->isEnd() || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
+        if (!isValidKQLPos(pos) || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
         {
             if (expr_end_pos < expr_begin_pos)
             {

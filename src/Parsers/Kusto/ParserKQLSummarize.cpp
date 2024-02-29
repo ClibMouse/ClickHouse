@@ -12,6 +12,7 @@
 #include <Parsers/IParserBase.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLSummarize.h>
+#include <Parsers/Kusto/Utilities.h>
 #include <Parsers/ParserSampleRatio.h>
 #include <Parsers/ParserSelectQuery.h>
 #include <Parsers/ParserSetQuery.h>
@@ -131,7 +132,7 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
             if (String(equal_pos->begin, equal_pos->end) != "=")
             {
                 String groupby_fun = String(begin_pos->begin, begin_pos->end);
-                if (equal_pos->isEnd() || equal_pos->type == TokenType::Comma || equal_pos->type == TokenType::Semicolon
+                if (!equal_pos.isValid() || equal_pos->type == TokenType::Comma || equal_pos->type == TokenType::Semicolon
                     || equal_pos->type == TokenType::PipeMark)
                 {
                     expr = groupby_fun;
@@ -162,7 +163,7 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
         }
     };
 
-    while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    while (isValidKQLPos(pos) && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
     {
         if (pos->type == TokenType::OpeningRoundBracket)
             ++bracket_count;

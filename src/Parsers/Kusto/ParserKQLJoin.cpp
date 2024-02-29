@@ -9,6 +9,7 @@
 #include <Parsers/IParserBase.h>
 #include <Parsers/Kusto/ParserKQLJoin.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
+#include <Parsers/Kusto/Utilities.h>
 #include <Parsers/ParserSelectQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
 #include <Common/StringUtils/StringUtils.h>
@@ -166,7 +167,7 @@ bool ParserKQLJoin::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
         ++attributes_start_pos;
     };
 
-    while (!pos->isEnd() && pos->type != TokenType::Semicolon)
+    while (isValidKQLPos(pos) && pos->type != TokenType::Semicolon)
     {
         if (pos->type == TokenType::OpeningRoundBracket)
             ++paren_count;
