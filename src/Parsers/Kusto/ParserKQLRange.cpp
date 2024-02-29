@@ -2,6 +2,7 @@
 #include <Parsers/ExpressionListParsers.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLRange.h>
+#include <Parsers/Kusto/Utilities.h>
 #include <Parsers/ParserSelectQuery.h>
 namespace DB
 {
@@ -18,7 +19,7 @@ bool ParserKQLRange::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expected*/
     auto start_pos = pos;
     auto end_pos = pos;
     BracketCount bracket_count;
-    while (!pos->isEnd())
+    while (isValidKQLPos(pos))
     {
         bracket_count.count(pos);
         if ((pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon) && bracket_count.isZero())

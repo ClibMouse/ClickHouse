@@ -1,7 +1,7 @@
 #include <Parsers/ExpressionListParsers.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLTopHitter.h>
-
+#include <Parsers/Kusto/Utilities.h>
 #include <format>
 
 namespace DB
@@ -20,7 +20,7 @@ bool ParserKQLTopHitters::updatePipeLine (OperationsPos & operations, String & q
 {
     Pos pos = operations.back().second;
 
-    if (pos->isEnd() || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
+    if (!isValidKQLPos(pos) || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
         throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near top-hitters operator");
 
     Pos start_pos = operations.front().second;
@@ -33,7 +33,7 @@ bool ParserKQLTopHitters::updatePipeLine (OperationsPos & operations, String & q
     String number_of_values, value_expression, summing_expression;
     start_pos = pos;
     end_pos = pos;
-    while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    while (isValidKQLPos(pos) && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
     {
         if (String(pos->begin, pos->end) == "of")
         {

@@ -4,6 +4,7 @@
 #include <Parsers/IAST.h>
 #include <Parsers/Kusto/ParserKQLPrint.h>
 #include <Parsers/Kusto/ParserKQLStatement.h>
+#include <Parsers/Kusto/Utilities.h>
 
 #include <format>
 
@@ -58,7 +59,7 @@ bool Lookup::convertImpl(String & out, IParser::Pos & pos)
 
     String arg;
 
-    while (!temp_pos->isEnd() && temp_pos->type != TokenType::PipeMark && temp_pos->type != TokenType::Semicolon)
+    while (isValidKQLPos(temp_pos) && temp_pos->type != TokenType::PipeMark && temp_pos->type != TokenType::Semicolon)
     {
         arg = getConvertedArgument(fn_name, temp_pos);
         ++num_of_args;

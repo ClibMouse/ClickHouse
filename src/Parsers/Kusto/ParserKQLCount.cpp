@@ -1,6 +1,7 @@
 #include <Parsers/ExpressionListParsers.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLCount.h>
+#include <Parsers/Kusto/Utilities.h>
 namespace DB
 {
 namespace ErrorCodes
@@ -10,7 +11,7 @@ namespace ErrorCodes
 
 bool ParserKQLCount::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
-    if (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    if (isValidKQLPos(pos) && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
         throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near count operator");
 
     ASTPtr select_expression_list;

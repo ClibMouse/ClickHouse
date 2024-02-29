@@ -2,6 +2,7 @@
 
 #include <Parsers/IParserBase.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
+#include <Parsers/Kusto/Utilities.h>
 
 namespace DB
 {
@@ -28,7 +29,7 @@ private:
         auto rename_assignment = true;
         size_t bracket_count = 0;
 
-        while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+        while (isValidKQLPos(pos) && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
         {
             if (pos->type == TokenType::OpeningRoundBracket)
                 ++bracket_count;
