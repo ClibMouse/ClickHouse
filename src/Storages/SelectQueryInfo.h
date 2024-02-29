@@ -228,6 +228,7 @@ struct SelectQueryInfo
     bool parallel_replicas_disabled = false;
     bool is_parameterized_view = false;
     bool optimize_trivial_count = false;
+    bool is_projection_optimized = false;
 
     // If limit is not 0, that means it's a trivial limit query.
     UInt64 limit = 0;
