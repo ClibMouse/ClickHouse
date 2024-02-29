@@ -4,6 +4,7 @@
 #include <Parsers/ExpressionListParsers.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLTopNested.h>
+#include <Parsers/Kusto/Utilities.h>
 #include <Parsers/ParserSelectQuery.h>
 
 #include <format>
@@ -379,7 +380,7 @@ bool ParserKQLTopNested ::parseTopNestedClause(Pos & pos, TopNestedClauses & top
     auto end_pos = start_pos;
     auto paren_count = 0;
     int layer = 0;
-    while (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    while (isValidKQLPos(pos) && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
     {
         if (pos->type == TokenType::ClosingRoundBracket)
             --paren_count;

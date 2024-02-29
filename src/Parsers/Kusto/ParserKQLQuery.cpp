@@ -139,7 +139,7 @@ bool ParserKQLBase::setSubQuerySource(
             table_expr->as<ASTTablesInSelectQueryElement>()->table_expression
                 = source->children.at(0)->as<ASTTablesInSelectQueryElement>()->table_expression;
         }
-        table_expr->children[table_index] = table_expr->as<ASTTablesInSelectQueryElement>()->table_expression;
+        table_expr->children.at(table_index) = table_expr->as<ASTTablesInSelectQueryElement>()->table_expression;
         apply_alias();
         return true;
     }
@@ -193,7 +193,7 @@ bool ParserKQLBase::setSubQuerySource(
         table_expr->as<ASTTablesInSelectQueryElement>()->table_expression
             = source->children.at(0)->as<ASTTablesInSelectQueryElement>()->table_expression;
     }
-    table_expr->children[table_index] = table_expr->as<ASTTablesInSelectQueryElement>()->table_expression;
+    table_expr->children.at(table_index) = table_expr->as<ASTTablesInSelectQueryElement>()->table_expression;
     apply_alias();
 
     table_expr->children.at(0) = table_expr->as<ASTTablesInSelectQueryElement>()->table_expression;
@@ -434,7 +434,7 @@ std::unique_ptr<ParserKQLBase> ParserKQLQuery::getOperator(const std::string_vie
 
 bool ParserKQLQuery::getOperations(Pos & pos, Expected & expected, OperationsPos & operation_pos)
 {
-    if (pos->isEnd())
+    if (!isValidKQLPos(pos))
         return false;
     if (String table_name(pos->begin, pos->end); table_name == "print" || table_name == "range")
         operation_pos.emplace_back(table_name, pos);
@@ -512,7 +512,7 @@ bool ParserKQLQuery::getOperations(Pos & pos, Expected & expected, OperationsPos
 bool ParserKQLQuery::pre_process(String & source, Pos & pos)
 {
     auto begin = pos;
-    while (!pos->isEnd() && pos->type != TokenType::Semicolon)
+    while (isValidKQLPos(pos) && pos->type != TokenType::Semicolon)
     {
         if (pos->type == TokenType::HereDoc)
             need_preprocess = true;
