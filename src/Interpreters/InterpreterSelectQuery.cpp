@@ -669,6 +669,7 @@ InterpreterSelectQuery::InterpreterSelectQuery(
                 SelectQueryInfo current_info;
                 current_info.query = query_ptr;
                 current_info.syntax_analyzer_result = syntax_analyzer_result;
+                current_info.is_projection_optimized = options.is_projection_optimized;
 
                 Names queried_columns = syntax_analyzer_result->requiredSourceColumns();
                 const auto & supported_prewhere_columns = storage->supportedPrewhereColumns();
@@ -2197,7 +2198,6 @@ ASTPtr InterpreterSelectQuery::pkOptimization(
                 return where_ast;
             }
         }
-
     }
 
     return analyze_where_ast(where_ast, proj_pks, primary_keys);
@@ -2234,14 +2234,8 @@ ASTPtr InterpreterSelectQuery::analyze_where_ast(
         else if (ast_function_node->name == "in")
         {
             ASTPtr rewrite_ast;
-            if (ast_function_node->arguments->children[1]->as<ASTSubquery>())
-            {
-                //src in (subquery)
-                auto new_in_argument = analyze_where_ast(ast_function_node->arguments->children[1], proj_pks, primary_keys);
-                rewrite_ast = makeASTFunction("in", std::move(ast_function_node->arguments->children[0]), std::move(new_in_argument));
-                return rewrite_ast;
-            }
-            else
+            const auto * subquery = ast_function_node->arguments->children[1]->as<ASTSubquery>();
+            if (!subquery)
             {
                 auto lhs_argument = ast_function_node->arguments->children.at(0);
                 contains_pk = false;
@@ -2279,10 +2273,6 @@ ASTPtr InterpreterSelectQuery::analyze_where_ast(
         }
         else if (ast_function_node->name == "and" || ast_function_node->name == "or")
         {
-            auto is_optimized = isoptimized(ast, arg_size);
-            if (is_optimized)
-                return ast;
-
             auto current_func = makeASTFunction(ast_function_node->name);
             for (size_t i = 0; i < arg_size; i++)
             {
@@ -2291,27 +2281,6 @@ ASTPtr InterpreterSelectQuery::analyze_where_ast(
                 current_func->arguments->children.push_back(std::move(new_ast));
             }
             return current_func;
-        }
-    }
-    else if (auto subquery = ast->as<ASTSubquery>())
-    {
-        if (auto select = subquery->children.at(0)->as<ASTSelectWithUnionQuery>()->list_of_selects->children.at(0)->as<ASTSelectQuery>())
-        {
-            if (auto tables = select->tables())
-            {
-                auto table_elements = tables->as<ASTTablesInSelectQuery>()->children[0]->as<ASTTablesInSelectQueryElement>();
-                auto select_table_expression = table_elements->table_expression->as<ASTTableExpression>();
-                auto select_table_id = select_table_expression->database_and_table_name->as<ASTTableIdentifier>()->getTableId();
-                if (select_table_id.getTableName() != table_id.getTableName()
-                || (select_table_id.hasDatabase() && select_table_id.getDatabaseName() != table_id.getDatabaseName())
-                || (!select_table_id.hasDatabase() && context->getCurrentDatabase() != table_id.getDatabaseName()))
-                    return ast;
-            }
-
-            if (!select->where())
-                return ast;
-            auto new_where = analyze_where_ast(select->where(), proj_pks, primary_keys);
-            select->setExpression(ASTSelectQuery::Expression::WHERE, std::move(new_where));
         }
     }
     return ast;
@@ -2354,6 +2323,7 @@ ASTPtr InterpreterSelectQuery::create_proj_optimized_ast(const ASTPtr & ast, con
     select_query->setExpression(ASTSelectQuery::Expression::WHERE, ast->clone());
 
     select_with_union_query->list_of_selects->children.push_back(select_query);
+    select_with_union_query->children.push_back(select_with_union_query->list_of_selects);
 
     auto subquery = std::make_shared<ASTSubquery>();
     subquery->children.push_back(select_with_union_query);
@@ -2375,41 +2345,10 @@ ASTPtr InterpreterSelectQuery::create_proj_optimized_ast(const ASTPtr & ast, con
         in_function->arguments->children.push_back(tuples);
     }
     in_function->arguments->children.push_back(subquery);
-    const auto indexHintFunc = makeASTFunction("indexHint", in_function);
-    return indexHintFunc;
+
+    return makeASTFunction("indexHint", std::move(in_function));
 }
 
-bool InterpreterSelectQuery::isoptimized(const ASTPtr & ast, size_t & arg_size) const
-{
-    ASTPtr left, right;
-    const auto * ast_func = ast->as<ASTFunction>();
-    if (arg_size == 2 && ast_func->name == "and")
-    {
-        for (size_t i = 0; i < arg_size; i++)
-        {
-            auto argument = (ast_func->arguments->children[i])->as<ASTFunction>();
-            if (argument->name == "indexHint")
-            {
-                if (auto in_func = argument->arguments->children[0]->as<ASTFunction>())
-                {
-                    if (in_func->name == "in")
-                    {
-                        if (auto select = in_func->arguments->children[1]->as<ASTSubquery>()->children[0]->as<ASTSelectWithUnionQuery>()->list_of_selects->children[0])
-                            left = select->as<ASTSelectQuery>()->where();
-                    }
-                }
-            }
-            else if (argument->name == "equals" && argument->arguments->children.size() == 2)
-            {
-                right = ast_func->arguments->children[i];
-            }
-        }
-        if (left && right
-           && serializeAST(*left) == serializeAST(*right))
-            return true;
-    }
-    return false;
-}
 /// Note that this is const and accepts the analysis ref to be able to use it to do analysis for parallel replicas
 /// without affecting the final analysis multiple times
 void InterpreterSelectQuery::applyFiltersToPrewhereInAnalysis(ExpressionAnalysisResult & analysis) const

@@ -249,6 +249,7 @@ struct SelectQueryInfo
     bool merge_tree_empty_result = false;
     bool settings_limit_offset_done = false;
     bool is_internal = false;
+    bool is_projection_optimized = false;
     Block minmax_count_projection_block;
     MergeTreeDataSelectAnalysisResultPtr merge_tree_select_result_ptr;
 
