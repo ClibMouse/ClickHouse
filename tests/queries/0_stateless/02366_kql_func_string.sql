@@ -17,7 +17,7 @@ CREATE TABLE Customers
     Age Nullable(UInt8)
 ) ENGINE = Memory;
 
-INSERT INTO Customers VALUES ('Theodore','Diaz','Skilled Manual','Bachelors',28), ('Stephanie','Cox','Management abcd defg','Bachelors',33),('Peter','Nara','Skilled Manual','Graduate Degree',26),('Latoya','Shen','Professional','Graduate Degree',25),('Apple','','Skilled Manual','Bachelors',28),(NULL,'why','Professional','Partial College',38);
+INSERT INTO Customers VALUES ('Theodore','Diaz','Skilled Manual','Bachelors',28), ('Stephanie','Cox','Management abcd defg','Bachelors',33),('Peter','Nara','Skilled Manual','Graduate Degree',26),('Latoya','Shen','Professional','Graduate Degree',25),('Apple','','Skilled Manual','Bachelors',28),(NULL,'why','Professional','Partial College',38),('Vinny', 'Verb\\\\atim', 'operato\\r"', '"kusto"', 46);
 
 -- datatable (Version:string) [
 --     '1.2.3.4',
@@ -609,10 +609,6 @@ print '-- isascii --';
 print str = isascii('ab১২ufghi🐂🐇🐒');
 print str = isascii('abc');
 
-print @"hello"@; -- { clientError SYNTAX_ERROR }
-print "hello"@; -- { clientError SYNTAX_ERROR }
-print @; -- { clientError SYNTAX_ERROR }
-
 print '-- replace_string --';
 print replace_string('Hello, number is 10, 20', 'is', 'was');
 print replace_string('Hello, number is 10, 20 and is 23, 24, is', 'is', 'was');
@@ -621,3 +617,52 @@ print replace_string("&&", "&", "@@" );
 print replace_string("aaaaaaa", "aaaaaa", "b");
 print replace_string("\\a\\b", "\\a", "\\b");
 print replace_string("abc", "d", "e");
+
+print '-- verbatim string --';
+print @"hello"@; -- { clientError SYNTAX_ERROR }
+print "hello"@; -- { clientError SYNTAX_ERROR }
+print @; -- { clientError SYNTAX_ERROR }
+print @"a''a";
+print @"""a""";
+print @'''a''';
+print @"a''a"@"a";
+print @"""a";
+print @"\a";
+print @"\'a";
+print @"\\a";
+print strcat(@"""a", @"a");
+print strcat(@"\a", @"\a");
+print strcat(@"\'a", @"\'a");
+print strcat(@"\\a\\", @"\\a\\");
+print from_int = strrep(@"12\\3", 3, @'\\');
+print reverse(dynamic(['\\a', @"\\b"]))
+print trim_end(@"\\", @"a\\\\");
+print trim_end(@"\\", "a\\\\");
+print result=parse_csv(@'\\aa,b,\\cc');
+print indexof_regex('ad\\\\sasdasasd', @'\\sas', 0, -1, 1);
+print indexof_regex(@'ad\\\\sasdasasd', @'\\sas', 0, -1, 1);
+print strcat_delim(@'\\', "qqqqq", "fffffff", @"'asd bcd'", "\"moo moo \"");
+print translate('kra\\sp', @'\\otsku', '\\spark')
+print translate('kra\\sp', @'\\otsku', '\\spark')
+print translate(@'kra\\sp', @'\\otsku', @'\\spark')
+print translate(@'kra\\sp', @'\\otsku', @'\\spark')
+print translate(@'kra\\sp', @'\\otsku', @'''spark')
+print parse_urlquery(@'k1=v1\\&k2=v2""&k3=v3''');
+print trim(@"https\\", @"https:\\www.ibm.com");
+print trim(@"https:\\", "https:\\www.ibm.com");
+print indexof('b\\a',  @'\a', -5);
+print indexof_regex("ba'a", strcat("a", @'''', "a"));
+print indexof_regex(@"ba""a", strcat("a", '"', "a"));
+Customers | where Education contains @"""kusto""" | order by LastName;
+print 'a"' has @"a""";
+Customers | where Education in ('Bachelors', @"""kusto""", 'High School')| order by LastName;
+Customers | where Education startswith_cs @"""k" | order by LastName;
+Customers | where Education hassuffix @"usto"""| order by LastName;
+Customers | where Education contains @"""" | order by LastName;
+Customers | where LastName contains @"\a" | order by LastName;
+Customers | where Occupation has_any ('Skilled', 'abcd', @"\r""");
+print @"\ab" startswith "\\a";
+print  @"\a" == "\\a";
+print  @"\a" != @"\\a";
+print @"\\a" != "\\a";
+print "\\a" == @"\\a";
