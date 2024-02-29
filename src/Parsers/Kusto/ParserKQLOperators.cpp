@@ -199,7 +199,7 @@ String genHasAnyAllOpExpr(
 
     auto haystack = tokens.back();
     const auto * const logic_op = (kql_op == "has_all") ? " and " : " or ";
-    while (!token_pos->isEnd() && token_pos->type != DB::TokenType::PipeMark && token_pos->type != DB::TokenType::Semicolon)
+    while (isValidKQLPos(token_pos) && token_pos->type != DB::TokenType::PipeMark && token_pos->type != DB::TokenType::Semicolon)
     {
         auto tmp_arg = DB::IParserKQLFunction::getExpression(token_pos);
         if (token_pos->type == DB::TokenType::Comma)
@@ -250,7 +250,7 @@ String genBetweenOpExpr(std::vector<std::string> & tokens, DB::IParser::Pos & to
 
     ++token_pos;
 
-    while (!token_pos->isEnd())
+    while (isValidKQLPos(token_pos))
     {
         if ((token_pos->type == DB::TokenType::PipeMark || token_pos->type == DB::TokenType::Semicolon))
             break;
@@ -268,7 +268,7 @@ String genBetweenOpExpr(std::vector<std::string> & tokens, DB::IParser::Pos & to
         if (dot_token.ignore(token_pos))
             throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Syntax error, number of dots do not match.");
 
-        while (!token_pos->isEnd())
+        while (isValidKQLPos(token_pos))
         {
             bracket_count.count(token_pos);
             if ((token_pos->type == DB::TokenType::PipeMark || token_pos->type == DB::TokenType::Semicolon) && bracket_count.isZero())
@@ -441,7 +441,7 @@ namespace DB
 {
 bool KQLOperators::convert(std::vector<String> & tokens, IParser::Pos & pos)
 {
-    if (pos->isEnd() || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
+    if (!isValidKQLPos(pos) || pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon)
         return false;
 
     auto begin = pos;
@@ -468,7 +468,7 @@ bool KQLOperators::convert(std::vector<String> & tokens, IParser::Pos & pos)
     }
 
     ++pos;
-    if (!pos->isEnd() && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    if (isValidKQLPos(pos) && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
     {
         if (String(pos->begin, pos->end) == "~")
             op += "~";

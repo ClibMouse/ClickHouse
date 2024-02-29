@@ -98,7 +98,7 @@ bool ParserKQLTableFunction::parseImpl(Pos & pos, ASTPtr & node, Expected & expe
                     break;
                 ++pos;
             }
-            if (pos->isEnd() && paren_count != 0)
+            if (!isValidKQLPos(pos) && paren_count != 0)
                 return false;
 
             kql_statement = String(pos_start->begin, (--pos)->end);

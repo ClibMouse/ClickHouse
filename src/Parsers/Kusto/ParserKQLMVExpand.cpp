@@ -7,6 +7,7 @@
 #include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/Kusto/Utilities.h>
 #include <Parsers/Kusto/ParserKQLMVExpand.h>
+#include <Parsers/Kusto/Utilities.h>
 #include <Parsers/ParserSetQuery.h>
 #include <Parsers/ParserSelectQuery.h>
 

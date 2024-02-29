@@ -152,7 +152,7 @@ bool ParserKQLMakeSeries ::parseAggregationColumns(AggregationColumns & aggregat
     BracketCount bracket_count;
     auto begin = pos;
     size_t column_index = 1;
-    while (!pos->isEnd())
+    while (isValidKQLPos(pos))
     {
         bracket_count.count(pos);
         if ((pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon) && bracket_count.isZero())
@@ -179,7 +179,7 @@ bool ParserKQLMakeSeries ::parseAxisColumn(String & axis_column, Pos & pos)
 {
     auto begin = pos;
     BracketCount bracket_count;
-    while (!pos->isEnd())
+    while (isValidKQLPos(pos))
     {
         bracket_count.count(pos);
         if ((pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon) && bracket_count.isZero())
@@ -305,7 +305,7 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
                 auto datetime_start_pos = pos;
                 auto datetime_end_pos = pos;
                 BracketCount bracket_count;
-                while (!pos->isEnd())
+                while (isValidKQLPos(pos))
                 {
                     bracket_count.count(pos);
                     if (pos->type == TokenType::ClosingRoundBracket && bracket_count.isZero())
