@@ -349,7 +349,7 @@ SplitPartsRangesResult splitPartsRanges(RangesInDataParts ranges_in_data_parts, 
             if (previous_part_range.event == PartsRangesIterator::EventType::RangeStart)
             {
                 /// If part level is 0, we must process whole previous part because it can contain duplicate primary keys
-                if (force_process_all_ranges || ranges_in_data_parts[previous_part_range.part_index].data_part->info.level == 0)
+                if (ranges_in_data_parts[previous_part_range.part_index].data_part->info.level == 0)
                     continue;
 
                 /// Case 1 Range Start after Range Start
@@ -384,7 +384,7 @@ SplitPartsRangesResult splitPartsRanges(RangesInDataParts ranges_in_data_parts, 
             MarkRange other_interval_range = other_interval_it->second;
 
             /// If part level is 0, we must process whole other intersecting part because it can contain duplicate primary keys
-            if (force_process_all_ranges || ranges_in_data_parts[other_interval_part_index].data_part->info.level == 0)
+            if (ranges_in_data_parts[other_interval_part_index].data_part->info.level == 0)
                 continue;
 
             /// Case 2 Range Start after Range End
@@ -419,7 +419,7 @@ SplitPartsRangesResult splitPartsRanges(RangesInDataParts ranges_in_data_parts, 
           *
           * If part level is 0, we must process whole part because it can contain duplicate primary keys.
           */
-        if (intersecting_parts != 1 || force_process_all_ranges || ranges_in_data_parts[current_part_range.part_index].data_part->info.level == 0)
+        if (intersecting_parts != 1 || ranges_in_data_parts[current_part_range.part_index].data_part->info.level == 0)
         {
             add_intersecting_range(current_part_range.part_index, part_index_start_to_range[current_part_range.part_index]);
             part_index_start_to_range.erase(current_part_range.part_index);
