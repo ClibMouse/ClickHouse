@@ -4,15 +4,32 @@ CREATE TABLE array_test (floats Array(Float64),
                          nullable_strings Array(Nullable(String))
                          ) ENGINE=Memory;
 INSERT INTO array_test VALUES([1.0, 2.5], ['a', 'c'], ['A', NULL, 'C']);
+DROP TABLE IF EXISTS visit;
+CREATE TABLE visit(pageid UInt8, ip_country Array(Nullable(String)), hit Array(Int64),duration Array(Int64)) ENGINE = Memory;
+INSERT INTO visit VALUES (1,['CA', 'US','FR','Eng'], [11,16,12,20],[100,500,300,200]);
+INSERT INTO visit VALUES (2,['Japan', 'Gem','FR','Eng'], [31,22,33,10],[510,410,310,210]);
+INSERT INTO visit VALUES (3,['CA', 'Gem','Japan','Eng'], [25,10,23,11],[120,110,130,000]);
+--INSERT INTO visit VALUES (4,['CA', 'Gem',null,'Eng'], [5,10,3,2],[220,320,310,150]);
+--INSERT INTO visit VALUES (5,['FR', null,'US','Eng'], [16,12,23,10],[210,250,110,260]);
 set dialect = 'kusto';
+set interval_output_format = 'kusto';
+
 print '-- constant index value';
 array_test | project floats[0], strings[1], nullable_strings;
 print '-- array_length()';
-print array_length(dynamic(['John', 'Denver', 'Bob', 'Marley'])) == 4;
-print array_length(dynamic([1, 2, 3])) == 3;
+print array_length(dynamic(['John', 'Denver', 'Bob', 'Marley']));
+print array_length(dynamic([1, 2, 3]));
+print array_length(42); -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
+print array_length('a'); -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
+-- print array_length(dynamic(42)); -> NULL
+-- print array_length(dynamic('a')); -> NULL
 print '-- array_sum()';
-print array_sum(dynamic([2, 5, 3])) == 10;
-print array_sum(dynamic([2.5, 5.5, 3])) == 11;
+print array_sum(dynamic([2, 5, 3]));
+print array_sum(dynamic([2.5, 5.5, 3]));
+print array_sum(dynamic([true, false, null]));
+print array_sum(dynamic(['Alice', 'Bob']));
+print array_sum(dynamic([null, null, null]));
+print array_sum(repeat(1, 4));
 print '-- array_index_of()';
 print array_index_of(dynamic(['John', 'Denver', 'Bob', 'Marley']), 'Marley');
 print array_index_of(dynamic([1, 2, 3]), 2);
@@ -21,6 +38,13 @@ print array_iif(dynamic([true,false,true]), dynamic([1,2,3]), dynamic([4,5,6]));
 print array_iif(dynamic([1,0,1]), dynamic([1,2,3]), dynamic([4,5,6]));
 print array_iif(dynamic([true,false,true]), dynamic([1,2]), dynamic([4,5,6]));
 print array_iif(dynamic(['a','b','c']), dynamic([1,2,3]), dynamic([4,5,6]));
+print array_iif(dynamic([true,null]), dynamic([1, 2]), repeat(4, 2));
+print t = array_iif(dynamic([true, false, true, false, true]), dynamic(['1', '3']), '2');
+print t = array_iif(dynamic([10, 0, 5, 0, -4]), dynamic(['1', '3']), '2');
+print t = array_iif(dynamic([2.2, 0, 4.4, 0, 66.7]), dynamic(['1', '3']), '2');
+print t = array_iif(dynamic([true, false, true, false, true]), dynamic([1.1, 2.2, 3.3, 4.4, 5.5]), 999.99);
+print t = array_iif(dynamic([true, false, true, false, true]), 90, dynamic([1, 3]));
+print t = array_iif(dynamic([true, false, true, false, true]), dynamic([1, 3, 5, 7, 9]), dynamic([2, 4, 6, 8, 10]));
 print '-- array_concat()';
 print array_concat(dynamic([1,2,3]),dynamic([4,5,6]));
 print '-- array_reverse()';
@@ -159,3 +183,17 @@ print zip(dynamic([1,3,5]), dynamic([2,4,6]));
 print zip(dynamic(['Darth','Master']), dynamic(['Vader','Yoda']), dynamic(['has a suit','doesn\'t have a suit']));
 print zip(dynamic([1,2,3]), dynamic([10,20]));
 print zip(dynamic([]), dynamic([1,2,3]));
+print '-- array_sort in table()';
+visit | project pageid, array_sort_asc(ip_country, hit, duration) | order by pageid asc;
+print '-- array_sort in table() with condition';
+visit | project pageid, array_sort_asc(ip_country, hit, duration, pageid > 4) | order by pageid asc;
+print '-- array_sort as condition';
+visit | where isnull(array_sort_asc(ip_country, hit, duration)[2][0]);
+print '-- array_sort with single alias';
+visit | project pageid, a = array_sort_asc(ip_country, hit, duration) | order by pageid asc;
+visit | project pageid, (a) = array_sort_asc(ip_country, hit, duration) | order by pageid asc;
+print '-- array_sort with partial alias';
+visit | project pageid, (a,b) = array_sort_asc(ip_country, hit, duration) | order by pageid asc;
+print '-- array_sort with all alias';
+visit | project pageid, (a,b,c) = array_sort_asc(ip_country, hit, duration) | order by pageid asc;
+print zip(repeat(1,4), repeat(2,4));

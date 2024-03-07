@@ -13,7 +13,6 @@
 #include <Common/typeid_cast.h>
 #include "Parsers/IAST_fwd.h"
 
-
 namespace DB
 {
 

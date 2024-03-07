@@ -1,13 +1,4 @@
-#include <Parsers/ASTExpressionList.h>
-#include <Parsers/ASTSelectWithUnionQuery.h>
-#include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
-#include <Parsers/Kusto/KustoFunctions/KQLAggregationFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLBinaryFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLCastingFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLDateTimeFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLDynamicFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLGeneralFunctions.h>
+#include "KQLDynamicFunctions.h"
 
 #include <format>
 
@@ -15,7 +6,7 @@ namespace DB
 {
 namespace ErrorCodes
 {
-    extern const int NUMBER_OF_ARGUMENTS_DOESNT_MATCH;
+    extern const int NOT_IMPLEMENTED;
     extern const int SYNTAX_ERROR;
 }
 
@@ -26,22 +17,7 @@ bool ArrayConcat::convertImpl(String & out, IParser::Pos & pos)
 
 bool ArrayIif::convertImpl(String & out, IParser::Pos & pos)
 {
-    const auto function_name = getKQLFunctionName(pos);
-    if (function_name.empty())
-        return false;
-
-    const auto conditions = getArgument(function_name, pos);
-    const auto if_true = getArgument(function_name, pos);
-    const auto if_false = getArgument(function_name, pos);
-
-    out = std::format(
-        "arrayMap(x -> multiIf(toTypeName(x.1) = 'String', null, toInt64(x.1) != 0, x.2, x.3), "
-        "arrayZip({0}, arrayResize({1}, length({0}), null), arrayResize({2}, length({0}), null)))",
-        conditions,
-        if_true,
-        if_false);
-
-    return true;
+    return directMapping(out, pos, "kql_ArrayIif");
 }
 
 bool ArrayIndexOf::convertImpl(String & out, IParser::Pos & pos)
@@ -59,19 +35,19 @@ bool ArrayIndexOf::convertImpl(String & out, IParser::Pos & pos)
 
 bool ArrayLength::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "length");
-}
-
-bool ArrayReverse::convertImpl(String & out, IParser::Pos & pos)
-{
     const auto function_name = getKQLFunctionName(pos);
     if (function_name.empty())
         return false;
 
     const auto array = getArgument(function_name, pos);
-    out = std::format("if(throwIf(not startsWith(toTypeName({0}), 'Array'), 'Only arrays are supported'), [], reverse({0}))", array);
+    out = std::format("arrayLastIndex(x -> true, {0})", array);
 
     return true;
+}
+
+bool ArrayReverse::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "arrayReverse");
 }
 
 bool ArrayRotateLeft::convertImpl(String & out, IParser::Pos & pos)
@@ -119,7 +95,7 @@ bool ArrayShiftLeft::convertImpl(String & out, IParser::Pos & pos)
         "defaultValueOfTypeName(if(element_type_{3} = 'Nothing', 'Nullable(Nothing)', element_type_{3})), {2}) as fill_value_{3})",
         array,
         count,
-        fill ? *fill : "null",
+        fill.value_or("null"),
         generateUniqueIdentifier());
 
     return true;
@@ -199,28 +175,34 @@ bool ArraySplit::convertImpl(String & out, IParser::Pos & pos)
 
 bool ArraySum::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "arraySum");
+    const auto function_name = getKQLFunctionName(pos);
+    if (function_name.empty())
+        return false;
+
+    const auto argument = getArgument(function_name, pos);
+    out = std::format(
+        "if(multiSearchAny(extract(toTypeName(arrayMap(x -> assumeNotNull(x), arrayFilter(x -> isNotNull(x), {0}))), "
+        "'Array\\((.*)\\)'), ['Bool', 'Decimal', 'Float', 'Int', 'Nothing', 'UInt']), "
+        "arraySum(x -> toFloat64OrDefault(x), {0}), null)",
+        argument,
+        generateUniqueIdentifier());
+
+    return true;
 }
 
-bool BagKeys::convertImpl(String & out, IParser::Pos & pos)
+bool BagKeys::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
 }
 
-bool BagMerge::convertImpl(String & out, IParser::Pos & pos)
+bool BagMerge::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
 }
 
-bool BagRemoveKeys::convertImpl(String & out, IParser::Pos & pos)
+bool BagRemoveKeys::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
 }
 
 bool JaccardIndex::convertImpl(String & out, IParser::Pos & pos)
@@ -239,18 +221,14 @@ bool JaccardIndex::convertImpl(String & out, IParser::Pos & pos)
     return true;
 }
 
-bool Pack::convertImpl(String & out, IParser::Pos & pos)
+bool Pack::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
 }
 
-bool PackAll::convertImpl(String & out, IParser::Pos & pos)
+bool PackAll::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
 }
 
 bool PackArray::convertImpl(String & out, IParser::Pos & pos)
@@ -320,11 +298,9 @@ bool SetUnion::convertImpl(String & out, IParser::Pos & pos)
     return true;
 }
 
-bool TreePath::convertImpl(String & out, IParser::Pos & pos)
+bool TreePath::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
 }
 
 bool Zip::convertImpl(String & out, IParser::Pos & pos)
@@ -333,20 +309,7 @@ bool Zip::convertImpl(String & out, IParser::Pos & pos)
     if (function_name.empty())
         return false;
 
-    const auto arguments = std::invoke(
-        [&function_name, &pos]
-        {
-            std::vector<String> result;
-            while (auto argument = getOptionalArgument(function_name, pos))
-                result.push_back(std::move(*argument));
-
-            return result;
-        });
-
-    if (const auto size = arguments.size(); size < 2 || size > 16)
-        throw Exception(
-            ErrorCodes::NUMBER_OF_ARGUMENTS_DOESNT_MATCH, "Between 2 and 16 arguments are expected, but {} were provided", size);
-
+    const auto arguments = getArguments(function_name, pos, ArgumentState::Parsed, {2, 16});
     const auto unique_identifier = generateUniqueIdentifier();
     const auto resized_arguments = std::invoke(
         [&arguments, &unique_identifier]
@@ -357,7 +320,8 @@ bool Zip::convertImpl(String & out, IParser::Pos & pos)
                 lengths.append(i > 0 ? ", " : "");
                 lengths.append(std::format(
                     "length(if(match(toTypeName({0}), 'Array\\(Nullable\\(.*\\)\\)'), {0}, "
-                    "cast({0}, concat('Array(Nullable(', extract(toTypeName({0}), 'Array\\((.*)\\)'), '))'))) as arg{1}_{2})",
+                    "cast({0}, concat('Array(', extract(toTypeName(if(length({0}) = 0, [NULL], {0})), 'Array\\((.*)\\)'), ')'))) as "
+                    "arg{1}_{2})",
                     arguments[i],
                     i,
                     unique_identifier));
@@ -373,5 +337,10 @@ bool Zip::convertImpl(String & out, IParser::Pos & pos)
     out = std::format("arrayMap(t -> [untuple(t)], arrayZip({0}))", resized_arguments);
 
     return true;
+}
+
+bool Range::convertImpl(String & out, IParser::Pos & pos)
+{
+    return directMapping(out, pos, "kql_range");
 }
 }

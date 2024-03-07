@@ -25,6 +25,12 @@ CREATE TABLE Customers
 
 INSERT INTO Customers VALUES  ('Theodore','Diaz','Skilled Manual','Bachelors',28),('Stephanie','Cox','Management abcd defg','Bachelors',33),('Peter','Nara','Skilled Manual','Graduate Degree',26),('Latoya','Shen','Professional','Graduate Degree',25),('Joshua','Lee','Professional','Partial College',26),('Edward','Hernandez','Skilled Manual','High School',36),('Dalton','Wood','Professional','Partial College',42),('Christine','Nara','Skilled Manual','Partial College',33),('Cameron','Rodriguez','Professional','Partial College',28),('Angel','Stewart','Professional','Partial College',46),('Apple','','Skilled Manual','Bachelors',28),(NULL,'why','Professional','Partial College',38);
 
+-- datatable (LogEntry:string, Created:long) [
+--     'Darth Vader has entered the room.', 546,
+--     'Rambo is suspciously looking at Darth Vader.', 245234,
+--     'Darth Sidious electrocutes both using Force Lightning.', 245554
+-- ]
+
 drop table if exists EventLog;
 create table EventLog
 (
@@ -37,12 +43,15 @@ insert into EventLog values ('Darth Vader has entered the room.', 546), ('Rambo 
 drop table if exists Dates;
 create table Dates
 (
-    EventTime DateTime,
+    EventTime DateTime('UTC'),
 ) ENGINE = Memory;
 
-Insert into Dates VALUES ('2015-10-12') , ('2016-10-12')
-Select '-- test summarize --' ;
-set dialect='kusto';
+insert into Dates values ('2015-10-12'), ('2016-10-12');
+
+select '-- test summarize --';
+set dialect = 'kusto';
+set interval_output_format = 'kusto';
+
 Customers | summarize count(), min(Age), max(Age), avg(Age), sum(Age);
 Customers | summarize count(), min(Age), max(Age), avg(Age), sum(Age) by Occupation | order by Occupation;
 Customers | summarize countif(Age>40) by Occupation | order by Occupation;
@@ -51,10 +60,15 @@ Customers | summarize MyMin = minif(Age, Age<40) by Occupation | order by Occupa
 Customers | summarize MyAvg = avgif(Age, Age<40) by Occupation | order by Occupation;
 Customers | summarize MySum = sumif(Age, Age<40) by Occupation | order by Occupation;
 Customers | summarize dcount(Education);
+Customers | summarize dcount(Education, 2);
+Customers | summarize dcount(Education, 10);  -- { clientError 36 }
 Customers | summarize dcountif(Education, Occupation=='Professional');
+Customers | summarize dcountif(Education, Occupation=='Professional', 2);
+Customers | summarize dcountif(Education, Occupation=='Professional', -1); -- { clientError 36 }
 Customers | summarize count_ = count() by bin(Age, 10) | order by count_ asc;
 Customers | summarize job_count = count() by Occupation | where job_count > 0 | order by Occupation;
 Customers | summarize 'Edu Count'=count() by Education | sort by 'Edu Count' desc; -- { clientError 62 }
+Customers | summarize by FirstName, LastName, Age;
 
 print '-- make_list() --';
 Customers | summarize f_list = make_list(Education) by Occupation | sort by Occupation;
@@ -91,12 +105,49 @@ Customers | sort by FirstName | summarize count() by Occupation | sort by Occupa
 print '-- summarize with bin --';
 EventLog | summarize count=count() by bin(Created, 1000);
 EventLog | summarize count=count() by bin(unixtime_seconds_todatetime(Created/1000), 1s);
-EventLog | summarize count=count() by time_label=bin(Created/1000, 1s);
-Dates | project bin(datetime(EventTime), 1m);
+EventLog | summarize count=count() by time_label=bin(Created / 1000 * 1s, 1s);
+Dates | project bin(EventTime, 1m);
 print '-- make_list_with_nulls --';
 Customers | summarize t = make_list_with_nulls(FirstName);
-Customers | summarize f_list = make_list_with_nulls(FirstName) by Occupation | sort by Occupation;
-Customers | summarize f_list = make_list_with_nulls(FirstName), a_list = make_list_with_nulls(Age) by Occupation | sort by Occupation;
--- TODO:
--- arg_max()
--- arg_min()
+Customers | summarize f_list = make_list_with_nulls(FirstName) by Occupation;
+Customers | summarize f_list = make_list_with_nulls(FirstName), a_list = make_list_with_nulls(Age) by Occupation;
+print '-- count_distinct --';
+Customers | summarize count_distinct(Education);
+print '-- count_distinctif --';
+Customers | summarize count_distinctif(Education, Age > 30);
+
+print '-- format_datetime --';
+EventLog | summarize count() by dt = format_datetime(bin(unixtime_seconds_todatetime(Created), 1d), 'yy-MM-dd') | order by dt asc;
+
+print '-- take_any --';
+Customers | summarize take_any(FirstName);
+Customers | summarize take_any(FirstName), take_any(LastName);
+Customers | where FirstName startswith 'C' | summarize take_any(FirstName, LastName) by FirstName, LastName;
+Customers | summarize take_any(strcat(FirstName,LastName));
+print '-- take_anyif --';
+Customers | summarize take_anyif(FirstName, LastName has 'Diaz');
+Customers | summarize take_anyif(FirstName, LastName has 'Diaz'), dcount(FirstName);
+
+print '-- variance/variancep/varianceif --';
+Customers | summarize variance(Age);
+Customers | summarize variancep(Age);
+Customers | summarize varianceif(Age, Age < 30);
+Customers | summarize variance(null);  -- { serverError 395 }
+Customers | summarize variancep(null);  -- { serverError 395 }
+Customers | summarize varianceif(null, Age < 30);  -- { serverError 395 }
+
+print '-- arg_max --';
+Customers | summarize arg_max(Age); -- { clientError NUMBER_OF_ARGUMENTS_DOESNT_MATCH }
+Customers | summarize arg_max(Age, LastName);
+Customers | summarize z=arg_max(Age, FirstName, LastName) by Occupation;
+
+print '-- arg_min --';
+Customers | summarize arg_min(Age); -- { clientError NUMBER_OF_ARGUMENTS_DOESNT_MATCH }
+Customers | summarize arg_min(Age, LastName);
+Customers | summarize z=arg_min(Age, FirstName, LastName) by Occupation;
+
+print '-- hll, hll_if, hll_merge, dcount_hll --';
+Customers | summarize x = hll(Education) | project dcount_hll(x);
+Customers | summarize y = hll(Occupation) | project dcount_hll(y);
+Customers | summarize x = hll(Education), y = hll(Occupation) | project xy = hll_merge(x, y) | project dcount_hll(xy);
+Customers | summarize x = hll(Education), y = hll(Occupation) | summarize xy = hll_merge(x, y) | project dcount_hll(xy);

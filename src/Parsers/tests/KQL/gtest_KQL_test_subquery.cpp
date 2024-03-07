@@ -1,10 +1,10 @@
 #include <Parsers/tests/gtest_common.h>
 
-#include <Parsers/Kusto/ParserKQLQuery.h>
+#include <Parsers/Kusto/ParserKQLStatement.h>
 
-INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_TestSubquery, ParserKQLTest,
+INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_Subquery, ParserTest,
     ::testing::Combine(
-        ::testing::Values(std::make_shared<DB::ParserKQLQuery>()),
+        ::testing::Values(std::make_shared<DB::ParserKQLStatement>()),
         ::testing::ValuesIn(std::initializer_list<ParserTestCase>{
         {
             "Customers | where FirstName in ((Customers | project FirstName  | where FirstName !in ('Peter', 'Latoya')));",
@@ -44,11 +44,11 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_TestSubquery, ParserKQLTest,
         },
         {
             "Customers | where FirstName in ((Customers | project FirstName  | where FirstName !has 'Peter'));",
-            "SELECT *\nFROM Customers\nWHERE FirstName IN (\n    SELECT FirstName\n    FROM Customers\n    WHERE NOT hasTokenCaseInsensitive(FirstName, 'Peter')\n)"
+            "SELECT *\nFROM Customers\nWHERE FirstName IN (\n    SELECT FirstName\n    FROM Customers\n    WHERE NOT ifNull(hasTokenCaseInsensitiveOrNull(FirstName, 'Peter'), hasTokenCaseInsensitive(FirstName, 'Peter') AND (positionCaseInsensitive(FirstName, 'Peter') > 0))\n)"
         },
         {
             "Customers | where FirstName in ((Customers | project FirstName  | where FirstName !has_cs 'Peter'));",
-            "SELECT *\nFROM Customers\nWHERE FirstName IN (\n    SELECT FirstName\n    FROM Customers\n    WHERE NOT hasToken(FirstName, 'Peter')\n)"
+            "SELECT *\nFROM Customers\nWHERE FirstName IN (\n    SELECT FirstName\n    FROM Customers\n    WHERE NOT ifNull(hasTokenOrNull(FirstName, 'Peter'), hasToken(FirstName, 'Peter') AND (position(FirstName, 'Peter') > 0))\n)"
         },
         {
             "Customers | where FirstName in ((Customers | project FirstName  | where FirstName !hasprefix 'Peter'));",
@@ -84,7 +84,7 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_TestSubquery, ParserKQLTest,
         },
         {
             "Customers | where substring(FirstName,0,3) in~ ((Customers | project substring(FirstName,0,3) | where FirstName in~ ('peter', 'apple')));",
-            "SELECT *\nFROM Customers\nWHERE lower(if(toInt64(length(FirstName)) <= 0, '', substr(FirstName, (((0 % toInt64(length(FirstName))) + toInt64(length(FirstName))) % toInt64(length(FirstName))) + 1, 3))) IN (\n    SELECT lower(if(toInt64(length(FirstName)) <= 0, '', substr(FirstName, (((0 % toInt64(length(FirstName))) + toInt64(length(FirstName))) % toInt64(length(FirstName))) + 1, 3)))\n    FROM Customers\n    WHERE lower(FirstName) IN (lower('peter'), lower('apple'))\n)"
+            "SELECT *\nFROM Customers\nWHERE lower(if(toInt64(length(FirstName)) <= 0, '', substr(FirstName, (((0 % toInt64(length(FirstName))) + toInt64(length(FirstName))) % toInt64(length(FirstName))) + 1, 3))) IN (\n    SELECT lower(if(toInt64(length(FirstName)) <= 0, '', substr(FirstName, (((0 % toInt64(length(FirstName))) + toInt64(length(FirstName))) % toInt64(length(FirstName))) + 1, 3))) AS Column1\n    FROM Customers\n    WHERE lower(FirstName) IN (lower('peter'), lower('apple'))\n)"
         },
         {
             "Customers | where FirstName in~ ((Customers |  where FirstName !in~ ('peter', 'apple')| project FirstName));",

@@ -1,11 +1,14 @@
 #include "KQLFunctionFactory.h"
+
 #include <Parsers/Kusto/ParserKQLOperators.h>
+#include <Parsers/Kusto/ParserKQLTimespan.h>
 #include <Parsers/Kusto/Utilities.h>
-#include <Parsers/Kusto/ParserKQLDateTypeTimespan.h>
+
 #include <boost/lexical_cast.hpp>
 #include <magic_enum.hpp>
 #include <pcg_random.hpp>
 #include <Poco/String.h>
+
 #include <format>
 #include <numeric>
 #include <stack>
@@ -196,7 +199,13 @@ String IParserKQLFunction::getConvertedArgument(const String & fn_name, IParser:
                         array_index += getExpression(pos);
                         ++pos;
                     }
-                    token = std::format("[ {0} >=0 ? {0} + 1 : {0}]", array_index);
+                    if (Int64 index; (boost::conversion::try_lexical_convert(array_index, index)))
+                    {
+                        auto ch_index = index >= 0 ? index + 1 : index;
+                        token = std::format("[{0}]", ch_index);
+                    }
+                    else
+                        token = std::format("[ {0} >=0 ? {0} + 1 : {0}]", array_index);
                 }
                 else
                     token = String(pos->begin, pos->end);
@@ -315,16 +324,6 @@ void IParserKQLFunction::validateEndOfFunction(const String & fn_name, IParser::
 String IParserKQLFunction::getExpression(IParser::Pos & pos)
 {
     String arg(pos->begin, pos->end);
-    auto parseConstTimespan = [&]()
-    {
-        ParserKQLDateTypeTimespan time_span;
-        ASTPtr node;
-        Expected expected;
-
-        if (time_span.parse(pos, node, expected))
-            arg = boost::lexical_cast<std::string>(time_span.toSeconds());
-    };
-
     if (pos->type == TokenType::BareWord)
     {
         const auto fun = KQLFunctionFactory::get(arg);
@@ -346,11 +345,10 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
                 --pos;
             }
 
-            parseConstTimespan();
+            if (std::optional<Int64> ticks; ParserKQLTimespan::tryParse(extractTokenWithoutQuotes(pos), ticks) && ticks)
+                arg = kqlTicksToInterval(ticks);
         }
     }
-    else if (pos->type == TokenType::ErrorWrongNumber)
-        parseConstTimespan();
     else if (pos->type == TokenType::QuotedIdentifier)
         arg = "'" + escapeSingleQuotes(String(pos->begin + 1, pos->end - 1)) + "'";
     else if (pos->type == TokenType::OpeningSquareBracket)
@@ -362,9 +360,16 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
             array_index += getExpression(pos);
             ++pos;
         }
-        arg = std::format("[ {0} >=0 ? {0} + 1 : {0}]", array_index);
+        if (Int64 index; (boost::conversion::try_lexical_convert(array_index, index)))
+        {
+            auto ch_index = index >= 0 ? index + 1 : index;
+            arg = std::format("[{0}]", ch_index);
+        }
+        else
+        {
+            arg = std::format("[ {0} >=0 ? {0} + 1 : {0}]", array_index);
+        }
     }
-
     return arg;
 }
 

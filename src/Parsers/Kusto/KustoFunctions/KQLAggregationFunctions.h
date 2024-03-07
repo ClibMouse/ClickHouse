@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
+#include "IParserKQLFunction.h"
+
 namespace DB
 {
 class ArgMax : public IParserKQLFunction
@@ -85,6 +85,35 @@ class DCountIf : public IParserKQLFunction
 {
 protected:
     const char * getName() const override { return "dcountif()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class DCountHll : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "dcount_hll()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class Hll : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "hll()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class HllIf : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "hll_if()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+
+class HllMerge : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "hll_merge()"; }
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
@@ -263,5 +292,25 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class VarianceP : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "variancep()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class CountDistinct : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "count_distinct()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class CountDistinctIf : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "count_distinctif()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
 
 }

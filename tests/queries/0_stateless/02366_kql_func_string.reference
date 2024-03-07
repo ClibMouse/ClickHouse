@@ -137,12 +137,18 @@ Apple		Skilled Manual	Bachelors	28
 -- Customers | where isempty(LastName)
 Apple		Skilled Manual	Bachelors	28
 
+-- print isempty(1.2345)
+0
+
 -- Customers | where isnotempty(LastName)
 Theodore	Diaz	Skilled Manual	Bachelors	28
 Stephanie	Cox	Management abcd defg	Bachelors	33
 Peter	Nara	Skilled Manual	Graduate Degree	26
 Latoya	Shen	Professional	Graduate Degree	25
 \N	why	Professional	Partial College	38
+
+-- print isnotempty(1.2345)
+1
 
 -- Customers | where isnotnull(FirstName)
 Latoya	Shen	Professional	Graduate Degree	25
@@ -161,7 +167,7 @@ https://www.test.com/hello word
 https%3A%2F%2Fwww.test.com%2Fhello%20word
 
 -- Customers | project name_abbr = strcat(substring(FirstName,0,3), \' \', substring(LastName,2))
-\N
+ y
 Lat en
 Pet ra
 The az
@@ -169,7 +175,7 @@ Ste x
 App 
 
 -- Customers | project name = strcat(FirstName, \' \', LastName)
-\N
+ why
 Latoya Shen
 Peter Nara
 Theodore Diaz
@@ -185,12 +191,19 @@ Stephanie	9
 Apple	5
 
 -- Customers | project strrep(FirstName,2,\'_\')
-\N
+_
 Latoya_Latoya
 Peter_Peter
 Theodore_Theodore
 Stephanie_Stephanie
 Apple_Apple
+
+--print from_str = strrep("ABC", 2)
+ABCABC
+--print from_int = strrep(123,3,".")
+123.123.123
+--print from_time = strrep(3s,2," ")
+00:00:03 00:00:03
 
 -- Customers | project toupper(FirstName)
 \N
@@ -208,11 +221,6 @@ theodore
 stephanie
 apple
 
--- support subquery for in orerator (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/in-cs-operator) (subquery need to be wraped with bracket inside bracket); TODO: case-insensitive not supported yet
-Latoya	Shen	Professional	Graduate Degree	25
-Peter	Nara	Skilled Manual	Graduate Degree	26
-Theodore	Diaz	Skilled Manual	Bachelors	28
-Apple		Skilled Manual	Bachelors	28
 
 -- has_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/has-all-operator); TODO: subquery not supported yet
 Peter	Nara	Skilled Manual	Graduate Degree	26
@@ -229,6 +237,12 @@ Apple		Skilled Manual	Bachelors	28
 3
 3
 1
+3
+3
+2
+2
+1
+2
 
 -- extract ( https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractfunction)
 PINEAPPLE ice cream is 20
@@ -243,9 +257,11 @@ PINEAPPLE
 \N
 45.6
 45.6
+alert
 
--- extract_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractallfunction); TODO: captureGroups not supported yet
+-- extract_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractallfunction)
 [['T','h','e'],['p','ric','e'],['P','INEAPPL','E'],['i','c','e'],['c','rea','m']]
+[['8','d'],['d','7'],['4','1'],['8','3'],['2','9']]
 
 -- extract_json (https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/extractjsonfunction)
 
@@ -256,6 +272,7 @@ iPhone
 26
 26
 26
+true
 26
 \N
 
@@ -271,16 +288,17 @@ iPhone
 
 -- strcat_delim (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/strcat-delimfunction); TODO: only support string now.
 1-2-Ab
+1-2-A-00:00:01
+1-2-A-55
+1-2-A-7.99
+qqqqq fffffff \'asd bcd\' "moo moo "
 
--- indexof (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/indexoffunction); TODO: length and occurrence not supported yet
-2
-2
--1
 -- base64_encode_fromguid()
 8jMxriJurkmwahbmqbIS6w==
 -- base64_decode_toarray()
-[]
+[NULL]
 [75,117,115,116,111]
+[NULL]
 -- base64_decode_toguid()
 10e99626-bc2b-4c75-bb3e-fe606de25700
 1
@@ -290,10 +308,37 @@ S3VzdG8x
 -- base64_decode_tostring
 
 Kusto1
--- parse_url()
-{"Scheme":"scheme","Host":"","Port":"0","Path":"/this/is/a/path","Username":"username","Password":"password","Query Parameters":{"k1":"v1","k2":"v2"},"Fragment":"fragment"}
+\N
+\N
+-- parse_url() same as ADX
+{"Scheme":"scheme","Host":"host","Port":"1234","Path":"/this/is/a/path","Username":"username","Password":"password","Query Parameters":{"k1":"v1","k2":"v2"},"Fragment":"fragment"}
+{"Scheme":"","Host":"","Port":"","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"2001:db8:3333:4444:5555:6666:7777:8888","Port":"1234","Path":"/filepath/index.htm","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"host","Port":"1234","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"","Port":"","Path":"/this/is/a/path/index.htm","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"","Port":"","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":"fragment"}
+{"Scheme":"http","Host":"host","Port":"abcd","Path":"","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"host","Port":"","Path":"/filepath","Username":"","Password":"","Query Parameters":{"arg":":bogus@some"},"Fragment":""}
+{"Scheme":"http","Host":"","Port":"","Path":"","Username":"username","Password":"password","Query Parameters":{},"Fragment":""}
+-- parse_url() differs from ADX
+{"Scheme":"http","Host":"host","Port":"1234","Path":"/","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"","Port":"1234","Path":"/","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"","Port":"","Path":"","Username":"","Password":"","Query Parameters":{"arg":"value"},"Fragment":""}
+{"Scheme":"http","Host":"host","Port":"1234","Path":"","Username":"","Password":"","Query Parameters":{"arg":"value"},"Fragment":""}
+{"Scheme":"http","Host":"","Port":"","Path":"/","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"","Port":"","Path":"/filepath","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"","Port":"port:","Path":"/anything","Username":"","Password":"","Query Parameters":{"arg":"value"},"Fragment":""}
+{"Scheme":"http","Host":"","Port":"port:port","Path":"/anything","Username":"","Password":"","Query Parameters":{"arg":"value"},"Fragment":""}
+{"Scheme":"http","Host":"host","Port":"","Path":"/","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+-- parse_url() invalid IPV6
+{"Scheme":"http","Host":"2001","Port":"db8:3333:4444:5555:6666:7777:8888:1234","Path":"/filepath/index.htm","Username":"","Password":"","Query Parameters":{},"Fragment":""}
+{"Scheme":"http","Host":"2001","Port":"db8:3333:4444:5555:6666:7777:8888","Path":"/filepath/index.htm","Username":"","Password":"","Query Parameters":{},"Fragment":""}
 -- parse_urlquery()
 {"Query Parameters":{"k1":"v1","k2":"v2","k3":"v3"}}
+-- strcat --
+a1235.00:00:00
+a111.01:00:00
+ab\'c
 -- strcmp()
 0	1	-1	1
 -- substring()
@@ -332,6 +377,8 @@ Number was: 1
 \N
 \N
 \N
+\N
+\N
 1000000020000000300000004
 1000000020000000000000000
 1000000020000000300000000
@@ -350,7 +397,8 @@ dsa
 ][
 ]3,2,1[
 ]\'redaV\',\'htraD\'[
-000000000.00:00:21 51-01-7102
+Z0000000.00:00:21T51-01-7102
+00:00:30
 Peter	Nara	Skilled Manual	Graduate Degree	26
 Latoya	Shen	Professional	Graduate Degree	25
 -- parse_csv()
@@ -358,3 +406,118 @@ Latoya	Shen	Professional	Graduate Degree	25
 ['aaa']
 ['aa','b','cc']
 ['record1','a','b','c']
+-- indexof (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/indexoffunction)
+9
+2
+2
+2
+-1
+2
+4
+2
+9
+-1
+-1
+-1
+9
+2
+1
+-- indexof_regex --
+0
+3
+-1
+-1
+\N
+-1
+2
+\N
+-1
+2
+\N
+-1
+-1
+2
+2
+2
+\N
+7
+-1
+5
+6
+6
+3
+1
+34
+0
+0
+-- indexof_regex tabular #1 --
+-1
+-1
+0
+-1
+-1
+-1
+-- has --
+1
+0
+1
+0
+0
+1
+1
+0
+1
+1
+0
+
+asdf
+asdf.ghkj
+asdf.qwer
+
+asdf.qwer
+
+asdf.qwer
+qwer
+-- !has --
+asdfghkj
+qwer
+qwerqwer
+
+asdf
+asdf.ghkj
+asdfghkj
+qwer
+qwerqwer
+-- has_all --
+asdf.qwer
+-- has_any --
+asdf
+asdf.ghkj
+asdf.qwer
+qwer
+-- string_size --
+5
+15
+-- to_utf8 --
+[9382,9392,9390,9391,9386]
+[1511,1493,1505,1496,1493,32,45,32,75,117,115,116,111]
+-- make_string --
+Kusto
+Kusto
+Kusto
+Kusto
+QRST{م
+UV>؄
+WXY$অ
+{-م-P-QRST
+>-؄-P-UV
+$-অ-P-WXY
+PQRSTUVWXYZ
+PQ
+{م爱🐂অ
+-- isutf8 --
+1
+1
+-- isascii --
+false
+true

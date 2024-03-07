@@ -11,6 +11,8 @@ namespace DB
 class IParserBase : public IParser
 {
 public:
+    ~IParserBase() override = default;
+
     template <typename F>
     ALWAYS_INLINE static bool wrapParseImpl(Pos & pos, const F & func)
     {

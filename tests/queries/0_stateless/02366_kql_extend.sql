@@ -22,6 +22,7 @@ CREATE TABLE Ledger
 ) ENGINE = Memory;
 INSERT INTO Ledger VALUES  ('Aldi','Apple',4,'2016-09-10'), ('Costco','Apple',2,'2016-09-11'), ('Aldi','Apple',6,'2016-09-10'), ('Costco','Snargaluff',100,'2016-09-12'), ('Aldi','Apple',7,'2016-09-12'), ('Aldi','Snargaluff',400,'2016-09-11'),('Costco','Snargaluff',104,'2016-09-12'),('Aldi','Apple',5,'2016-09-12'),('Aldi','Snargaluff',600,'2016-09-11'),('Costco','Snargaluff',200,'2016-09-10');
 
+set max_bytes_before_external_group_by = 0;
 set dialect = 'kusto';
 
 print '-- extend #1 --';
@@ -54,5 +55,5 @@ print x = 19 | extend = 4 + ; -- { clientError SYNTAX_ERROR }
 print '-- extend #10 --';
 Ledger | extend PriceInCents = * Price | sort by PriceInCents asc | project Fruit, PriceInCents | summarize AveragePrice = avg(PriceInCents), Purchases = count() by Fruit | extend Sentence = strcat(Fruit, ' cost ', tostring(AveragePrice), ' on average based on ', tostring(Purchases), ' samples.') | project Sentence; -- { clientError SYNTAX_ERROR }
 
-print '-- extend #11 --'; -- should ideally return this in the future: 5	[2,1] because of the alias ex
+print '-- extend #11 --';
 print x = 5 | extend ex = array_sort_desc(dynamic([1, 2]), dynamic([3, 4]));

@@ -1,6 +1,3 @@
-#include <memory>
-#include <queue>
-#include <vector>
 #include <IO/ReadBufferFromString.h>
 #include <IO/ReadHelpers.h>
 #include <Parsers/ASTExpressionList.h>
@@ -21,10 +18,19 @@
 #include <Parsers/ParserSetQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
 #include <Parsers/ParserWithElement.h>
+
 #include <format>
+#include <memory>
+#include <queue>
+#include <vector>
 
 namespace DB
 {
+
+namespace ErrorCodes
+{
+    extern const int SYNTAX_ERROR;
+}
 
 bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
@@ -80,10 +86,15 @@ bool ParserKQLSummarize::parseImpl(Pos & pos, ASTPtr & node, Expected & expected
          "take_any",
          "take_anyif",
          "variance",
-         "varianceif"});
+         "varianceif",
+         "variancep"});
 
     auto apply_aliais = [&](Pos & begin_pos, Pos & end_pos, bool is_groupby)
     {
+        if (String(begin_pos->begin, begin_pos->end) == "by")
+            return;
+        if (end_pos->end <= begin_pos->begin)
+            throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near keyword \"{}\"", std::string_view(begin_pos->begin, begin_pos->end));
         auto expr = String(begin_pos->begin, end_pos->end);
         auto equal_pos = begin_pos;
         ++equal_pos;

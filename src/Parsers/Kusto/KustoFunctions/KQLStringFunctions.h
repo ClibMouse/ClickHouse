@@ -1,8 +1,6 @@
 #pragma once
 
-#include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
-#include <base/extended_types.h>
+#include "IParserKQLFunction.h"
 
 namespace DB
 {
@@ -83,6 +81,20 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class IndexOfRegex : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "indexof_regex()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class IsAscii : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "isascii()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
 class IsEmpty : public IParserKQLFunction
 {
 protected:
@@ -104,10 +116,31 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class IsUtf8 : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "isutf8()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
 class IsNull : public IParserKQLFunction
 {
 protected:
     const char * getName() const override { return "isnull()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class MakeString : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "make_string()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class NewGuid : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "new_guid()"; }
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
@@ -195,6 +228,13 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class StringSize : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "string_size()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
 class StrLen : public IParserKQLFunction
 {
 protected:
@@ -227,6 +267,13 @@ class ToUpper : public IParserKQLFunction
 {
 protected:
     const char * getName() const override { return "toupper()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class ToUtf8 : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "to_utf8()"; }
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 

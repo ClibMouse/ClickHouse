@@ -76,8 +76,8 @@ int mainEntryClickHouseKeeper(int argc, char ** argv)
 
 #ifdef CLICKHOUSE_KEEPER_STANDALONE_BUILD
 
-// Weak symbols don't work correctly on Darwin
-// so we have a stub implementation to avoid linker errors
+// // Weak symbols don't work correctly on Darwin
+// // so we have a stub implementation to avoid linker errors
 void collectCrashLog(
     Int32, UInt64, const String &, const StackTrace &)
 {}

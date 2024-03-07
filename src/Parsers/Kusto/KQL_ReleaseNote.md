@@ -1,4 +1,712 @@
 ## KQL implemented features  
+# October, 2023
+## Features
+- Added lookup_contains('dict_name', value_to_search). This function returns a boolean value, specifically, True when value_to_search is found in the dictionary, and False otherwise.
+   ```
+   print lookup_contains('test_rocksDB',1);
+   ```
+
+# July, 2023
+## Features
+-  Enable kql table function support both heredoc and regular format
+## Bugfixes
+ - Fix printing datetime throws exceptions
+ - Fix dcount, dcountif aren't using HyperLogLog 
+ - Fix base64 decode to string should return null for invalid encoded values 
+ - Fix wildcard to Regex is not correct in the project-away operator
+# June, 2023
+## Bugfixes
+ - Fix core dump when table is missing in pipeline  
+ - Corrected issues related to fractional seconds in tolong, datetime_add, datetime_part and datetime_diff.
+ - Corrected an issue with timezone conversion in make_datetime.
+ - Corrected an issue with hash_sha256 when an empty string is used.
+ - Corrected an issue with extract_all not accepting the capture group argument.
+
+# May, 2023  
+## New Features
+- Save intervals to tables 
+   ```
+   INSERT INTO t1 WITH toDateTime64('2023-01-01 00:00:00.000000001', 9, 'US/Eastern') AS c
+   SELECT toMinute(c + toIntervalSecond(number * 60))
+   FROM numbers(2)
+   so , enabled the kql timespane to be stored:
+   CREATE TABLE kql_table1 ENGINE = Memory AS select *, now() as new_column From kql(print days=2d*3 | take 1)
+   ```
+- Add ability to ignore skippings indexes for a query :
+   ```
+   SELECT * FROM data WHERE x = 1 AND y = 2 SETTINGS ignore_data_skipping_indices='xy_idx';
+   ```
+## Bugfixes
+ - Fix core dump when table is missing in pipeline
+- Corrected an issue with `countof` operator where plain string matches were not correctly counting overlapping strings.
+ - produce an exception if `arg_max` or `arg_min` have fewer than 2 arguments
+ - core dump if there is no closing parenthesis in kql function
+
+
+# April,  2023
+## Bugfixes
+ - Corrected an issue with parse_url in which hostnames and port numbers were not correctly parsed.
+   ```
+   parse_url follows the folowing structure.
+
+   Scheme://Username:Password@Host:Port/Path?QueryParameters#Fragment
+
+   '://' is required for further parsing.
+   All other fields are optional and are parsed from left to right.
+   Username and Password are parsed together, require ':' and '@', and will not match if either contains '/', '?', or '#'.
+   IPv6 addresses are required to be encapsulated in brackets. 
+   Host ends with '/', ':', '?' or '#'.
+   Port starts with ':' and ends with '/', '?' or '#'.
+   Path requires to start with '/' and ends with '?' or '#'. 
+   Query Parameters is recursive, starts with '?', ends with '#', expected to be in the form of argument=value, and separated by '&'. 
+   Fragment must start with '#'.
+
+   Notes on differences between ADX and ClickHouse:
+
+   ClickHouse will return a formated string. 'extract_json' can be used to convert the string.
+   print x = parse_url("http://[2001:0db8:0000:0000:0000:ff00:0042:8329]?asd=qwe&qwe=asd") | project extract_json("$.Scheme", x); 
+   ClickHouse includes Path as '/' where ADX requires anything after '/' to populate Path.
+   print parse_url("http://host:1234/");
+   ClickHouse includes Port where ADX requires '/' for Port and without '/' will treat Port as part of Host.
+   print parse_url("http://host:1234?arg=value")
+   ClickHouse includes arg value in Query parameters where ADX treats this as host.
+   print parse_url("http://?arg=value");
+   ClickHouse will not parse IPv6 addresses not encapsulated in brackets [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.2) 
+   Correct IPv6 
+   print parse_url("http://[2001:db8:3333:4444:5555:6666:7777:8888]:1234/filepath/index.htm")
+   Incorrect IPv6
+   print parse_url("http://2001:db8:3333:4444:5555:6666:7777:8888:1234/filepath/index.htm");
+   print parse_url("http://2001:db8:3333:4444:5555:6666:7777:8888/filepath/index.htm");
+   ADX will incorrectly consume part of encapsulated IPv6 Host as Port from last colon to '/'.
+   print parse_url("http://[2001:db8:3333:4444:5555:6666:7777:8888]/filepath/index.htm")
+   ```
+
+## Aggregate Functions
+- [hll](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/hll-aggfunction)
+   `Customers | summarize x = hll(Education), y = hll(Occupation);`
+
+   Current implementation of this function seeks to reuse ClickHouse's [`uniqCombined64`](https://clickhouse.com/docs/en/sql-reference/aggregate-functions/reference/uniqcombined64), which has different intermediate values when compared to KQL.
+
+   Please note that only accuracy level 4 is implemented, which becomes the default instead of 0.
+- [hll_merge](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/hll-merge-aggfunction)
+   `Customers | summarize x = hll(Education), y = hll(Occupation) | summarize xy = hll_merge(x, y);`
+
+   Current implementation of this function seeks to reuse ClickHouse's [`uniqCombined64`](https://clickhouse.com/docs/en/sql-reference/aggregate-functions/reference/uniqcombined64), which has different intermediate values when compared to KQL.
+
+   Please note that only accuracy level 4 is implemented, which becomes the default instead of 0.
+
+## Functions
+- [dcount_hll](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/dcount-hllfunction)
+   `Customers | summarize x = hll(Education), y = hll(Occupation) | project xy = hll_merge(x, y) | project dcount_hll(xy);`
+
+   Current implementation of this function seeks to reuse ClickHouse's [`uniqCombined64`](https://clickhouse.com/docs/en/sql-reference/aggregate-functions/reference/uniqcombined64), which has different intermediate values when compared to KQL.
+
+   Please note that only accuracy level 4 is implemented, which becomes the default instead of 0.
+- [hll_merge](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/hllmergefunction)
+   `Customers | summarize x = hll(Education), y = hll(Occupation) | project xy = hll_merge(x, y);`
+
+   Current implementation of this function seeks to reuse ClickHouse's [`uniqCombined64`](https://clickhouse.com/docs/en/sql-reference/aggregate-functions/reference/uniqcombined64), which has different intermediate values when compared to KQL.
+
+   Please note that only accuracy level 4 is implemented, which becomes the default instead of 0.
+- [isascii()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/isascii)
+   `print str = isascii('ab১২ufghi🐂🐇🐒')`
+
+## Operator
+- [project-rename](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/projectrenameoperator)
+   `print x='First Name', y='Last Name, z=20 | project-rename FirstName=x, LastName=y, Age=z`
+   Note: The output table doesn't preserve the order of the columns.
+
+# March 29, 2023
+## Bugfixes
+- [arg_max()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/arg-max-aggfunction) and [arg_min()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/arg-min-aggfunction)
+  support multiple arguments now.
+  `Customers | arg_max(Age, FirstName, LastName)`  
+  Note: The wildcard parameter (`*`) does not currently work, and will be implemented in a future build. Additionally, the parameter to maximize or minimize is always the last parameter in the output.
+- Corrected an issue with tolong when used with datetime.
+- Corrected an issue with hash when used with datetime.
+## Functions
+- [isutf8](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/isutf8)
+   `print t = isutf8('؄');`  
+   *Note* The functions is correctly implemented, but in some cases its output is different from ADX.
+   For example, for invalid code points, ADX returns `true` which should be `false` instead. For example, `\x80` is an invalid utf8 (with integer value 128), but ADX returns `true` for this. Our implementation of this functions uses Clickhouses isValidUtf8() function which returns `false` for invalid input like this.
+- [indexof_regex](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/indexofregexfunction)
+   `print idx1 = indexof_regex("abcabc", "a.c");`
+- [make_string()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/makestringfunction.md)
+   `print str = make_string(75, 117, 115, 116, 111)`
+
+# March 19, 2023
+## Functions
+- [hash()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/hashfunction)
+   `print hash('World')`
+   Note: ClickHouse will attempt to fit a number within the smallest data type possible. As a result
+   Int32 data types not cast with KQL int() may not match ADX results.
+- [hash_sha256()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sha256hashfunction)
+   `print hash_sha256('World')`
+- [not()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/notfunction)
+   `print not(1)`
+## Special Functions
+- [toscalar](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/toscalarfunction)
+   `range z from toscalar(print x=1) to toscalar(range x from 1 to 9 step 1 | count) step toscalar(2);`
+
+## Operator
+ - [between, !between](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/betweenoperator)
+    ```
+    select * from kql(TableWithVariousDataTypes | project Age | where Age between (10 .. 12));
+    select * from kql(TableWithVariousDataTypes | project Age | where Age !between (10 .. 30));
+    select * from kql(TableWithVariousDataTypes | project Height | where Height between (5.2 .. 6.6));
+    select * from kql(TableWithVariousDataTypes | project Height | where Height !between (5.3 .. 7.6));
+    select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate between (datetime('2020-01-01') .2d));
+    select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate !between (datetime('2020-01-01') .. 2d));
+    select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate between (datetime('2020-06-30') .. datetime('2025-06-30')));
+    select * from kql(TableWithVariousDataTypes | project JoinDate | where JoinDate !between (datetime('2020-06-30') .. datetime('2025-06-30')));
+    ```
+# March 15, 2023
+## Feature
+ - KQL - improve timespan textual representation in the CLI
+   The textual representation of `timespan` will now be identical to ADX, whenever the `dialect` setting is `kusto` or `kusto_auto`. The internal representation shall remain unchanged as `IntervalNanosecond`. In essence, any `Interval` type will also be represented this way even when running regular SQL queries as long as the `dialect` option is `kusto_auto`.
+   `print a = timespan(2d), b = timespan(4h), c = timespan(8m), d = timespan(16s), e = timespan(123millis), f = timespan(456micros), g = timespan(789nanos) | extend x = a + b + c + d + e + f + g;`
+## Operator
+- [getschema](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/getschemaoperator)
+   `print x = 'asd' | extend strlen(x) | getschema`
+
+## Bugfixes
+## Functions
+- [has_ipv4()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/has-ipv4-function)
+   `print has_ipv4('10:00:00 192.168.1.1 GET /index.html 404', '192.168.1.1')`
+- [has_any_ipv4()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/has-any-ipv4-function)
+   `print has_any_ipv4('10:00:00 192.168.1.1 GET /index.html 404', '127.0.0.1', '192.168.1.1')`
+- [has_ipv4_prefix()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/has-ipv4-prefix-function)
+   `print has_ipv4_prefix('10:00:00 192.168.1.1 GET /index.html 404', '192.168.')`
+- [has_any_ipv4_prefix()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/has-any-ipv4-prefix-function)
+   `print has_any_ipv4_prefix('10:00:00 192.168.1.1 GET /index.html 404', '127.', '192.168.1.')`
+- [string_size()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/stringsizefunction.md)
+   `print string_size('⒦⒰⒮⒯⒪')`
+- [to_utf8()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/toutf8function.md)
+   `print arr = to_utf8('⒦⒰⒮⒯⒪')`
+- [new_guid()](https://github.com/microsoft/Kusto-Query-Language/blob/master/doc/newguidfunction.md)
+   `print g = new_guid()`
+- [gettype()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/gettypefunction)
+   `print t = gettype(1)`
+- has_ipv6()
+  `Note: Not part of Microsoft's Kusto. Functions similar to has_ipv4()`
+  `print has_ipv6('09:46:00 2600:1404:6400:1695::1e89 GET /favicon.ico 404', '2600:1404:6400:1695::1e89')`
+- has_any_ipv6()
+  ```
+  Note: Not part of Microsoft's Kusto. Functions similar to has_any_ipv4()
+  print has_any_ipv6('09:46:00 2600:1404:6400:1695::1e89', '::1', '2600:1404:6400:1695::1e89')
+  ```
+- has_ipv6_prefix()
+  ```
+  Note: Not part of Microsoft's Kusto. Functions similar to has_ipv4_prefix() although the prefixes can't contain :: compression syntax.
+  print has_ipv6_prefix('09:46:00 2600:1404:6400:1695::1e89', '2600:1404:6400:1695:0:0:0:')
+  ```
+- has_any_ipv6_prefix()
+  ```
+  Note: Not part of Microsoft's Kusto. Functions similar to has_any_ipv4_prefix() although the prefixes can't contain :: compression syntax.
+  print has_any_ipv6_prefix('09:46:00 2600:1404:6400:1695::1e89', '0:0:0:0:0:ffff:127.', '2600:1404:6400:1695:')
+  ```
+
+# February 28, 2023
+## Operator
+- [project-away](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/projectawayoperator)
+    ```
+    print '1-- remove one column';
+    Customers | project-away FirstName;
+    print '2-- remove two columns';
+    Customers | project-away FirstName, LastName;
+    print '3-- remove columns by one wildcard';
+    Customers | project-away *Name;
+    print '4-- remove columns by two wildcards';
+    Customers | project-away *Name, *tion;
+    print '5-- remove columns by one wildcard, one regular column';
+    Customers | project-away *Name, Age;
+    print '6-- remove columns by one wildcard, two regular column';
+    Customers | project-away *Name, Age, Education;
+    print '7-- remove columns by two wildcard, two regular column';
+    Customers | project-away *irstName, Age, *astName, Education;
+    print '8-- remove one column from previous piple result';
+    Customers | where Age< 30 | limit 2 | project-away FirstName;
+    print '9-- remove one column from summized piple result';
+    Customers|summarize sum(Age), avg(Age) by FirstName | project-away sum_Age;
+    print '10-- remove columns after extend';
+    Customers|extend FullName = strcat(FirstName,' ',LastName) | project-away FirstName, LastName;  
+    ```
+
+
+## Bugfixes
+- Fixed count operator issue (2112):
+    ```
+    Customers|project FirstName|where FirstName != 'Peter'|sort by FirstName asc nulls first|count
+    ```
+- Fixed KQL sub-query issues:  
+    - Multiple columns in sub-query.  
+      Multiple columns in sub-query works in KQL ADX but only the first column is effective, while not working in ClickHouse. this fixed issue. e.g.
+      ```
+      Customers | where FirstName in ((Customers|project FirstName, LastName))
+      ```
+      limitation: the  `select *` noit work in sub-querym because there's individula column.  
+    - Negative operators in sub-query  
+      fixed the issue for negative operators not work in KQL sub-query. e.g
+      ```
+      Customers | where FirstName in ((Customers|project FirstName, LastName|where FirstName !has 'Peter'))
+      ``` 
+    - Case-insensitive compare in sub-query
+      fixed the case-insensitive compare issuse for multiple pipe in sub-query. e.g
+      ```
+      Customers | where FirstName in~ ((Customers|where FirstName !has 'Peter'|project FirstName, LastName))
+      ```
+    - Check functional test `tests/queries/0_stateless/02366_kql_test_subquery.sql` for details.
+
+- KQL - has operator fails to return result when needle has separator character
+- strcat_delim fails when encountered with escaped double quotes (2159)
+- summarize throw exception if Aggregation is missing (2113)
+- todecimal() doesn't work with column arguments (1413)
+- extract_json value cast to boolean causes exception (1490)
+- [isempty() and isnotempty() not accepting non-quoted strings]
+
+## Functions
+- [abs()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/abs-function)
+   `print abs(-5)`
+- [acos()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/acosfunction)
+- [asin()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/asinfunction)
+   `print asin(0.5)`
+- [atan()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/atanfunction)
+   `print atan(0.5)`
+- [atan2()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/atan2function)
+   `print atan2(1,1)`
+- [ceiling()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/ceilingfunction)
+   `print c1 = ceiling(-1.1), c2 = ceiling(0), c3 = ceiling(0.9)`
+- [cos()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/cosfunction)
+   `print cos(1)`
+- [cot()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/cotfunction)
+   `print cot(1)`
+- [degrees()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/degreesfunction)
+   `print degrees(pi()/4)`
+- [exp()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/exp-function)
+   `print exp(2)`
+- [exp2()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/exp2-function)
+   `print exp2(2)`
+- [exp10()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/exp10-function)
+   `print exp10(3)`
+- [gamma()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/gammafunction)
+- [isfinite()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/isfinitefunction)
+   `print isfinite(1.0/0.0)`
+- [isinf()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/isinffunction)
+   `print isinf(1.0/0.0)`
+- [log()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/log-function)
+   `print log(5)`
+- [log2()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/log2-function)
+   `print log2(5)`
+- [log10()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/log10-function)
+   `print log10(5)`
+- [loggamma()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/loggammafunction)
+   `print loggamma(5)`
+- [max_of()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/max-offunction)
+   `print result = max_of(10, 1, -3, 17)` 
+- [min_of()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/min-offunction)
+   `print result = min_of(10, 1, -3, 17)` 
+- [pi()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/pifunction)
+   `print pi()`
+- [pow()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/powfunction)
+   `print pow(2, 3)`
+- [radians()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/radiansfunction)
+   `print radians0 = radians(90), radians1 = radians(180), radians2 = radians(360)` 
+- [rand()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/randfunction)
+   `print rand(1000)`
+- [round()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/roundfunction)
+   `print round(2.15, 1)`
+- [sign()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/signfunction)
+   `print s1 = sign(-42), s2 = sign(0), s3 = sign(11.2)`
+- [sin()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sinfunction)
+- [sqrt()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/sqrtfunction)
+   `print sqrt(256)`
+- [tan()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/tanfunction)
+- [variance()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/variance-aggfunction)
+   `Customers | summarize variance(Age);`
+- [variancep()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/variancep-aggfunction)
+   `Customers | summarize variancep(Age);`
+- [varianceif()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/varianceif-aggfunction)
+   `Customers | summarize varianceif(Age, Age < 30)`
+- [lookup()](Not a KQL function, it's an IBM specific suggested implementation.
+Supports simple keys only. Do not suppoer RANGE_HASHED keys.)
+   `print lookup('dictionary_table', 'value', '1')`
+   `print lookup('dictionary_table', 'value', '100', 'default')`
+
+# January 26, 2023
+## Functions
+- [range()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/rangefunction)  
+Difference from ADX:  
+   Return  empty array [] if range is empty, while ADX return NULL
+   The maxamum number of elements of array is 1000000 (limitation of clickhouse), 1,048,576  in ADX
+```
+print '-- range function int, int, int --';
+print range(1, 10, 2);
+print '-- range function int, int --';
+print range(1, 10);
+print '-- range function float, float, float --';
+print range(1.2, 10.3, 2.2);
+print '-- range function positive float, float, int --';
+print range(1.2, 10.3, 2);
+print '-- range function positive float, int, float --';
+print range(1.2, 10, 2.2);
+print '-- range function positive integer, int, float --';
+print range(1, 10, 2.2);
+print '-- range function positive integer, float, float --';
+print range(1, 10.5, 2.2);
+print '-- range function positive float, int, int --';
+print range(1.2, 10, 2);
+print '-- range function positive int, int, negative int --';
+print range(12, 3, -2);
+print '-- range function positive float, int, negative float --';
+print range(12.8, 3, -2.3);
+print '-- range function datetime, datetime, timespan --';
+print range(datetime('2001-01-01'), datetime('2001-01-02'), 5h);
+print '-- range function datetime, datetime, negative timespan --';
+print range(datetime('2001-01-03'), datetime('2001-01-02'), -5h);
+print '-- range function datetime, datetime --';
+print range(datetime('2001-01-01'), datetime('2001-01-02'));
+print '-- range function timespan, timespan, timespan --';
+print range(1h, 5h, 2h);
+print '-- range function timespan, timespan --';
+print range(1h, 5h);
+print '-- range function timespan, timespan, negative timespan --';
+print range(11h, 5h, -2h);
+print '-- range function float timespan, timespan, timespan --';
+print range(1.5h, 5h, 2h);
+print '-- range function endofday, endofday, timespan --';
+print range(endofday(datetime(2017-01-01 10:10:17)), endofday(datetime(2017-01-03 10:10:17)), 1d);
+```  
+
+## Improvement
+- [dcount()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/dcount-aggfunction) and [dcountif()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/dcountif-aggfunction)
+   docunt and dcountif now accept the additional accuracy parameter which is the base-2 logarithm of the number of cells in  [HyperLogLog](https://en.wikipedia.org/wiki/HyperLogLog).
+## Case Insensitive Operators
+- [in~](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/inoperator)  
+   `print t = 'a' in~ ('A', 'b', 'c')`  
+   `Customers | where FirstName in~ ((Customers | project FirstName | where FirstName == 'Peter'))`  
+- [!in~](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/not-in-operator)  
+   `print t = 'a' !in~ (dynamic(['A', 'b', 'c']))`  
+   `Customers | where FirstName !in~ ('peter', 'apple')`  
+- [=~](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/equals-operator)  
+   `Customers | where FirstName =~ 'peter' and LastName =~ 'naRA'`  
+- [!~](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/not-equals-operator)  
+   `Customers | where FirstName !~ 'nEyMaR' and LastName =~ 'naRA'`  
+## Aggregate Functions  
+- [take_any()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/take-any-aggfunction)
+   ```
+   Note: * is not currently a supported argument.
+   ```
+- [take_anyif()](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/take-anyif-aggfunction)
+- [dcount() and dcountif()]
+## Operator
+- [range](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/rangeoperator)  
+   `range LastWeek from ago(7d) to now() step 1d`  
+   `range Steps from 1 to 8 step 3`  
+- [top-nested](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/topnestedoperator)
+
+   ```
+   CREATE TABLE sales
+   (salesdate String,salesperson String,region String,amount UInt32) ENGINE = Memory;
+
+   INSERT INTO sales VALUES ( '12/31/1995','Robert','ON-Ontario',1);
+   INSERT INTO sales VALUES ( '12/31/1995','Joseph','ON-Ontario',2);
+   INSERT INTO sales VALUES ( '12/31/1995','Joseph','QC-Quebec',3);
+   INSERT INTO sales VALUES ( '12/31/1995','Joseph','MA-Manitoba',4);
+   INSERT INTO sales VALUES ( '12/31/1995','Steven','QC-Quebec',5);
+   INSERT INTO sales VALUES ( '03/29/1996','Joseph','ON-Ontario',6);
+   INSERT INTO sales VALUES ( '03/29/1996','Robert','QC-Quebec',7);
+   INSERT INTO sales VALUES ( '03/29/1996','Joseph','ON-Ontario',8);
+   INSERT INTO sales VALUES ( '03/29/1996','Joseph','BC-British Columbia',9);
+   INSERT INTO sales VALUES ( '03/29/1996','Joseph','QC-Quebec',10);
+   INSERT INTO sales VALUES ( '03/29/1996','Joseph','MA-Manitoba',11);
+   INSERT INTO sales VALUES ( '03/29/1996','Steven','ON-Ontario',12);
+   INSERT INTO sales VALUES ( '03/29/1996','Steven','QC-Quebec',13);
+   INSERT INTO sales VALUES ( '03/29/1996','Steven','MA-Manitoba',14);
+   INSERT INTO sales VALUES ( '03/30/1996','Robert','ON-Ontario',15);
+   INSERT INTO sales VALUES ( '03/30/1996','Robert','QC-Quebec',16);
+   INSERT INTO sales VALUES ( '03/30/1996','Robert','MA-Manitoba',17);
+   INSERT INTO sales VALUES ( '03/30/1996','Joseph','ON-Ontario',18);
+   INSERT INTO sales VALUES ( '03/30/1996','Joseph','BC-British Columbia',19);
+   INSERT INTO sales VALUES ( '03/30/1996','Joseph','QC-Quebec',20);
+   INSERT INTO sales VALUES ( '03/30/1996','Joseph','MA-Manitoba',21);
+   INSERT INTO sales VALUES ( '03/30/1996','Steven','ON-Ontario',22);
+   INSERT INTO sales VALUES ( '03/30/1996','Steven','QC-Quebec',23);
+   INSERT INTO sales VALUES ( '03/30/1996','Steven','MA-Manitoba',24);
+   INSERT INTO sales VALUES ( '03/31/1996','Robert','MA-Manitoba',25);
+   INSERT INTO sales VALUES ( '03/31/1996','Thomas','ON-Ontario',26);
+   INSERT INTO sales VALUES ( '03/31/1996','Thomas','BC-British Columbia',27);
+   INSERT INTO sales VALUES ( '03/31/1996','Thomas','QC-Quebec',28);
+   INSERT INTO sales VALUES ( '03/31/1996','Thomas','MA-Manitoba',29);
+   INSERT INTO sales VALUES ( '03/31/1996','Steven','ON-Ontario',30);
+
+   print '-- top 3 regions by sales--';
+   sales | top-nested 3 of region by sum(amount);
+
+   print '-- top 2 salespeople in each of these regions?--';
+   sales | top-nested 3 of region by sum(amount), top-nested 2 of salesperson by sum(amount);
+
+   print '--top 3 and other regions by sales--';
+   sales | top-nested 3 of region with others = 'all other region' by sum(amount);
+
+   print '--top 3 and other regions by sales and top 2 and  other salespeople in each of these regions--';
+   sales | top-nested 3 of region with others = 'all other region' by sum(amount),  top-nested 2 of salesperson with others = 'all other person' by sum(amount);
+
+   print '--top 3 and other regions by sales and top 2 salespeople in each of these regions--';
+   sales | top-nested 3 of region with others = 'all other region' by sum(amount),  top-nested 2 of salesperson by sum(amount)
+
+   print '--top 3 regions by sales and top 2 and  other salespeople in each of these regions--';
+   sales | top-nested 3 of region  by sum(amount), top-nested 2 of salesperson with others = 'all other person' by sum(amount);
+
+   print '--top 3 regions by difference between max sales and min sales--';
+   sales | top-nested 3 of region by sum(amount) - min(amount);
+
+   print '-- top 3 regions using abbreviations by sales--';
+   sales | top-nested 3 of substring(region, 0, 2)  by sum(amount);
+
+   print '-- all top regions by sales--';
+   sales | top-nested of region by sum(amount);
+   ```
+
+## Bugs
+- [KQL Phase 2 - base64_encode_fromguid encodes strings as opposed to binary]  
+- [KQL Phase 2: summarize with bin and format_datetime]  
+- [make_datetime creates wrong date time]  
+- [KQL Phase 2: summarize using bin has different result than Azure Data Explorer using the same sample data]  
+- [KQL Phase 3: datetime should be rounded in certain cases]  
+- [kql_bin does not accept DateTime type]  
+- [KQL Phase 2 - totimespan should return null when conversion fails.]  
+- [reverse() with datetime and timespan arguments needs to be improved.]  
+- [String operator has throws exception when needle has white space or separator characters]  
+
+
+# December 7, 2022
+
+## Functions
+- [count_distinct](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/count-distinct-aggfunction)  
+   `Customers | summarize count_distinct(Education);`  
+- [count_distinctif](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/count-distinctif-aggfunction)  
+   `Customers | summarize count_distinctif(Education, Age > 30);`  
+- [iff](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/ifffunction)  
+   `Customers | extend t = iff(Age <= 10, "smaller", "bigger");`  
+- [iif](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/iiffunction)  
+   `Customers | extend t = iif(Age <= 10, "smaller", "bigger");`
+## bug fixed
+- [indexOf function doesn't work for extended parameters]  
+- [Create generic function for time arithmetic]  
+- [KQL Phase 2: tolong should return the number of ticks when supplied with a timespan]  
+
+# November 23, 2022
+
+## Operator
+- [join](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/joinoperator?pivots=azuredataexplorer)  
+   ```
+   CREATE TABLE X (Key String, Value1 Int64) ENGINE = Memory;
+   INSERT INTO X VALUES  ('a',1);
+   INSERT INTO X VALUES  ('b',2);
+   INSERT INTO X VALUES  ('b',3);
+   INSERT INTO X VALUES  ('c',4);
+   
+   CREATE TABLE Y  (Key String, Value2 Int64) ENGINE = Memory;
+   INSERT INTO  Y  VALUES  ('b',10);
+   INSERT INTO  Y  VALUES  ('c',20);
+   INSERT INTO  Y  VALUES  ('c',30);
+   INSERT INTO  Y  VALUES  ('d',40);
+
+   Join flavor : 
+  
+   Default join is innerunique
+      X | join Y  on $left.Key == $right.Key ;
+      X | join kind=innerunique Y  on Key ;
+
+   Inner-join
+      X | join kind=inner Y  on Key ;
+
+   Left outer-join
+      X | join kind=leftouter Y  on Key ;
+
+   Right outer-join
+      X | join kind=rightouter Y  on Key ;
+
+   Full outer-join 
+      X | join kind=fullouter Y  on Key ;
+
+   Left anti-join
+      X | join kind=leftanti Y  on Key ;
+
+   Right anti-join
+      X | join kind=rightanti Y  on Key ;
+
+   Left semi-join
+      X | join kind=leftsemi Y  on Key ;
+
+   Right semi-join
+      X | join kind=rightsemi Y  on Key ;
+   ```
+   **Deviation from ADX**
+   Because of the limitation between KQL and SQL. the result may different from ADX.(KQL-CH take the result of ClickHouse)
+   - columns  
+      ADX : common columns are duplicatedc in output
+      KQL-CH : only one column for common columns 
+   - column name  
+      ADX : column with same name (not common) ->column1
+      KQL-CH : column with same name (not common) -> right_.column
+   - filters  
+      ADX: Kusto is optimized to push filters that come after the join, towards the appropriate join side, left or right, when possible  
+      KQL-CH: because in the domanin of KQL, does not know the schema of tables, so the push need to manually done by user, like: 
+      ```
+      t1|join kind = innerunique t2 on key | where value == 'val1.2'
+      ```
+      need to chang as the fowllowing by user(if user want) :
+      ```
+      t1| where value == 'val1.2' | join kind = innerunique t2 on key 
+      ```
+   - semi join flavor  
+      ADX : only returns left side or right side columns  
+      KQL-CH : returns columns from both side  
+   - Join hints : not supported yet
+- [lookup](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/lookupoperator)  
+   lookup is a subset of join, only support : kind=leftouter and kind=inner. if kind unspecified, kind=leftouter  
+   ```
+   DROP TABLE IF EXISTS FactTable;
+   CREATE TABLE FactTable (Row String, Personal String, Family String) ENGINE = Memory;
+   INSERT INTO FactTable VALUES  ('1', 'Bill',   'Gates');
+   INSERT INTO FactTable VALUES  ('2', 'Bill',   'Clinton');
+   INSERT INTO FactTable VALUES  ('3', 'Bill',   'Clinton');
+   INSERT INTO FactTable VALUES  ('4', 'Steve',  'Ballmer');
+   INSERT INTO FactTable VALUES  ('5', 'Tim',    'Cook');
+
+   DROP TABLE IF EXISTS DimTable;
+   CREATE TABLE DimTable (Personal String, Family String, Alias String) ENGINE = Memory;
+   INSERT INTO DimTable VALUES  ('Bill',  'Gates',   'billg');
+   INSERT INTO DimTable VALUES  ('Bill',  'Clinton', 'billc');
+   INSERT INTO DimTable VALUES  ('Steve', 'Ballmer', 'steveb');
+   INSERT INTO DimTable VALUES  ('Tim',   'Cook',    'timc');  
+
+   FactTable | lookup kind=leftouter DimTable on Personal, Family 
+
+   FactTable | lookup kind=inner  DimTable on Personal, Family 
+   ```
+
+## Bugs fixed
+   - [Incorrect Regx conversion]  
+   - [KQL phase 2 - timespan calculation results in exception]  
+   - [KQL phase 2 - format_timespan returns incorrect results]  
+   - [Bin function should support time intervals less than 1 second]  
+   - [KQL Phase 2: datetime subtraction results in exception]  
+   - [Timespan() doesn't parse bareword arguments.]
+   - [KQL-phase2 distinct operator does not support alias]  
+
+# November 7, 2022
+## Improvement
+- [array_sort_asc](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/arraysortascfunction) and [array_sort_desc](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/arraysortdescfunction)
+   ```
+   Returns the same number of arrays as in the input, with the first array sorted in ascending order, and the remaining arrays ordered to match the reordered first array.
+
+   null will be returned for every array that differs in length from the first one.
+   ```
+   Because array in ClickHouse is not nullable, so an array with a single NULL  ( `[NULL]`) is returned instead of a null if array that differs in length from the first one:
+   ```
+   array_sort_asc(dynamic([2, 1, 3]), dynamic([20, 40, 30]), dynamic([100, 200])) -> [1,2,3,NULL],[10,20,30,40],[NULL]
+   ```
+   the result can be used as a condition 
+   ```
+   DROP TABLE IF EXISTS visit;
+   CREATE TABLE visit(pageid UInt8, ip_country Array(Nullable(String)), hit Array(Int64),duration Array(Int64)) ENGINE = Memory;
+   INSERT INTO visit VALUES (1,['CA', 'US','FR','Eng'], [11,16,12,20],[100,500,300,200]);
+   INSERT INTO visit VALUES (2,['Japan', 'Gem','FR','Eng'], [31,22,33,10],[510,410,310,210]);
+   INSERT INTO visit VALUES (3,['CA', 'Gem','Japan','Eng'], [25,10,23,11],[120,110,130]);
+   INSERT INTO visit VALUES (4,['CA', 'Gem',null,'Eng'], [5,10,3,2],[220,320,310,150]);
+   INSERT INTO visit VALUES (5,['FR', null,'US','Eng'], [16,12,23,10],[210,250,110,260]);
+
+   visit | project *, array_sort_asc(ip_country, hit, duration)
+   ┌─pageid─┬─ip_country─────────────────┬─hit───────────┬─duration──────────┬─kql_array_sort_asc(ip_country, hit, duration)────────────────┐
+   │      2 │ ['Japan','Gem','FR','Eng'] │ [31,22,33,10] │ [510,410,310,210] │ (['Eng','FR','Gem','Japan'],[10,33,22,31],[210,310,410,510]) │
+   └────────┴────────────────────────────┴───────────────┴───────────────────┴──────────────────────────────────────────────────────────────┘
+   ┌─pageid─┬─ip_country─────────────┬─hit───────────┬─duration──────────┬─kql_array_sort_asc(ip_country, hit, duration)────────────┐
+   │      1 │ ['CA','US','FR','Eng'] │ [11,16,12,20] │ [100,500,300,200] │ (['CA','Eng','FR','US'],[11,20,12,16],[100,200,300,500]) │
+   └────────┴────────────────────────┴───────────────┴───────────────────┴──────────────────────────────────────────────────────────┘
+   ┌─pageid─┬─ip_country──────────────┬─hit────────┬─duration──────────┬─kql_array_sort_asc(ip_country, hit, duration)──────────┐
+   │      4 │ ['CA','Gem',NULL,'Eng'] │ [5,10,3,2] │ [220,320,310,150] │ (['CA','Eng','Gem',NULL],[5,2,10,3],[220,150,320,310]) │
+   └────────┴─────────────────────────┴────────────┴───────────────────┴────────────────────────────────────────────────────────┘
+   ┌─pageid─┬─ip_country─────────────────┬─hit───────────┬─duration──────┬─kql_array_sort_asc(ip_country, hit, duration)─────┐
+   │      3 │ ['CA','Gem','Japan','Eng'] │ [25,10,23,11] │ [120,110,130] │ (['CA','Eng','Gem','Japan'],[25,11,10,23],[NULL]) │
+   └────────┴────────────────────────────┴───────────────┴───────────────┴───────────────────────────────────────────────────┘
+   ┌─pageid─┬─ip_country─────────────┬─hit───────────┬─duration──────────┬─kql_array_sort_asc(ip_country, hit, duration)────────────┐
+   │      5 │ ['FR',NULL,'US','Eng'] │ [16,12,23,10] │ [210,250,110,260] │ (['Eng','FR','US',NULL],[10,16,23,12],[260,210,110,250]) │
+   └────────┴────────────────────────┴───────────────┴───────────────────┴──────────────────────────────────────────────────────────┘  
+   
+   visit | where isnull((array_sort_asc(ip_country, hit, duration))[2][0])
+   ┌─pageid─┬─ip_country─────────────────┬─hit───────────┬─duration──────┐
+   │      3 │ ['CA','Gem','Japan','Eng'] │ [25,10,23,11] │ [120,110,130] │
+   └────────┴────────────────────────────┴───────────────┴───────────────┘
+   ```
+
+   the following behaviours are same as Azure Data Explorer  
+   if no alias specified, the functions return a single tuple includes arrays. can use array sbscripon to access the element inside. for exapmple:
+   ```
+   print array_sort_asc(dynamic([2, 1, 3]), dynamic([20, 40, 30]), dynamic([100, 200]))[0] -> [1,2,3]
+   ```
+   if a single alias is used the first array as an column is returned :
+   ```
+   print t = array_sort_asc(dynamic([2, 1, 3]), dynamic([20, 40, 30]), dynamic([100, 200]))
+   ┌─t───────┐
+   │ [1,2,3] │
+   └─────────┘
+   ```
+   if a n aliasies are used the first n arrays as columns are returned :
+   ```
+   print 5, (t,w) = array_sort_asc(dynamic([2, 1, 3]), dynamic([20, 40, 30]), dynamic([100, 200]))
+   ┌─5─┬─t───────┬─w──────────┐
+   │ 5 │ [1,2,3] │ [40,20,30] │
+   └───┴─────────┴────────────┘
+   ```
+## New Functions
+- [case](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/casefunction)  
+   `Customers | extend t = case(Age <= 10, "A", Age <= 20, "B", Age <= 30, "C", "D");`
+## Bug fixed
+- [summarize crash if aggregation function is missing]
+   ```
+   fixed with throw exception:
+
+   Exception on client:
+   Code: 62. DB::Exception: Syntax error near keyword "by". (SYNTAX_ERROR)
+   ```
+- [make_datetime creates wrong date time]
+
+- [todecimal() doesn't work with column arguments]
+
+
+
+# October 25, 2022
+## New Operators  
+- [count](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/countoperator)  
+`Customers | count;`  
+`Customers | where Age< 30 | count;`  
+`Customers | where Age< 30 | limit 2 | count;`  
+`Customers | where Age< 30 | limit 2 | count | project Count;`  
+
+- [top](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/topoperator)  
+`Customers | top 3 by Age;`  
+`Customers | top 3 by Age desc;`  
+`Customers | top 3 by Age asc | order by FirstName;`  
+`Customers | top 3 by FirstName  desc nulls first;`  
+`Customers | top 3 by FirstName  desc nulls last;`  
+`Customers | top 3 by Age | top 2 by FirstName;`  
+
+- [top-hitters](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/tophittersoperator)  
+`Customers | top-hitters a = 2 of Age by extra;`  
+`Customers | top-hitters 2 of Age;`  
+`Customers | top-hitters 2 of Age by extra | top-hitters 2 of Age | order by Age;`  
+`Customers | top-hitters 2 of Age by extra | where Age > 30;`  
+`Customers | top-hitters 2 of Age by extra | where approximate_sum_extra < 200;`  
+`Customers | top-hitters 2 of Age | where approximate_count_Age > 2;`  
+
+## Bugs fixed
+- [parse_version needs to return null when parameter is empty string]  
+- [Different expressions with the same alias in function substring]  
+- [parse_version needs to return null when parameter is empty string]  
+- [parse_url() output mismatch for empty string]  
+- [array_sum and array_length return incorrect results]  
 
 # October 9, 2022  
 
@@ -37,9 +745,9 @@
  `print parse_version('1.2.3.40')`  
 
 ## Bug fixed
-- [correct array index in expression](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1474)  
+- [correct array index in expression]  
    array index should start with 0  
-- [Summarize should generate alias or use correct columns](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1303)
+- [Summarize should generate alias or use correct columns]
    - if bin is used , the column should be in select list if no alias include  
    - if no column included in aggregate functions,  ( like count() ), should has alias with fun name + '_',e.g  count_  
    - if column name included in aggregate functions, should have fun name + "_" + column name , like count(Age) -> count_Age  
@@ -64,40 +772,40 @@
       │       30 │      4 │
       └──────────┴────────┘
       ```
-- [extend doesn't replace existing columns](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1246)  
+- [extend doesn't replace existing columns]  
 
-- [throw exception if use quoted string as alias](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1470)  
+- [throw exception if use quoted string as alias]  
 
-- [repeat() doesn't work with count argument as negative value](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1368)  
+- [repeat() doesn't work with count argument as negative value]  
 
-- [substring() doesn't work right with negative offsets](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1336)  
-- [endofmonth() doesn't return correct result](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1370)  
+- [substring() doesn't work right with negative offsets]  
+- [endofmonth() doesn't return correct result]  
 
-- [split() outputs array instead of string](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1343)  
+- [split() outputs array instead of string]  
 
-- [split() returns empty string when arg goes out of bound](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1328)  
+- [split() returns empty string when arg goes out of bound]  
 
-- [split() doesn't work with negative index](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1325)  
+- [split() doesn't work with negative index]  
 
 
 # September 26, 2022
 ## Bug fixed :  
-["select * from kql" results in syntax error](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1119)  
-[Parsing ipv4 with arrayStringConcat throws exception](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1259)  
-[CH Client crashes on invalid function name](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1266)  
-[extract() doesn't work right with 4th argument i.e typeof()](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1327)  
-[parse_ipv6_mask return incorrect results](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1050)  
-[timespan returns wrong output in seconds](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1275)  
-[timespan doesn't work for nanoseconds and tick](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1298)  
-[totimespan() doesn't work for nanoseconds and tick timespan unit](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1301)  
-[data types should throw exception in certain cases](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1112)  
-[decimal does not support scientific notation](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1197)  
-[extend statement causes client core dumping](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1260)  
-[extend crashes with array sorting](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1247)  
-[Core dump happens when WHERE keyword doesn't follow field name](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1335)  
-[Null values are missing in the result of `make_list_with_nulls'](https://github.ibm.com/ClickHouse/issue-repo/issues/1009)  
-[trim functions use non-unique aliases](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1111)  
-[format_ipv4_mask returns incorrect mask value](https://zenhub.ibm.com/workspaces/clickhouse-project-61250df53aaf060db4e08052/issues/clickhouse/issue-repo/1039)  
+["select * from kql" results in syntax error]  
+[Parsing ipv4 with arrayStringConcat throws exception]  
+[CH Client crashes on invalid function name]  
+[extract() doesn't work right with 4th argument i.e typeof()]  
+[parse_ipv6_mask return incorrect results]  
+[timespan returns wrong output in seconds]  
+[timespan doesn't work for nanoseconds and tick]  
+[totimespan() doesn't work for nanoseconds and tick timespan unit]  
+[data types should throw exception in certain cases]  
+[decimal does not support scientific notation]  
+[extend statement causes client core dumping]  
+[extend crashes with array sorting]  
+[Core dump happens when WHERE keyword doesn't follow field name]  
+[Null values are missing in the result of `make_list_with_nulls']  
+[trim functions use non-unique aliases]  
+[format_ipv4_mask returns incorrect mask value]  
 
 # September 12, 2022
 ## Extend operator
@@ -188,7 +896,7 @@ Please note that functions returning arrays with set semantics may return them i
 
  - [set_has_element](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/sethaselementfunction)  
    `print set_has_element(dynamic(["this", "is", "an", "example"]), "example") == true`  
-   `print set_has_element(dynamic(["this", "is", "an", "example"]), "test") == false`  
+   `print set_has_element(dynamic(["this", "is", "an", "example"]), "examples") == false`  
    `print set_has_element(dynamic([1, 2, 3]), 2) == true`  
    `print set_has_element(dynamic([1, 2, 3, 4.2]), 4) == false`  
 
@@ -404,6 +1112,8 @@ https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/make-seriesoper
    `print array_iif(dynamic([true, false, true]), dynamic([1, 2, 3, 4]), dynamic([4, 5, 6])) == dynamic([1, 5, 3])`  
    `print array_iif(dynamic([true, false, true, false]), dynamic([1, 2, 3, 4]), dynamic([4, 5, 6])) == dynamic([1, 5, 3, null])`  
    `print array_iif(dynamic([1, 0, -1, 44, 0]), dynamic([1, 2, 3, 4]), dynamic([4, 5, 6])) == dynamic([1, 5, 3, 4, null])`  
+   `print t = array_iif(dynamic([true, false, true, false, true]), dynamic([1.1, 2.2, 3.3, 4.4, 5.5]), 999.99);`
+   `print t = array_iif(dynamic([true, false, true, false, true]), 90, dynamic([1, 3]));`
 
 - [array_slice](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/arrayslicefunction)  
    `print array_slice(dynamic([1,2,3]), 1, 2) == dynamic([2, 3])`  
@@ -993,4 +1703,3 @@ Please note that the functions listed below only take constant parameters for no
  - dcount()
  - dcountif()
  - bin
- 

@@ -85,4 +85,63 @@ public:
     }
 };
 
+
+template <typename Impl, typename Name>
+class KqlStringSearchToString : public IFunction
+{
+public:
+    static constexpr auto name = Name::name;
+    static FunctionPtr create(ContextPtr) { return std::make_shared<KqlStringSearchToString>(); }
+
+    String getName() const override { return name; }
+
+    size_t getNumberOfArguments() const override { return 3; }
+
+    bool useDefaultImplementationForConstants() const override { return true; }
+    ColumnNumbers getArgumentsThatAreAlwaysConstant() const override { return {1}; }
+
+    bool isSuitableForShortCircuitArgumentsExecution(const DataTypesWithConstInfo & /*arguments*/) const override { return true; }
+
+    DataTypePtr getReturnTypeImpl(const DataTypes & arguments) const override
+    {
+        if (!isString(arguments[0]))
+            throw Exception(
+                ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type {} of argument of function {}", arguments[0]->getName(), getName());
+
+        if (!isString(arguments[1]))
+            throw Exception(
+                ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type {} of argument of function {}", arguments[1]->getName(), getName());
+
+        if (!isUInt(arguments[2]))
+            throw Exception(
+                ErrorCodes::ILLEGAL_TYPE_OF_ARGUMENT, "Illegal type {} of argument of function {}", arguments[2]->getName(), getName());
+
+        return std::make_shared<DataTypeString>();
+    }
+
+    ColumnPtr executeImpl(const ColumnsWithTypeAndName & arguments, const DataTypePtr &, size_t /*input_rows_count*/) const override
+    {
+        const ColumnPtr column = arguments[0].column;
+        const ColumnPtr column_needle = arguments[1].column;
+        const auto capture = arguments[2].column->getUInt(0);
+
+        const ColumnConst * col_needle = typeid_cast<const ColumnConst *>(&*column_needle);
+        if (!col_needle)
+            throw Exception(ErrorCodes::ILLEGAL_COLUMN, "Second argument of function {} must be constant string", getName());
+
+        if (const ColumnString * col = checkAndGetColumn<ColumnString>(column.get()))
+        {
+            auto col_res = ColumnString::create();
+
+            ColumnString::Chars & vec_res = col_res->getChars();
+            ColumnString::Offsets & offsets_res = col_res->getOffsets();
+            Impl::vector(col->getChars(), col->getOffsets(), col_needle->getValue<String>(), static_cast<unsigned>(capture), vec_res, offsets_res);
+
+            return col_res;
+        }
+        else
+            throw Exception(
+                ErrorCodes::ILLEGAL_COLUMN, "Illegal column {} of argument of function {}", arguments[0].column->getName(), getName());
+    }
+};
 }

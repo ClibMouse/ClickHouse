@@ -42,6 +42,7 @@
 #include <Parsers/queryToString.h>
 
 #include <Interpreters/StorageID.h>
+#include <Parsers/Kusto/ParserKQLStatement.h>
 
 namespace DB
 {

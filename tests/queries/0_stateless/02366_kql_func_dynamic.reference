@@ -1,11 +1,15 @@
 -- constant index value
 1	c	['A',NULL,'C']
 -- array_length()
-1
-1
+4
+3
 -- array_sum()
+10
+11
 1
-1
+\N
+0
+4
 -- array_index_of()
 3
 1
@@ -14,6 +18,13 @@
 [1,5,3]
 [1,5,NULL]
 [NULL,NULL,NULL]
+[1,NULL]
+['1','2',NULL,'2',NULL]
+['1','2',NULL,'2',NULL]
+['1','2',NULL,'2',NULL]
+[1.1,999.99,3.3,999.99,5.5]
+[90,3,90,NULL,90]
+[1,4,5,8,9]
 -- array_concat()
 [1,2,3,4,5,6]
 -- array_reverse()
@@ -105,7 +116,7 @@ nan
 []
 [1,1,1]
 ['asd','asd','asd']
-[86400,86400,86400]
+['1.00:00:00','1.00:00:00','1.00:00:00']
 [true,true,true]
 [NULL]
 [NULL]
@@ -150,3 +161,28 @@ nan
 [['Darth','Vader','has a suit'],['Master','Yoda','doesn\'t have a suit']]
 [[1,10],[2,20],[3,NULL]]
 [[NULL,1],[NULL,2],[NULL,3]]
+-- array_sort in table()
+1	(['CA','Eng','FR','US'],[11,20,12,16],[100,200,300,500])
+2	(['Eng','FR','Gem','Japan'],[10,33,22,31],[210,310,410,510])
+3	(['CA','Eng','Gem','Japan'],[25,11,10,23],[120,0,110,130])
+-- array_sort in table() with condition
+1	(['CA','Eng','FR','US'],[11,20,12,16],[100,200,300,500])
+2	(['Eng','FR','Gem','Japan'],[10,33,22,31],[210,310,410,510])
+3	(['CA','Eng','Gem','Japan'],[25,11,10,23],[120,0,110,130])
+-- array_sort as condition
+-- array_sort with single alias
+1	['CA','Eng','FR','US']
+2	['Eng','FR','Gem','Japan']
+3	['CA','Eng','Gem','Japan']
+1	['CA','Eng','FR','US']
+2	['Eng','FR','Gem','Japan']
+3	['CA','Eng','Gem','Japan']
+-- array_sort with partial alias
+1	['CA','Eng','FR','US']	[11,20,12,16]
+2	['Eng','FR','Gem','Japan']	[10,33,22,31]
+3	['CA','Eng','Gem','Japan']	[25,11,10,23]
+-- array_sort with all alias
+1	['CA','Eng','FR','US']	[11,20,12,16]	[100,200,300,500]
+2	['Eng','FR','Gem','Japan']	[10,33,22,31]	[210,310,410,510]
+3	['CA','Eng','Gem','Japan']	[25,11,10,23]	[120,0,110,130]
+[[1,2],[1,2],[1,2],[1,2]]

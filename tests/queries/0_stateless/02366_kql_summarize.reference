@@ -19,6 +19,8 @@ Skilled Manual	151
 Professional	117
 Management abcd defg	33
 4
+4
+2
 2
 40	2
 30	4
@@ -26,6 +28,18 @@ Management abcd defg	33
 Skilled Manual	5
 Professional	6
 Management abcd defg	1
+Cameron	Rodriguez	28
+Christine	Nara	33
+Latoya	Shen	25
+Joshua	Lee	26
+Dalton	Wood	42
+Peter	Nara	26
+Edward	Hernandez	36
+\N	why	38
+Apple		28
+Stephanie	Cox	33
+Angel	Stewart	46
+Theodore	Diaz	28
 -- make_list() --
 Skilled Manual	['Bachelors','Graduate Degree','High School','Partial College','Bachelors']
 Professional	['Graduate Degree','Partial College','Partial College','Partial College','Partial College','Partial College']
@@ -76,10 +90,10 @@ Management abcd defg	1
 -- summarize with bin --
 0	1
 245000	2
-0	1
-245	2
-0	1
-245	2
+1970-01-01 00:00:00.000000000	1
+1970-01-01 00:04:05.000000000	2
+00:00:00	1
+00:04:05	2
 2015-10-12 00:00:00.000000000
 2016-10-12 00:00:00.000000000
 -- make_list_with_nulls --
@@ -90,3 +104,38 @@ Management abcd defg	['Stephanie']
 Skilled Manual	['Theodore','Peter','Edward','Christine','Apple']	[28,26,36,33,28]
 Professional	['Latoya','Joshua','Dalton','Cameron','Angel',NULL]	[25,26,42,28,46,38]
 Management abcd defg	['Stephanie']	[33]
+-- count_distinct --
+4
+-- count_distinctif --
+3
+-- format_datetime --
+70-01-01	1
+70-01-03	2
+-- take_any --
+Theodore
+Theodore	Diaz
+Cameron	Rodriguez	Cameron	Rodriguez
+Christine	Nara	Christine	Nara
+TheodoreDiaz
+-- take_anyif --
+Theodore
+Theodore	11
+-- variance/variancep/varianceif --
+46.992424242424185
+43.076388888888836
+1.766666666666606
+-- arg_max --
+Stewart	46
+Skilled Manual	Edward	Hernandez	36
+Professional	Angel	Stewart	46
+Management abcd defg	Stephanie	Cox	33
+-- arg_min --
+Shen	25
+Skilled Manual	Peter	Nara	26
+Professional	Latoya	Shen	25
+Management abcd defg	Stephanie	Cox	33
+-- hll, hll_if, hll_merge, dcount_hll --
+4
+3
+7
+7

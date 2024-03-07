@@ -1,16 +1,17 @@
-#include <format>
-#include <unordered_map>
 #include <Parsers/ASTLiteral.h>
-#include <Parsers/ExpressionListParsers.h>
 #include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/ParserKQLMVExpand.h>
+#include <Parsers/ExpressionListParsers.h>
+#include <Parsers/ParserTablesInSelectQuery.h>
+#include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/ParserKQLMakeSeries.h>
 #include <Parsers/Kusto/ParserKQLOperators.h>
-#include <Parsers/Kusto/ParserKQLQuery.h>
 #include <Parsers/Kusto/Utilities.h>
-#include <Parsers/ParserSelectQuery.h>
+#include <Parsers/Kusto/ParserKQLMVExpand.h>
 #include <Parsers/ParserSetQuery.h>
-#include <Parsers/ParserTablesInSelectQuery.h>
+#include <Parsers/ParserSelectQuery.h>
+
+#include <format>
+#include <unordered_map>
 
 namespace DB::ErrorCodes
 {
@@ -94,7 +95,7 @@ bool ParserKQLMVExpand::parseColumnArrayExprs(ColumnArrayExprs & column_array_ex
                 return false;
             to_type = String(pos->begin, pos->end);
 
-            if (type_cast.find(to_type) == type_cast.end())
+            if (!type_cast.contains(to_type))
                 throw Exception(ErrorCodes::UNKNOWN_TYPE, "{} is not a supported kusto data type for mv-expand", to_type);
 
             ++pos;
@@ -203,15 +204,13 @@ bool ParserKQLMVExpand::genQuery(KQLMVExpand & kql_mv_expand, ASTPtr & select_no
             expand_str = expand_str.empty() ? String("ARRAY JOIN ") + column.alias : expand_str + "," + column.alias;
         else
         {
-            expand_str = expand_str.empty() ? std::format("ARRAY JOIN {} AS {} ", column.column_array_expr, column.alias)
-                                            : expand_str + std::format(", {} AS {}", column.column_array_expr, column.alias);
+            expand_str = expand_str.empty() ? std::format("ARRAY JOIN {} AS {} ", column.column_array_expr, column.alias): expand_str + std::format(", {} AS {}", column.column_array_expr, column.alias);
             extra_columns = extra_columns + ", " + column.alias;
         }
 
         if (!column.to_type.empty())
         {
-            cast_type_column_remove
-                = cast_type_column_remove.empty() ? " Except " + column.alias : cast_type_column_remove + " Except " + column.alias;
+            cast_type_column_remove = cast_type_column_remove.empty() ? " Except " + column.alias : cast_type_column_remove + " Except " + column.alias;
             String rename_str;
 
             if (type_cast[column.to_type] == "Boolean")
@@ -221,12 +220,8 @@ bool ParserKQLMVExpand::genQuery(KQLMVExpand & kql_mv_expand, ASTPtr & select_no
                 rename_str = std::format("accurateCastOrNull({0},'{1}') as {0}_ali", column.alias, type_cast[column.to_type]);
 
             cast_type_column_rename = cast_type_column_rename.empty() ? rename_str : cast_type_column_rename + "," + rename_str;
-            cast_type_column_restore = cast_type_column_restore.empty()
-                ? std::format(" Except {}_ali ", column.alias)
-                : cast_type_column_restore + std::format(" Except {}_ali ", column.alias);
-            cast_type_column_restore_name = cast_type_column_restore_name.empty()
-                ? std::format("{0}_ali as {0}", column.alias)
-                : cast_type_column_restore_name + std::format(", {0}_ali as {0}", column.alias);
+            cast_type_column_restore = cast_type_column_restore.empty() ? std::format(" Except {}_ali ", column.alias) : cast_type_column_restore + std::format(" Except {}_ali ", column.alias);
+            cast_type_column_restore_name = cast_type_column_restore_name.empty() ? std::format("{0}_ali as {0}", column.alias) : cast_type_column_restore_name + std::format(", {0}_ali as {0}", column.alias);
         }
 
         if (!kql_mv_expand.with_itemindex.empty())

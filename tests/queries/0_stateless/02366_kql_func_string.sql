@@ -1,4 +1,11 @@
--- Tags: no-fasttest
+-- datatable(FirstName:string, LastName:string, Occupation:string, Education:string, Age:int) [
+--     'Theodore', 'Diaz', 'Skilled Manual', 'Bachelors', 28,
+--     'Stephanie', 'Cox', 'Management abcd defg', 'Bachelors', 33,
+--     'Peter', 'Nara', 'Skilled Manual', 'Graduate Degree', 26,
+--     'Latoya', 'Shen', 'Professional', 'Graduate Degree', 25,
+--     'Apple', '', 'Skilled Manual', 'Bachelors', 28,
+--     '', 'why', 'Professional', 'Partial College', 38
+-- ]
 
 DROP TABLE IF EXISTS Customers;
 CREATE TABLE Customers
@@ -26,8 +33,38 @@ CREATE TABLE Versions
 ) ENGINE = Memory;
 INSERT INTO Versions VALUES ('1.2.3.4'),('1.2'),('1.2.3'),('1');
 
+-- datatable (Text:string) [
+--     'asdf',
+--     'asdf.ghkj',
+--     'asdf.qwer',
+--     'asdfghkj',
+--     'qwer',
+--     'qwerqwer'
+-- ]
 
-set dialect='kusto';
+drop table if exists StringTest;
+create table StringTest
+(
+    Text String
+) engine = Memory;
+
+insert into StringTest values ('asdf'), ('asdf.ghkj'), ('asdf.qwer'), ('asdfghkj'), ('qwer'), ('qwerqwer');
+
+DROP TABLE IF EXISTS MyTable;
+CREATE TABLE MyTable
+(    
+    `col_arr` Array(UInt64),
+    `col1` Int8, 
+    `col2` Int16,
+    `col3` Int32,
+    `col4` Int64,
+) ENGINE = Memory;
+
+INSERT INTO MyTable VALUES (array(81,82,83,84), 123, 1605, 29233 ,128002 ), (array(85, 86), 62, 1540 ,25151 , 49856), (array(87,88,89), 36, 2437, 127801, 50509)
+
+set dialect = 'kusto';
+set interval_output_format = 'kusto';
+
 print '-- test String Functions --';
 
 print '-- Customers |where Education contains \'degree\'';
@@ -120,8 +157,14 @@ print '';
 print '-- Customers | where isempty(LastName)';
 Customers | where isempty(LastName);
 print '';
+print '-- print isempty(1.2345)';
+print isempty(1.2345);
+print '';
 print '-- Customers | where isnotempty(LastName)';
 Customers | where isnotempty(LastName);
+print '';
+print '-- print isnotempty(1.2345)';
+print isnotempty(1.2345);
 print '';
 print '-- Customers | where isnotnull(FirstName)';
 Customers | where isnotnull(FirstName)| order by LastName;
@@ -147,26 +190,37 @@ print '';
 print '-- Customers | project strrep(FirstName,2,\'_\')';
 Customers | project strrep(FirstName,2,'_')| order by LastName;
 print '';
+print '--print from_str = strrep("ABC", 2)';
+print from_str = strrep('ABC', 2);
+print '--print from_int = strrep(123,3,".")';
+print from_int = strrep(123, 3, '.');
+print '--print from_time = strrep(3s,2," ")';
+print from_time = strrep(3s, 2, ' ');
+print '';
 print '-- Customers | project toupper(FirstName)';
 Customers | project toupper(FirstName)| order by LastName;
 print '';
 print '-- Customers | project tolower(FirstName)';
 Customers | project tolower(FirstName)| order by LastName;
 print '';
-print '-- support subquery for in orerator (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/in-cs-operator) (subquery need to be wraped with bracket inside bracket); TODO: case-insensitive not supported yet';
-Customers | where Age in ((Customers|project Age|where Age < 30)) | order by LastName;
 -- Customer | where LastName in~ ("diaz", "cox")
 print '';
 print '-- has_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/has-all-operator); TODO: subquery not supported yet';
 Customers | where Occupation has_all ('manual', 'skilled') | order by LastName;
 print '';
 print '-- has_any (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/has-anyoperator); TODO: subquery not supported yet';
-Customers|where Occupation has_any ('Skilled','abcd');
+Customers | where Occupation has_any ('Skilled', 'abcd');
 print '';
 print '-- countof (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/countoffunction)';
 Customers | project countof('The cat sat on the mat', 'at') | take 1;
 Customers | project countof('The cat sat on the mat', 'at', 'normal') | take 1;
 Customers | project countof('The cat sat on the mat', '\\s.he', 'regex') | take 1;
+print countof("aaa", "a");
+print countof("aaaa", "aa");
+print countof("ababa", "ab", "normal");
+print countof("ababa", "aba");
+print countof("ababa", "aba", "regex");
+print countof("abcabc", "a.c", "regex");
 print '';
 print '-- extract ( https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractfunction)';
 print extract('(\\b[A-Z]+\\b).+(\\b\\d+)', 0, 'The price of PINEAPPLE ice cream is 20');
@@ -181,9 +235,11 @@ print extract("x=([0-9.]+)", 1, "hello x=45.6|wo" , typeof(int));
 print extract("x=([0-9.]+)", 1, "hello x=45.6|wo" , typeof(long));
 print extract("x=([0-9.]+)", 1, "hello x=45.6|wo" , typeof(real));
 print extract("x=([0-9.]+)", 1, "hello x=45.6|wo" , typeof(decimal));
+print extract(".*Action=(\\w+)",1, "dstPostNATPort=80 proto=tcp Action=alert");
 print '';
-print '-- extract_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractallfunction); TODO: captureGroups not supported yet';
+print '-- extract_all (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/extractallfunction)';
 Customers | project extract_all('(\\w)(\\w+)(\\w)','The price of PINEAPPLE ice cream is 20') | take 1;
+print extract_all("(\\w)(\\w+)(\\w)", dynamic([1,3]), "82b8be2d-dfa7-4bd1-8f63-24ad26d31449");
 print '';
 print '-- extract_json (https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/extractjsonfunction)';
 print extract_json('', ''); -- { serverError BAD_ARGUMENTS }
@@ -196,7 +252,7 @@ print extract_json('$.phoneNumbers[0].type', '{"firstName":"John","lastName":"do
 print extract_json('$.age', '{"firstName":"John","lastName":"doe","age":26,"address":{"streetAddress":"naist street","city":"Nara","postalCode":"630-0192"},"phoneNumbers":[{"type":"iPhone","number":"0123-4567-8888"},{"type":"home","number":"0123-4567-8910"}]}');
 print extract_json('$.age', '{"firstName":"John","lastName":"doe","age":26,"address":{"streetAddress":"naist street","city":"Nara","postalCode":"630-0192"},"phoneNumbers":[{"type":"iPhone","number":"0123-4567-8888"},{"type":"home","number":"0123-4567-8910"}]}', typeof(int));
 print extract_json('$.age', '{"firstName":"John","lastName":"doe","age":26,"address":{"streetAddress":"naist street","city":"Nara","postalCode":"630-0192"},"phoneNumbers":[{"type":"iPhone","number":"0123-4567-8888"},{"type":"home","number":"0123-4567-8910"}]}', typeof(long));
--- print extract_json('$.age', '{"firstName":"John","lastName":"doe","age":26,"address":{"streetAddress":"naist street","city":"Nara","postalCode":"630-0192"},"phoneNumbers":[{"type":"iPhone","number":"0123-4567-8888"},{"type":"home","number":"0123-4567-8910"}]}', typeof(bool)); -> true
+print extract_json('$.age', '{"firstName":"John","lastName":"doe","age":26,"address":{"streetAddress":"naist street","city":"Nara","postalCode":"630-0192"},"phoneNumbers":[{"type":"iPhone","number":"0123-4567-8888"},{"type":"home","number":"0123-4567-8910"}]}', typeof(bool));
 print extract_json('$.age', '{"firstName":"John","lastName":"doe","age":26,"address":{"streetAddress":"naist street","city":"Nara","postalCode":"630-0192"},"phoneNumbers":[{"type":"iPhone","number":"0123-4567-8888"},{"type":"home","number":"0123-4567-8910"}]}', typeof(double));
 print extract_json('$.age', '{"firstName":"John","lastName":"doe","age":26,"address":{"streetAddress":"naist street","city":"Nara","postalCode":"630-0192"},"phoneNumbers":[{"type":"iPhone","number":"0123-4567-8888"},{"type":"home","number":"0123-4567-8910"}]}', typeof(guid));
 -- print extract_json('$.phoneNumbers', '{"firstName":"John","lastName":"doe","age":26,"address":{"streetAddress":"naist street","city":"Nara","postalCode":"630-0192"},"phoneNumbers":[{"type":"iPhone","number":"0123-4567-8888"},{"type":"home","number":"0123-4567-8910"}]}', typeof(dynamic)); we won't be able to handle this particular case for a while, because it should return a dictionary
@@ -213,12 +269,11 @@ Customers | project split('aaa_bbb_ccc', '_', 10) | take 1;
 print '';
 print '-- strcat_delim (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/strcat-delimfunction); TODO: only support string now.';
 Customers | project strcat_delim('-', '1', '2', strcat('A','b')) | take 1;
--- Customers | project strcat_delim('-', '1', '2', 'A' , 1s);
+Customers | project strcat_delim('-', '1', '2', 'A' , 1s) | take 1;
+Customers | project strcat_delim('-', '1', '2', 'A' , 55) | take 1;
+Customers | project strcat_delim('-', '1', '2', 'A' , 7.99) | take 1;
+print strcat_delim(' ', "qqqqq", "fffffff", "'asd bcd'", "\"moo moo \"");
 print '';
-print '-- indexof (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/indexoffunction); TODO: length and occurrence not supported yet';
-Customers | project indexof('abcdefg','cde') | take 1;
-Customers | project indexof('abcdefg','cde',2) | take 1;
-Customers | project indexof('abcdefg','cde',6) | take 1;
 print '-- base64_encode_fromguid()';
 -- print base64_encode_fromguid(guid(null));
 print base64_encode_fromguid(guid('ae3133f2-6e22-49ae-b06a-16e6a9b212eb'));
@@ -227,6 +282,7 @@ print base64_encode_fromguid("abcd1231"); -- { serverError FUNCTION_THROW_IF_VAL
 print '-- base64_decode_toarray()';
 print base64_decode_toarray('');
 print base64_decode_toarray('S3VzdG8=');
+print base64_decode_toarray('S3VzdG8===');
 print '-- base64_decode_toguid()';
 print base64_decode_toguid("JpbpECu8dUy7Pv5gbeJXAA==");
 print base64_decode_toguid(base64_encode_fromguid(guid('ae3133f2-6e22-49ae-b06a-16e6a9b212eb'))) == guid('ae3133f2-6e22-49ae-b06a-16e6a9b212eb');
@@ -236,10 +292,39 @@ print base64_encode_tostring('Kusto1');
 print '-- base64_decode_tostring';
 print base64_decode_tostring('');
 print base64_decode_tostring('S3VzdG8x');
-print '-- parse_url()';
+print base64_decode_tostring('S3VzdG8====');
+print base64_decode_tostring('U3RyaW5n0KHR0tGA0L7Rh9C60LA=');
+print '-- parse_url() same as ADX';
 print parse_url('scheme://username:password@host:1234/this/is/a/path?k1=v1&k2=v2#fragment');
+print parse_url('');
+print parse_url("http://[2001:db8:3333:4444:5555:6666:7777:8888]:1234/filepath/index.htm")
+print parse_url("http://host");
+print parse_url("http://host:1234");
+print parse_url("http:///this/is/a/path/index.htm");
+print parse_url("http://#fragment");
+print parse_url("http://host:abcd");
+print parse_url('http://host/filepath?arg=:bogus@some');
+print parse_url("http://username:password@");
+print parse_url(1);  -- { serverError ILLEGAL_TYPE_OF_ARGUMENT }
+print '-- parse_url() differs from ADX';
+print parse_url("http://host:1234/");
+print parse_url("http://:1234/");
+print parse_url("http://?arg=value");
+print parse_url("http://host:1234?arg=value");
+print parse_url("http:///");
+print parse_url("http:///filepath");
+print parse_url("http://:port:/anything?arg=value");
+print parse_url("http://:port:port/anything?arg=value");
+print parse_url("http://host/");
+print '-- parse_url() invalid IPV6';
+print parse_url("http://2001:db8:3333:4444:5555:6666:7777:8888:1234/filepath/index.htm");
+print parse_url("http://2001:db8:3333:4444:5555:6666:7777:8888/filepath/index.htm");
 print '-- parse_urlquery()';
 print parse_urlquery('k1=v1&k2=v2&k3=v3');
+print '-- strcat --';
+print strcat('a', 1, 2, 3, timespan(5d));
+print strcat('a', null, 9 + 2, 1h + 1d);
+print strcat('a', "b", "'c");
 print '-- strcmp()';
 print strcmp('ABC','ABC'), strcmp('abc','ABC'), strcmp('ABC','abc'), strcmp('abcde','abc');
 print '-- substring()';
@@ -280,6 +365,8 @@ print parse_version('1.2.4.5.6');
 print parse_version('moo'); 
 print parse_version('moo.boo.foo');
 print parse_version(strcat_delim('.', 'moo', 'boo', 'foo'));
+print parse_version('');
+print parse_version('....');
 Versions | project parse_version(Version);
 print '-- parse_json()';
 print parse_json(dynamic([1, 2, 3]));
@@ -301,7 +388,7 @@ print reverse(dynamic([]));
 print reverse(dynamic([1, 2, 3]));
 print reverse(dynamic(['Darth', "Vader"]));
 print reverse(datetime(2017-10-15 12:00));
--- print reverse(timespan(3h)); -> 00:00:30
+print reverse(timespan(3h));
 Customers | where Education contains 'degree' | order by reverse(FirstName);
 print '-- parse_csv()';
 print parse_csv('');
@@ -311,3 +398,113 @@ print result=parse_csv('aa,b,cc');
 print result_multi_record=parse_csv('record1,a,b,c\nrecord2,x,y,z');
 -- print result=parse_csv('aa,"b,b,b",cc,"Escaping quotes: ""Title""","line1\nline2"'); -> ["aa","b,b,b","cc","Escaping quotes: \"Title\"","line1\nline2"]
 -- print parse_csv(strcat(strcat_delim(',', 'aa', '"b,b,b"', 'cc', '"Escaping quotes: ""Title"""', '"line1\nline2"'), '\r\n', strcat_delim(',', 'asd', 'qcf'))); -> ["aa","b,b,b","cc","Escaping quotes: \"Title\"","line1\nline2"]
+print '-- indexof (https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/indexoffunction)';
+
+Customers | project indexof('abcdefgabcdefg', 'cde', 1, 10, 2) | take 1;
+print  indexof('abcdefg','cde');
+print idx2 = indexof('abcdefg','cde',0,3);
+print idx3 = indexof('abcdefg','cde',1,2);
+print idx4 = indexof('abcdefg','cde',3,4);
+print idx5 = indexof('abcdefg','cde',-5);
+print idx6 = indexof(1234567,5,1,4);
+print idx7 = indexof('abcdefg','cde',2,-1);
+print idx8 = indexof('abcdefgabcdefg', 'cde', 1, 10, 2);
+print idx9 = indexof('abcdefgabcdefg', 'cde', 1, -1, 3);
+print idx10 = indexof('abcdefgabcdefg','cde', -1);
+print idx11 = indexof('abcdefgabcdefg','cde', -4);
+print idx12 = indexof('abcdefgabcdefg','cde', -5);
+print idx13 = indexof('abcdefgabcdefg','cde', -105);
+print idx14 = indexof(1d, '.');
+
+print '-- indexof_regex --';
+print idx1 = indexof_regex("abcabc", "a.c");
+print idx2 = indexof_regex("abcabcdefg", "a.c", 0, 9, 2);
+print idx3 = indexof_regex("abcabc", "a.c", 1, -1, 2);
+print idx4 = indexof_regex("ababaa", "a.a", 0, -1, 2);
+print idx5 = indexof_regex("abcabc", "a|ab", -1);
+print idx6 = indexof_regex(int(null), '.');
+print indexof_regex('adsasdasasd', 'sas');
+print indexof_regex('adsasdasasd', 'sas', -1);
+print indexof_regex('adsasdasasd', 'sas', 99);
+print indexof_regex('adsasdasasd', 'sas', 0, -1);
+print indexof_regex('adsasdasasd', 'sas', 0, -2);
+print indexof_regex('adsasdasasd', 'sas', 0, 0);
+print indexof_regex('adsasdasasd', 'sas', 0, 4);
+print indexof_regex('adsasdasasd', 'sas', 0, 5);
+print indexof_regex('adsasdasasd', 'sas', 0, 99);
+print indexof_regex('adsasdasasd', 'sas', 0, -1, 1);
+-- the following case differs from ADX, but conforms to the specification (https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/indexofregexfunction#returns)
+print indexof_regex('adsasdasasd', 'sas', 0, -1, 0);
+print indexof_regex('adsasdasasd', 'sas', 0, -1, 2);
+print indexof_regex('adsasdasasd', 'sas', 0, -1, 3);
+print indexof_regex(123456789, '67');
+print indexof_regex(12345.6789, 67);
+print now = now() | project indexof_regex(strcat('blabla', now, 'blablabla'), now);
+print indexof_regex(dynamic([1, 2, 3]), 2);
+print indexof_regex(true, 'rue');
+print indexof_regex(guid(74be27de-1e4e-49d9-b579-fe0b331d3642), 42);
+print indexof_regex(1d + 1h + 1m + 1s, '\\d?\\..*:\\d+:\\d{2}');
+print indexof_regex("abcabc", "*a|ab", -1); -- { serverError CANNOT_COMPILE_REGEXP }
+print indexof_regex("abcabc", strcat("a", "b", "c"));
+Customers | project indexof_regex(LastName, Occupation); -- { serverError ILLEGAL_COLUMN }
+Customers | project indexof_regex(LastName, "Diaz", Age, Age, Age); -- { serverError ILLEGAL_COLUMN }
+
+print '-- indexof_regex tabular #1 --';
+Customers | order by LastName asc | project indexof_regex(LastName, "Diaz", Age * 0, -1 * int(Age / Age), 1);
+
+print '-- has --';
+print 'svchost.exe1' has '';
+print 'svchost.exe1' has 'svchost.exe';
+print 'svchost.exe' has 'svchost.exe';
+print 'svchost.exe' has 'svchost.exe1';
+print '' has 'svchost.exe1';
+print '' has '';
+print '.' has '';
+print '.' has ',';
+print '.' has '.';
+print '.ex.e' has 'ex';
+print '.ex.e' has 'exe';
+print '';
+StringTest | where Text has 'asdf';
+print '';
+StringTest | where Text has 'asdf.qwer';
+print '';
+StringTest | where Text has 'qwer';
+
+print '-- !has --';
+StringTest | where Text !has 'asdf';
+print '';
+StringTest | where Text !has 'asdf.qwer';
+
+print '-- has_all --';
+StringTest | where Text has_all ('asdf', 'qwer');
+
+print '-- has_any --';
+StringTest | where Text has_any ('asdf', 'qwer');
+
+print '-- string_size --';
+print t = string_size('Kusto');
+print t = string_size('⒦⒰⒮⒯⒪');
+
+print '-- to_utf8 --';
+print arr = to_utf8("⒦⒰⒮⒯⒪");
+print arr = to_utf8("קוסטו - Kusto");
+
+print '-- make_string --';
+print str = make_string(75, 117, 115, 116, 111);
+print str = make_string(to_utf8("Kusto"));
+print str = make_string(dynamic([75, 117, 115]), 116, 111);
+print str = make_string(dynamic([75, 117, 115, 116, 111]));
+MyTable | project t = make_string(col_arr, col1, col2);
+MyTable | project t = strcat(make_string(col1), '-', make_string(col2), '-', make_string(strlen('abcd') * 20), '-', make_string(col_arr));
+print str = make_string(range(80, 85), 86, 87, range(88, 90));
+print str = make_string(dynamic([]), 80, 81);
+print str = make_string(123, 1605, 29233 ,128002, 2437);
+
+print '-- isutf8 --';
+print t = isutf8('🐂');
+print t = isutf8('؄');
+
+print '-- isascii --';
+print str = isascii('ab১২ufghi🐂🐇🐒');
+print str = isascii('abc');

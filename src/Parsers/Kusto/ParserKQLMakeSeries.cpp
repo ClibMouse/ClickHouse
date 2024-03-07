@@ -1,8 +1,8 @@
-#include <format>
+#include "ParserKQLTimespan.h"
+
 #include <Parsers/ASTLiteral.h>
 #include <Parsers/ExpressionListParsers.h>
 #include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/ParserKQLDateTypeTimespan.h>
 #include <Parsers/Kusto/ParserKQLMakeSeries.h>
 #include <Parsers/Kusto/ParserKQLOperators.h>
 #include <Parsers/Kusto/ParserKQLQuery.h>
@@ -10,10 +10,16 @@
 #include <Parsers/ParserSelectQuery.h>
 #include <Parsers/ParserTablesInSelectQuery.h>
 
+#include <format>
+
 namespace DB
 {
+namespace ErrorCodes
+{
+    extern const int SYNTAX_ERROR;
+}
 
-bool ParserKQLMakeSeries ::parseAggregationColumns(AggregationColumns & aggregation_columns, Pos & pos)
+void ParserKQLMakeSeries ::parseSingleAggregationColumn(AggregationColumns & aggregation_columns, Pos begin, Pos end, size_t & column_index)
 {
     std::unordered_set<String> allowed_aggregation(
         {"avg",
@@ -33,60 +39,164 @@ bool ParserKQLMakeSeries ::parseAggregationColumns(AggregationColumns & aggregat
          "sumif",
          "variance"});
 
-    Expected expected;
-    ParserKeyword s_default("default");
-    ParserToken equals(TokenType::Equals);
-    ParserToken open_bracket(TokenType::OpeningRoundBracket);
-    ParserToken close_bracket(TokenType::ClosingRoundBracket);
-    ParserToken comma(TokenType::Comma);
+    String alias;
+    String aggregation_fun;
+    String column;
+    String default_value = "0";
+    auto pos = begin;
 
-    while (isValidKQLPos(pos) && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    bool has_default = false;
+    if (begin == end)
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "No aggregation in make-series operator");
+
+    if (String(pos->begin, pos->end) == "=")
+        throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid equal symbol (=) in make-series operator");
+
+    auto agg_start_pos = pos;
+    auto agg_end_pos = pos;
+    BracketCount bracket_count;
+    while (pos < end)
     {
-        String alias;
-        String aggregation_fun;
-        String column;
-        double default_value = 0;
-
-        String first_token(pos->begin, pos->end);
-
-        ++pos;
-        if (equals.ignore(pos, expected))
+        bracket_count.count(pos);
+        if (String(pos->begin, pos->end) == "=" && bracket_count.isZero())
         {
-            alias = std::move(first_token);
-            aggregation_fun = String(pos->begin, pos->end);
+            if (!alias.empty())
+                throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid equal symbol (=) in make-series operator");
+            --pos;
+            if (begin != pos)
+                throw Exception(ErrorCodes::SYNTAX_ERROR, "{} is not a valid alias", std::string_view(begin->begin, pos->end));
             ++pos;
+            alias = String(begin->begin, begin->end);
+            begin = pos;
+            ++begin;
         }
-        else
-            aggregation_fun = std::move(first_token);
 
-        if (allowed_aggregation.find(aggregation_fun) == allowed_aggregation.end())
-            return false;
-
-        if (open_bracket.ignore(pos, expected))
-            column = String(pos->begin, pos->end);
-        else
-            return false;
-
-        ++pos;
-        if (!close_bracket.ignore(pos, expected))
-            return false;
-
-        if (s_default.ignore(pos, expected))
+        if (String(pos->begin, pos->end) == "default" && bracket_count.isZero())
         {
-            if (!equals.ignore(pos, expected))
-                return false;
+            has_default = true;
+            if (!aggregation_fun.empty())
+                throw Exception(ErrorCodes::SYNTAX_ERROR, "Extra keyword (default) in make-series operator");
+            --pos;
+            if (pos < begin)
+                throw Exception(ErrorCodes::SYNTAX_ERROR, "No aggregation in make-series operator");
 
-            default_value = std::stod(String(pos->begin, pos->end));
+            aggregation_fun = String(begin->begin, pos->end);
+            agg_start_pos = begin;
+            agg_end_pos = pos;
             ++pos;
+            ++pos;
+            if (String(pos->begin, pos->end) != "=")
+                throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid default in make-series operator");
+            begin = pos;
+            ++begin;
         }
-        if (alias.empty())
-            alias = std::format("{}_{}", aggregation_fun, column);
-        aggregation_columns.push_back(AggregationColumn(alias, aggregation_fun, column, default_value));
-
-        if (!comma.ignore(pos, expected))
-            break;
+        ++pos;
     }
-    return true;
+    --end;
+    if (aggregation_fun.empty())
+    {
+        if (end < begin)
+            throw Exception(ErrorCodes::SYNTAX_ERROR, "No aggregation in make-series operator");
+        aggregation_fun = String(begin->begin, end->end);
+        agg_start_pos = begin;
+        agg_end_pos = end;
+    }
+    else if (has_default)
+    {
+        if (end < begin)
+            throw Exception(ErrorCodes::SYNTAX_ERROR, "No aggregation in make-series operator");
+        default_value = getExprFromToken(String(begin->begin, end->end), pos.max_depth);
+    }
+
+    auto converted_aggregation_fun = getExprFromToken(aggregation_fun, pos.max_depth);
+
+    auto agg_fun = String(agg_start_pos->begin, agg_start_pos->end);
+    String tmp_alias;
+    if (allowed_aggregation.contains(agg_fun))
+        tmp_alias = agg_fun + "_";
+    else
+    {
+        tmp_alias = std::format("Column{}", column_index);
+        ++column_index;
+        agg_fun.clear();
+    }
+
+    auto last_bareword_pos = agg_start_pos;
+    while (agg_start_pos < agg_end_pos)
+    {
+        if (agg_start_pos->type == TokenType::BareWord)
+            last_bareword_pos = agg_start_pos;
+
+        if (agg_start_pos->type == TokenType::ClosingRoundBracket)
+        {
+            column = String(last_bareword_pos->begin, last_bareword_pos->end);
+            --agg_start_pos;
+            if (agg_start_pos == last_bareword_pos)
+            {
+                --agg_start_pos;
+                if (agg_start_pos->type == TokenType::OpeningRoundBracket && !agg_fun.empty())
+                    tmp_alias += column;
+            }
+            break;
+        }
+        ++agg_start_pos;
+    }
+
+    if (alias.empty())
+        alias = tmp_alias;
+    aggregation_columns.emplace_back(alias, converted_aggregation_fun, column, default_value);
+}
+
+bool ParserKQLMakeSeries ::parseAggregationColumns(AggregationColumns & aggregation_columns, Pos & pos)
+{
+    BracketCount bracket_count;
+    auto begin = pos;
+    size_t column_index = 1;
+    while (!pos->isEnd())
+    {
+        bracket_count.count(pos);
+        if ((pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon) && bracket_count.isZero())
+            break;
+
+        if (pos->type == TokenType::Comma && bracket_count.isZero())
+        {
+            parseSingleAggregationColumn(aggregation_columns, begin, pos, column_index);
+            begin = pos;
+            ++begin;
+        }
+        if (String(pos->begin, pos->end) == "on" && bracket_count.isZero())
+        {
+            parseSingleAggregationColumn(aggregation_columns, begin, pos, column_index);
+            return true;
+        }
+        ++pos;
+    }
+
+    return false;
+}
+
+bool ParserKQLMakeSeries ::parseAxisColumn(String & axis_column, Pos & pos)
+{
+    auto begin = pos;
+    BracketCount bracket_count;
+    while (!pos->isEnd())
+    {
+        bracket_count.count(pos);
+        if ((pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon) && bracket_count.isZero())
+            break;
+
+        if (auto keyword = String(pos->begin, pos->end);
+            (keyword == "from" || keyword == "to" || keyword == "step") && bracket_count.isZero())
+        {
+            --pos;
+            axis_column = String(begin->begin, pos->end);
+            ++pos;
+            return true;
+        }
+
+        ++pos;
+    }
+    return false;
 }
 
 bool ParserKQLMakeSeries ::parseFromToStepClause(FromToStepClause & from_to_step, Pos & pos)
@@ -97,15 +207,20 @@ bool ParserKQLMakeSeries ::parseFromToStepClause(FromToStepClause & from_to_step
     auto step_pos = begin;
     auto end_pos = begin;
 
-    while (isValidKQLPos(pos) && pos->type != TokenType::PipeMark && pos->type != TokenType::Semicolon)
+    BracketCount bracket_count;
+    while (isValidKQLPos(pos))
     {
-        if (String(pos->begin, pos->end) == "from")
+        bracket_count.count(pos);
+        if ((pos->type == TokenType::PipeMark || pos->type == TokenType::Semicolon) && bracket_count.isZero())
+            break;
+
+        if (String(pos->begin, pos->end) == "from" && bracket_count.isZero())
             from_pos = pos;
-        if (String(pos->begin, pos->end) == "to")
+        if (String(pos->begin, pos->end) == "to" && bracket_count.isZero())
             to_pos = pos;
-        if (String(pos->begin, pos->end) == "step")
+        if (String(pos->begin, pos->end) == "step" && bracket_count.isZero())
             step_pos = pos;
-        if (String(pos->begin, pos->end) == "by")
+        if (String(pos->begin, pos->end) == "by" && bracket_count.isZero())
         {
             end_pos = pos;
             break;
@@ -138,11 +253,16 @@ bool ParserKQLMakeSeries ::parseFromToStepClause(FromToStepClause & from_to_step
     ++step_pos;
     from_to_step.step_str = String(step_pos->begin, end_pos->end);
 
-    if (String(step_pos->begin, step_pos->end) == "time" || String(step_pos->begin, step_pos->end) == "timespan"
-        || ParserKQLDateTypeTimespan().parseConstKQLTimespan(from_to_step.step_str))
+    if (std::optional<Int64> ticks; String(step_pos->begin, step_pos->end) == "time" || String(step_pos->begin, step_pos->end) == "timespan"
+        || ParserKQLTimespan::tryParse(from_to_step.step_str, ticks))
     {
+        // TODO: this is a hack of the ugliest kind that can only be fixed by supporting arbitrary expressions in make-series
+        static constexpr std::string_view wrapper = "toIntervalNanosecond(";
+        const auto timespan = getExprFromToken(from_to_step.step_str, pos.max_depth);
+        const auto value = timespan.substr(wrapper.length(), timespan.length() - wrapper.length() - 1);
+
         from_to_step.is_timespan = true;
-        from_to_step.step = std::stod(getExprFromToken(from_to_step.step_str, pos.max_depth));
+        from_to_step.step = std::stod(value) * 1e-9;
     }
     else
         from_to_step.step = std::stod(from_to_step.step_str);
@@ -158,8 +278,8 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
     String start_str, end_str;
     String sub_query, main_query;
 
-    auto & aggregation_columns = kql_make_series.aggregation_columns;
-    auto & from_to_step = kql_make_series.from_to_step;
+    const auto & aggregation_columns = kql_make_series.aggregation_columns;
+    const auto & from_to_step = kql_make_series.from_to_step;
     auto & subquery_columns = kql_make_series.subquery_columns;
     auto & axis_column = kql_make_series.axis_column;
     auto & group_expression = kql_make_series.group_expression;
@@ -171,17 +291,34 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
     if (!kql_make_series.from_to_step.to_str.empty())
         end_str = getExprFromToken(from_to_step.to_str, max_depth);
 
-    auto date_type_cast = [&](String & src)
+    auto date_type_cast = [&](const String & src)
     {
         Tokens tokens(src.c_str(), src.c_str() + src.size());
         IParser::Pos pos(tokens, max_depth);
         String res;
         while (isValidKQLPos(pos))
         {
-            String tmp = String(pos->begin, pos->end);
-            if (tmp == "parseDateTime64BestEffortOrNull")
-                tmp = "toDateTime64";
-
+            auto tmp = String(pos->begin, pos->end);
+            if (tmp == "kql_datetime" || tmp == "kql_todatetime")
+            {
+                ++pos;
+                auto datetime_start_pos = pos;
+                auto datetime_end_pos = pos;
+                BracketCount bracket_count;
+                while (!pos->isEnd())
+                {
+                    bracket_count.count(pos);
+                    if (pos->type == TokenType::ClosingRoundBracket && bracket_count.isZero())
+                    {
+                        ++datetime_start_pos;
+                        datetime_end_pos = pos;
+                        --datetime_end_pos;
+                        tmp = std::format("toDateTime64({}, 9, 'UTC')", String(datetime_start_pos->begin, datetime_end_pos->end));
+                        break;
+                    }
+                    ++pos;
+                }
+            }
             res = res.empty() ? tmp : res + " " + tmp;
             ++pos;
         }
@@ -209,10 +346,10 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
                 if (!group_expression_tokens.empty())
                     group_expression_tokens.pop_back();
                 ++pos;
-                group_expression_tokens.push_back(String(pos->begin, pos->end));
+                group_expression_tokens.emplace_back(pos->begin, pos->end);
             }
             else
-                group_expression_tokens.push_back(String(pos->begin, pos->end));
+                group_expression_tokens.emplace_back(pos->begin, pos->end);
             ++pos;
         }
         String res;
@@ -226,6 +363,10 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
     if (from_to_step.is_timespan)
     {
         axis_column_format = std::format("toFloat64(toDateTime64({}, 9, 'UTC'))", axis_column);
+        if (!start_str.empty())
+        {
+            start_str = std::format("date_trunc('second', {})", start_str);
+        }
     }
     else
         axis_column_format = std::format("toFloat64({})", axis_column);
@@ -233,7 +374,7 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
     if (!start_str.empty()) // has from
     {
         bin_str = std::format(
-            "toFloat64({0}) + (toInt64((({1} - toFloat64({0})) / {2})) * {2}) AS {3}_ali",
+            " toFloat64({0}) + (toInt64((({1} - toFloat64({0})) / {2})) * {2}) AS {3}_ali",
             start_str,
             axis_column_format,
             step,
@@ -250,7 +391,8 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
     if (!end_str.empty())
         end = std::format("toUInt64({})", end_str);
 
-    String range, condition;
+    String range;
+    String condition;
 
     if (!start_str.empty() && !end_str.empty())
     {
@@ -278,7 +420,7 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
     String sub_sub_query;
     if (group_expression.empty())
         sub_sub_query = std::format(
-            " (Select {0}, {1} FROM {2} {4} GROUP BY  {3}_ali ORDER BY {3}_ali) ",
+            " (Select {0}, {1} FROM {2} {4} GROUP BY {3}_ali ORDER BY {3}_ali) ",
             subquery_columns,
             bin_str,
             "table_name",
@@ -306,25 +448,27 @@ bool ParserKQLMakeSeries ::makeSeries(KQLMakeSeries & kql_make_series, ASTPtr & 
     auto axis_and_agg_alias_list = axis_column;
     auto final_axis_agg_alias_list = std::format("tupleElement(zipped,1) AS {}", axis_column);
     int idx = 2;
+    int agg_count = 1;
     for (auto agg_column : aggregation_columns)
     {
         String agg_group_column = std::format(
-            "arrayConcat(groupArray({}_ali) as ga, arrayMap(x -> ({}),range(0, toUInt32({} - length(ga) < 0 ? 0 : {} - length(ga)),1)))"
-            "as {}",
+            "arrayConcat(groupArray({0}_ali) as ga{3}, arrayMap(x -> ({1}),range(0,toUInt32({2} - length(ga{3}) < 0 ? 0 : {2} - length(ga{3})),1))) as "
+            "{0}",
             agg_column.alias,
             agg_column.default_value,
             range_len,
-            range_len,
-            agg_column.alias);
+            agg_count
+            );
         main_query = main_query.empty() ? agg_group_column : main_query + ", " + agg_group_column;
 
         axis_and_agg_alias_list += ", " + agg_column.alias;
         final_axis_agg_alias_list += std::format(", tupleElement(zipped,{}) AS {}", idx, agg_column.alias);
+        ++agg_count;
     }
 
     if (from_to_step.is_timespan)
         axis_str = std::format(
-            "arrayDistinct(arrayConcat(groupArray(toDateTime64({0}_ali - {1},9,'UTC')), arrayMap(x->(toDateTime64(x - {1} ,9,'UTC')),"
+            "arrayDistinct(arrayConcat(groupArray(toDateTime64({0}_ali - {1}, 9, 'UTC')), arrayMap(x->(toDateTime64(x - {1}, 9, 'UTC')), "
             "{2}))) as {0}",
             axis_column,
             diff,
@@ -367,9 +511,6 @@ bool ParserKQLMakeSeries ::parseImpl(Pos & pos, ASTPtr & node, Expected & expect
     ParserKeyword s_on("on");
     ParserKeyword s_by("by");
 
-    ParserToken equals(TokenType::Equals);
-    ParserToken comma(TokenType::Comma);
-
     ASTPtr select_expression_list;
 
     KQLMakeSeries kql_make_series;
@@ -379,18 +520,14 @@ bool ParserKQLMakeSeries ::parseImpl(Pos & pos, ASTPtr & node, Expected & expect
     auto & axis_column = kql_make_series.axis_column;
     auto & group_expression = kql_make_series.group_expression;
 
-    ParserKQLDateTypeTimespan time_span;
-
-    //const auto make_series_parameters = getMakeSeriesParameters(pos);
-
     if (!parseAggregationColumns(aggregation_columns, pos))
         return false;
 
     if (!s_on.ignore(pos, expected))
         return false;
 
-    axis_column = String(pos->begin, pos->end);
-    ++pos;
+    if (!parseAxisColumn(axis_column, pos))
+        return false;
 
     if (!parseFromToStepClause(from_to_step, pos))
         return false;
@@ -402,13 +539,10 @@ bool ParserKQLMakeSeries ::parseImpl(Pos & pos, ASTPtr & node, Expected & expect
             return false;
     }
 
-    for (auto agg_column : aggregation_columns)
+    for (auto & agg_column : aggregation_columns)
     {
-        String column_str = std::format("{}({}) AS {}_ali", agg_column.aggregation_fun, agg_column.column, agg_column.alias);
-        if (subquery_columns.empty())
-            subquery_columns = column_str;
-        else
-            subquery_columns += ", " + column_str;
+        String column_str = std::format("{} AS {}_ali", agg_column.aggregation_fun, agg_column.alias);
+        subquery_columns = subquery_columns.empty() ? column_str : subquery_columns + ", " + column_str;
     }
 
     makeSeries(kql_make_series, node, pos.max_depth);

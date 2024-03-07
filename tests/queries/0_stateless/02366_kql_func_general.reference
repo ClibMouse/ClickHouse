@@ -1,0 +1,85 @@
+-- case
+Theodore	Diaz	Skilled Manual	Bachelors	28	C
+Stephanie	Cox	Management	Bachelors	33	D
+Peter	Nara	Skilled Manual	Graduate Degree	26	C
+Latoya	Shen	Professional	Graduate Degree	25	C
+Joshua	Lee	Professional	Partial College	26	C
+Edward	Hernandez	Skilled Manual	High School	36	D
+Dalton	Wood	Professional	Partial College	42	D
+Christine	Nara	Skilled Manual	Partial College	33	D
+Cameron	Rodriguez	Professional	Partial College	28	C
+Angel	Stewart	Professional	Partial College	46	D
+-- iff
+Theodore	Diaz	Skilled Manual	Bachelors	28	bigger
+Stephanie	Cox	Management	Bachelors	33	bigger
+Peter	Nara	Skilled Manual	Graduate Degree	26	bigger
+Latoya	Shen	Professional	Graduate Degree	25	bigger
+Joshua	Lee	Professional	Partial College	26	bigger
+Edward	Hernandez	Skilled Manual	High School	36	bigger
+Dalton	Wood	Professional	Partial College	42	bigger
+Christine	Nara	Skilled Manual	Partial College	33	bigger
+Cameron	Rodriguez	Professional	Partial College	28	bigger
+Angel	Stewart	Professional	Partial College	46	bigger
+-- iif
+Theodore	Diaz	Skilled Manual	Bachelors	28	bigger
+Stephanie	Cox	Management	Bachelors	33	bigger
+Peter	Nara	Skilled Manual	Graduate Degree	26	bigger
+Latoya	Shen	Professional	Graduate Degree	25	bigger
+Joshua	Lee	Professional	Partial College	26	bigger
+Edward	Hernandez	Skilled Manual	High School	36	bigger
+Dalton	Wood	Professional	Partial College	42	bigger
+Christine	Nara	Skilled Manual	Partial College	33	bigger
+Cameron	Rodriguez	Professional	Partial College	28	bigger
+Angel	Stewart	Professional	Partial College	46	bigger
+-- lookup
+First
+default
+10	First	1
+11	First	2
+12	First	3
+1
+0
+-- gettype
+string
+int
+array
+datetime
+-- toscalar #1 --
+5	5asd
+-- toscalar #2 --
+1
+3
+5
+7
+9
+-- toscalar #3 --
+2
+-- toscalar #4 --
+1
+-- toscalar #5 --
+Stephanie	Cox	Management	Bachelors	33
+-- toscalar #6 --
+Angel	Stewart	Professional	Partial College	46
+Dalton	Wood	Professional	Partial College	42
+-- toscalar #7 --
+2
+-- toscalar #8 --
+10
+-- not --
+false
+true
+false
+false
+false
+false
+false
+false
+false
+false
+false
+false
+false
+NULL
+NULL
+false
+true

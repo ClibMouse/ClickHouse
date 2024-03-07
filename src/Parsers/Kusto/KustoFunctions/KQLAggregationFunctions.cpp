@@ -1,32 +1,85 @@
-#include <Parsers/ASTExpressionList.h>
-#include <Parsers/ASTSelectWithUnionQuery.h>
-#include <Parsers/IParserBase.h>
+#include "KQLAggregationFunctions.h"
 #include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
-#include <Parsers/Kusto/KustoFunctions/KQLAggregationFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLBinaryFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLCastingFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLDateTimeFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLDynamicFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLGeneralFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLIPFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLStringFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLTimeSeriesFunctions.h>
-#include <Parsers/Kusto/ParserKQLQuery.h>
-#include <Parsers/Kusto/ParserKQLStatement.h>
-#include <Parsers/ParserSetQuery.h>
+
+#include <format>
+#include <numeric>
+#include <ranges>
 #include <Common/StringUtils/StringUtils.h>
+
+namespace DB::ErrorCodes
+{
+extern const int NOT_IMPLEMENTED;
+extern const int BAD_ARGUMENTS;
+}
+
+namespace
+{
+void checkAccuracy(const std::optional<std::string> & accuracy)
+{
+    if (accuracy && *accuracy != "4")
+        throw DB::Exception(DB::ErrorCodes::NOT_IMPLEMENTED, "only accuracy of 4 is supported");
+}
+
+uint mapPrecisionAccuracy(const std::optional<std::string> & accuracy)
+{
+    if (!accuracy)
+        return 14; //default accuracy is 1
+
+    if (*accuracy == "0")
+        return 12;
+    else if (*accuracy == "1")
+        return 14;
+    else if (*accuracy == "2")
+        return 16;
+    else if (*accuracy == "3")
+        return 17;
+    else if (*accuracy == "4")
+        return 18;
+    else
+        throw DB::Exception(
+            DB::ErrorCodes::BAD_ARGUMENTS,
+            "Accuracy argument must be a constant integer with value 0, 1, 2, 3 or 4 (0 = fast , 1 = default, 2 = accurate, 3 = extra accurate, 4 "
+            "= super accurate)");
+}
+}
 
 namespace DB
 {
-
 bool ArgMax::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "argMax");
+    String fn_name = getKQLFunctionName(pos);
+
+    if (fn_name.empty())
+        return false;
+
+    const auto args = getArguments(fn_name, pos, ArgumentState::Parsed, {2, Interval::max_bound});
+
+    for (const auto & expr_to_return :
+         args | std::views::drop(1) | std::views::filter([args](const auto & expr_to_return) { return expr_to_return != args[0]; }))
+    {
+        out += std::format("argMax({}, {}) as {},", expr_to_return, args[0], expr_to_return);
+    }
+    out += std::format("argMax({}, {})", args[0], args[0]);
+
+    return true;
 }
 
 bool ArgMin::convertImpl(String & out, IParser::Pos & pos)
 {
-    return directMapping(out, pos, "argMin");
+    String fn_name = getKQLFunctionName(pos);
+
+    if (fn_name.empty())
+        return false;
+
+    const auto args = getArguments(fn_name, pos, ArgumentState::Parsed, {2, Interval::max_bound});
+    for (const auto & expr_to_return :
+         args | std::views::drop(1) | std::views::filter([args](const auto & expr_to_return) { return expr_to_return != args[0]; }))
+    {
+        out += std::format("argMin({}, {}) as {},", expr_to_return, args[0], expr_to_return);
+    }
+    out += std::format("argMin({}, {})", args[0], args[0]);
+
+    return true;
 }
 
 bool Avg::convertImpl(String & out, IParser::Pos & pos)
@@ -54,11 +107,9 @@ bool BinaryAllXor::convertImpl(String & out, IParser::Pos & pos)
     return directMapping(out, pos, "groupBitXor");
 }
 
-bool BuildSchema::convertImpl(String & out, IParser::Pos & pos)
+bool BuildSchema::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
 }
 
 bool Count::convertImpl(String & out, IParser::Pos & pos)
@@ -77,10 +128,11 @@ bool DCount::convertImpl(String & out, IParser::Pos & pos)
 
     if (fn_name.empty())
         return false;
-    ++pos;
-    String value = getConvertedArgument(fn_name, pos);
 
-    out = "count(DISTINCT " + value + ")";
+    const auto value = getArgument(fn_name, pos);
+    const auto accuracy = getOptionalArgument(fn_name, pos);
+
+    out = std::format("uniqCombined64({})({})", mapPrecisionAccuracy(accuracy), value);
     return true;
 }
 
@@ -94,22 +146,70 @@ bool DCountIf::convertImpl(String & out, IParser::Pos & pos)
     String value = getConvertedArgument(fn_name, pos);
     ++pos;
     String condition = getConvertedArgument(fn_name, pos);
-    out = "countIf (DISTINCT " + value + ", " + condition + ")";
+
+    const auto accuracy = getOptionalArgument(fn_name, pos);
+    out = std::format("uniqCombined64If({})({},({}))", mapPrecisionAccuracy(accuracy), value, condition);
     return true;
 }
 
-bool MakeBag::convertImpl(String & out, IParser::Pos & pos)
+bool DCountHll::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    const auto fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const auto expr = getArgument(fn_name, pos);
+    out = std::format("uniqCombined64Merge(18)({})", expr);
+
+    return true;
 }
 
-bool MakeBagIf::convertImpl(String & out, IParser::Pos & pos)
+bool Hll::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    const auto fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const auto expr = getArgument(fn_name, pos);
+    const auto accuracy = getOptionalArgument(fn_name, pos);
+
+    checkAccuracy(accuracy);
+    out = std::format("uniqCombined64State(18)({})", expr);
+
+    return true;
+}
+
+bool HllIf::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
+{
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
+}
+
+bool HllMerge::convertImpl(String & out, IParser::Pos & pos)
+{
+    const auto fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const auto arguments = getArguments(fn_name, pos, ArgumentState::Parsed, {2, 64});
+    const auto arguments_as_string = std::accumulate(
+        arguments.cbegin(),
+        arguments.cend(),
+        std::string(),
+        [](const auto & acc, const auto & argument) { return acc + (acc.empty() ? "" : ", ") + argument; });
+
+    out = std::format("uniqCombined64MergeState(18)(arrayJoin([{}]))", arguments_as_string);
+
+    return true;
+}
+
+bool MakeBag::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
+{
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
+}
+
+bool MakeBagIf::convertImpl([[maybe_unused]] String & out, [[maybe_unused]] IParser::Pos & pos)
+{
+    throw Exception(ErrorCodes::NOT_IMPLEMENTED, "{} is not yet implemented", getName());
 }
 
 bool MakeList::convertImpl(String & out, IParser::Pos & pos)
@@ -460,29 +560,117 @@ bool SumIf::convertImpl(String & out, IParser::Pos & pos)
 
 bool TakeAny::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    String fn_name = getKQLFunctionName(pos);
+
+    if (fn_name.empty())
+        return false;
+
+    String expr;
+    String arg;
+    const auto begin = pos;
+    while (pos->type != TokenType::ClosingRoundBracket)
+    {
+        if (pos != begin)
+            expr.append(", ");
+        ++pos;
+        arg = getConvertedArgument(fn_name, pos);
+        expr = expr + "any(" + arg + ")";
+    }
+    out = expr;
+    return true;
 }
 
 bool TakeAnyIf::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    String fn_name = getKQLFunctionName(pos);
+
+    if (fn_name.empty())
+        return false;
+    ++pos;
+    const auto expr = getConvertedArgument(fn_name, pos);
+    if (pos->type != TokenType::Comma)
+        return false;
+
+    ++pos;
+    const auto predicate = getConvertedArgument(fn_name, pos);
+    out = "anyIf(" + expr + ", " + predicate + ")";
+    return true;
 }
 
 bool Variance::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const String expr = getArgument(fn_name, pos);
+    out = std::format(
+        "IF (isNaN(varSamp(if(toTypeName({0}) = 'Nullable(Nothing)', throwIf(toTypeName({0}) = 'Nullable(Nothing)', "
+        "'summarize operator: Failed to resolve scalar expression named null'), {0})) AS variance_{1}), 0, variance_{1})",
+        expr,
+        generateUniqueIdentifier());
+
+    return true;
 }
 
 bool VarianceIf::convertImpl(String & out, IParser::Pos & pos)
 {
-    String res = String(pos->begin, pos->end);
-    out = res;
-    return false;
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const String expr = getArgument(fn_name, pos);
+    const String predicate = getArgument(fn_name, pos);
+    out = std::format(
+        "IF (isNaN(varSampIf((if(toTypeName({0}) = 'Nullable(Nothing)', throwIf(toTypeName({0}) = 'Nullable(Nothing)', "
+        "'summarize operator: Failed to resolve scalar expression named null'), {0})), {1}) AS variance_{2}), 0, variance_{2})",
+        expr,
+        predicate,
+        generateUniqueIdentifier());
+
+    return true;
 }
+
+bool VarianceP::convertImpl(String & out, IParser::Pos & pos)
+{
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const String expr = getArgument(fn_name, pos);
+    out = std::format(
+        "IF (isNaN(varPop(if(toTypeName({0}) = 'Nullable(Nothing)', throwIf(toTypeName({0}) = 'Nullable(Nothing)', "
+        "'summarize operator: Failed to resolve scalar expression named null'), {0})) AS variance_{1}), 0, variance_{1})",
+        expr,
+        generateUniqueIdentifier());
+
+    return true;
+}
+
+bool CountDistinct::convertImpl(String & out, IParser::Pos & pos)
+{
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const String expr = getArgument(fn_name, pos);
+    out = std::format("count(DISTINCT {})", expr);
+
+    return true;
+}
+
+
+bool CountDistinctIf::convertImpl(String & out, IParser::Pos & pos)
+{
+    const String fn_name = getKQLFunctionName(pos);
+    if (fn_name.empty())
+        return false;
+
+    const String expr = getArgument(fn_name, pos);
+    const String predicate = getArgument(fn_name, pos);
+    out = std::format("countIf(DISTINCT {}, {})", expr, predicate);
+
+    return true;
+}
+
 }

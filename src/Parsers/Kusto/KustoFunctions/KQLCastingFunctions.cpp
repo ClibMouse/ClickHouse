@@ -1,7 +1,4 @@
-#include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
-#include <Parsers/Kusto/KustoFunctions/KQLCastingFunctions.h>
-#include <Parsers/Kusto/KustoFunctions/KQLFunctionFactory.h>
+#include "KQLCastingFunctions.h"
 
 #include <format>
 #include <Poco/String.h>
@@ -20,21 +17,13 @@ bool ToBool::convertImpl(String & out, IParser::Pos & pos)
     out = std::format(
         "multiIf(toString({0}) = 'true', true, "
         "toString({0}) = 'false', false, toInt64OrNull(toString({0})) != 0)",
-        param,
-        generateUniqueIdentifier());
+        param);
     return true;
 }
 
 bool ToDateTime::convertImpl(String & out, IParser::Pos & pos)
 {
-    const auto function_name = getKQLFunctionName(pos);
-    if (function_name.empty())
-        return false;
-
-    const auto param = getArgument(function_name, pos);
-
-    out = std::format("parseDateTime64BestEffortOrNull(toString({0}),9,'UTC')", param);
-    return true;
+    return directMapping(out, pos, "kql_todatetime");
 }
 
 bool ToDouble::convertImpl(String & out, IParser::Pos & pos)
@@ -44,7 +33,7 @@ bool ToDouble::convertImpl(String & out, IParser::Pos & pos)
         return false;
 
     const auto param = getArgument(function_name, pos);
-    out = std::format("toFloat64OrNull(toString({0}))", param);
+    out = std::format("toFloat64OrNull(toString({0})) / if(toTypeName({0}) = 'IntervalNanosecond', 100, 1)", param);
     return true;
 }
 
@@ -55,19 +44,13 @@ bool ToInt::convertImpl(String & out, IParser::Pos & pos)
         return false;
 
     const auto param = getArgument(function_name, pos);
-    out = std::format("toInt32OrNull(toString({0}))", param);
+    out = std::format("intDiv(toInt32OrNull(toString({0})), if(toTypeName({0}) = 'IntervalNanosecond', 100, 1))", param);
     return true;
 }
 
 bool ToLong::convertImpl(String & out, IParser::Pos & pos)
 {
-    const auto function_name = getKQLFunctionName(pos);
-    if (function_name.empty())
-        return false;
-
-    const auto param = getArgument(function_name, pos);
-    out = std::format("toInt64OrNull(toString({0}))", param);
-    return true;
+    return directMapping(out, pos, "kql_tolong");
 }
 
 bool ToString::convertImpl(String & out, IParser::Pos & pos)
@@ -76,95 +59,47 @@ bool ToString::convertImpl(String & out, IParser::Pos & pos)
     if (function_name.empty())
         return false;
 
-    const auto param = getArgument(function_name, pos);
-    out = std::format("ifNull(toString({0}), '')", param);
+    const auto argument = getArgument(function_name, pos);
+    out = std::format("ifNull(kql_tostring({}), '')", argument);
     return true;
 }
+
 bool ToTimeSpan::convertImpl(String & out, IParser::Pos & pos)
 {
-    const auto function_name = getKQLFunctionName(pos);
-    if (function_name.empty())
-        return false;
-    ++pos;
-    String arg;
-    if (pos->type == TokenType::QuotedIdentifier)
-        arg = String(pos->begin + 1, pos->end - 1);
-    else if (pos->type == TokenType::StringLiteral)
-        arg = String(pos->begin, pos->end);
-    else
-        arg = getConvertedArgument(function_name, pos);
-
-    if (pos->type == TokenType::StringLiteral || pos->type == TokenType::QuotedIdentifier)
-    {
-        ++pos;
-        try
-        {
-            auto result = kqlCallToExpression("time", {arg}, pos.max_depth);
-            out = std::format("{}", result);
-        }
-        catch (...)
-        {
-            out = "NULL";
-        }
-    }
-    else
-        out = std::format("{}", arg);
-
-    return true;
+    return directMapping(out, pos, "kql_totimespan");
 }
 
 bool ToDecimal::convertImpl(String & out, IParser::Pos & pos)
 {
-    const String fn_name = getKQLFunctionName(pos);
+    const auto fn_name = getKQLFunctionName(pos);
     if (fn_name.empty())
         return false;
 
     ++pos;
-    String res;
-    int scale = 0;
-    int precision;
-
-    if (pos->type == TokenType::QuotedIdentifier || pos->type == TokenType::StringLiteral)
+    if (pos->type == TokenType::QuotedIdentifier || pos->type == TokenType::StringLiteral || pos->type == TokenType::Number)
     {
-        res = String(pos->begin + 1, pos->end - 1);
-        ++pos;
-        precision = 34;
+        --pos;
+        const auto arg = getArgument(fn_name, pos);
+        const auto scale = std::format(
+            "if (position({0}::String,'e') = 0,(countSubstrings({0}::String,'.') = 1 ? length(substr({0}::String, "
+            "position({0}::String,'.') + 1)): 0), toUInt64(multiIf ((position({0}::String,'e+') as x) > 0, substr({0}::String, x + "
+            "2),(position({0}::String, 'e-') as y) > 0, substr({0}::String, y + 2), position({0}::String, 'e-') = 0 AND "
+            "position({0}::String, 'e+') =0 AND position({0}::String, 'e') > 0,substr({0}::String, position({0}::String, 'e') + 1), "
+            "0::String)))",
+            arg);
+        out = std::format(
+            "toTypeName({0}) = 'String' OR toTypeName({0}) = 'FixedString' ? toDecimal128OrNull({0}::String , ({1}::UInt8)) : "
+            "toDecimal128OrNull({0}::String , ({1}::UInt8))",
+            arg,
+            scale);
     }
     else
     {
-        res = getConvertedArgument(fn_name, pos);
-        precision = 17;
-    }
-    static const re2::RE2 expr("^[0-9]+e[+-]?[0-9]+");
-    bool is_string = std::any_of(res.begin(), res.end(), ::isalpha) && !(re2::RE2::FullMatch(res, expr));
-
-    if (is_string)
-        out = "NULL";
-    else if (re2::RE2::FullMatch(res, expr))
-    {
-        auto exponential_pos = res.find('e');
-        if (res[exponential_pos + 1] == '+' || res[exponential_pos + 1] == '-')
-            scale = std::stoi(res.substr(exponential_pos + 2, res.length()));
-        else
-            scale = std::stoi(res.substr(exponential_pos + 1, res.length()));
-
-        out = std::format("toDecimal128({}::String,{})", res, scale);
-    }
-    else
-    {
-        if (const auto dot_pos = res.find('.'); dot_pos != String::npos)
-        {
-            const auto tmp = res.substr(0, dot_pos - 1);
-            const auto tmp_length = static_cast<int>(std::ssize(tmp));
-            scale = std::max(precision - tmp_length, 0);
-        }
-        if (scale < 0)
-            out = "NULL";
-        else
-            out = std::format("toDecimal128({}::String,{})", res, scale);
+        --pos;
+        const auto arg = getArgument(fn_name, pos);
+        out = std::format("toDecimal128OrNull({0}::Nullable(String), 17) / if(toTypeName({0}) = 'IntervalNanosecond', 100, 1)", arg);
     }
 
     return true;
 }
-
 }

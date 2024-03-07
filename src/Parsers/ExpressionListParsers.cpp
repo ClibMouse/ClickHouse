@@ -2078,11 +2078,11 @@ private:
     bool has_case_expr;
 };
 
-/// Layer for table function 'view' and 'viewIfPermitted'
+/// Layer for table function `schema`, 'view' and 'viewIfPermitted'
 class ViewLayer : public Layer
 {
 public:
-    explicit ViewLayer(bool if_permitted_) : if_permitted(if_permitted_) {}
+    explicit ViewLayer(std::string function_name_lowercase_) : function_name_lowercase(std::move(function_name_lowercase_)) {}
 
     bool parse(IParser::Pos & pos, Expected & expected, Action & /*action*/) override
     {
@@ -2110,7 +2110,7 @@ public:
 
             pushResult(query);
 
-            if (!if_permitted)
+            if (function_name_lowercase != "viewifpermitted")
             {
                 if (!ParserToken(TokenType::ClosingRoundBracket).ignore(pos, expected))
                     return false;
@@ -2143,16 +2143,13 @@ public:
 protected:
     bool getResultImpl(ASTPtr & node) override
     {
-        if (if_permitted)
-            node = makeASTFunction("viewIfPermitted", std::move(elements));
-        else
-            node = makeASTFunction("view", std::move(elements));
-
+        const auto function_name = function_name_lowercase == "viewifpermitted" ? "viewIfPermitted" : function_name_lowercase;
+        node = makeASTFunction(function_name, std::move(elements));
         return true;
     }
 
 private:
-    bool if_permitted;
+    std::string function_name_lowercase;
 };
 
 /// Layer for table function 'kql'
@@ -2171,7 +2168,7 @@ public:
         {
             ASTPtr query;
             --pos;
-            if (!ParserKQLTableFunction().parse(pos, query, expected))
+            if (KQLContext kql_context; !ParserKQLTableFunction(kql_context).parse(pos, query, expected))
                 return false;
             --pos;
             pushResult(query);
@@ -2232,16 +2229,14 @@ std::unique_ptr<Layer> getFunctionLayer(ASTPtr identifier, bool is_table_functio
     /// SUBSTRING(x FROM a)
     /// SUBSTRING(x FROM a FOR b)
 
-    String function_name = getIdentifierName(identifier);
-    String function_name_lowercase = Poco::toLower(function_name);
+    const auto function_name = getIdentifierName(identifier);
+    const auto function_name_lowercase = Poco::toLower(function_name);
 
     if (is_table_function)
     {
-        if (function_name_lowercase == "view")
-            return std::make_unique<ViewLayer>(false);
-        else if (function_name_lowercase == "viewifpermitted")
-            return std::make_unique<ViewLayer>(true);
-        else if (function_name_lowercase == "kql")
+        if (function_name_lowercase == "getschema" || function_name_lowercase == "view" || function_name_lowercase == "viewifpermitted")
+            return std::make_unique<ViewLayer>(function_name_lowercase);
+        if (function_name_lowercase == "kql")
             return std::make_unique<KustoLayer>();
     }
 
@@ -2651,7 +2646,7 @@ Action ParserExpressionImpl::tryParseOperand(Layers & layers, IParser::Pos & pos
     {
         layers.back()->pushOperand(std::move(tmp));
     }
-    else if (pos->type == TokenType::OpeningRoundBracket)
+    else if (pos->type == TokenType::OpeningRoundBracket || String(pos->begin , pos->end) == "kql")
     {
 
         if (subquery_parser.parse(pos, tmp, expected))

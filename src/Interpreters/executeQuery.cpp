@@ -712,7 +712,7 @@ static std::tuple<ASTPtr, BlockIO> executeQueryImpl(
     {
         if (settings.dialect == Dialect::kusto && !internal)
         {
-            ParserKQLStatement parser(end, settings.allow_settings_after_format_in_insert);
+            ParserKQLStatement parser;
             /// TODO: parser should fail early when max_query_size limit is reached.
             ast = parseKQLQuery(parser, begin, end, "", max_query_size, settings.max_parser_depth);
         }

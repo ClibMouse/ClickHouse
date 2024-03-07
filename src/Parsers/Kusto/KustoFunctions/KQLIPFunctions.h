@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Parsers/IParserBase.h>
-#include <Parsers/Kusto/KustoFunctions/IParserKQLFunction.h>
+#include "IParserKQLFunction.h"
+
 namespace DB
 {
 class Ipv4Compare : public IParserKQLFunction
@@ -60,6 +60,34 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class HasIpv6 : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "has_ipv6()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class HasAnyIpv6 : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "has_any_ipv6()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class HasIpv6Prefix : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "has_ipv6_prefix()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class HasAnyIpv6Prefix : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "has_any_ipv6_prefix()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
 class Ipv6IsMatch : public IParserKQLFunction
 {
 protected:
@@ -95,4 +123,32 @@ protected:
     bool convertImpl(String & out, IParser::Pos & pos) override;
 };
 
+class HasIpv4 : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "has_ipv4()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class HasAnyIpv4 : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "has_any_ipv4()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class HasIpv4Prefix : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "has_ipv4_prefix()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
+
+class HasAnyIpv4Prefix : public IParserKQLFunction
+{
+protected:
+    const char * getName() const override { return "has_any_ipv4_prefix()"; }
+    bool convertImpl(String & out, IParser::Pos & pos) override;
+};
 }
+
