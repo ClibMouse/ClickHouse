@@ -15,7 +15,7 @@ namespace ErrorCodes
 
 ColumnsDescription TableFunctionGetSchema::getActualTableStructure(ContextPtr, bool /*is_insert_query*/) const
 {
-    return ColumnsDescription{StorageSystemSchema::getNamesAndTypes()};
+    return StorageSystemSchema::getColumnsDescription();
 }
 
 void TableFunctionGetSchema::parseArguments(const ASTPtr &, ContextPtr)

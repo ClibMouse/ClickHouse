@@ -24,15 +24,6 @@ namespace ErrorCodes
     extern const int LOGICAL_ERROR;
 }
 
-NamesAndTypesList StorageSystemSchema::getNamesAndTypes()
-{
-    return {
-        {"ColumnName", std::make_shared<DataTypeString>()},
-        {"ColumnOrdinal", std::make_shared<DataTypeInt32>()},
-        {"DataType", std::make_shared<DataTypeString>()},
-        {"ColumnType", std::make_shared<DataTypeString>()}};
-}
-
 void StorageSystemSchema::fillData(MutableColumns & res_columns, ContextPtr context, const SelectQueryInfo &) const
 {
     if (res_columns.size() != 4)
@@ -59,5 +50,16 @@ void StorageSystemSchema::fillData(MutableColumns & res_columns, ContextPtr cont
         column_data_types->insert(toField(type_name));
         column_types->insert(toField(is_kql ? toKQLDataTypeName(type) : type_name));
     }
+}
+
+ColumnsDescription StorageSystemSchema::getColumnsDescription()
+{
+    return ColumnsDescription
+    {
+        {"ColumnName", std::make_shared<DataTypeString>(), "Name of the column."},
+        {"ColumnOrdinal", std::make_shared<DataTypeInt32>(), "Ordinal of the column."},
+        {"DataType", std::make_shared<DataTypeString>(), "Data type of the column."},
+        {"ColumnType", std::make_shared<DataTypeString>(), "Type of the column."}
+    };
 }
 }

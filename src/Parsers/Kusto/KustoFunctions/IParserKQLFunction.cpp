@@ -364,7 +364,7 @@ String IParserKQLFunction::getExpression(IParser::Pos & pos)
                 arg = kqlTicksToInterval(ticks);
         }
     }
-    else if ((pos->type == TokenType::QuotedIdentifier))
+    else if (pos->type == TokenType::QuotedIdentifier)
         arg = "'" + escapeSingleQuotes(String(pos->begin + 1, pos->end - 1)) + "'";
     else if (pos->type == TokenType::At)
     {

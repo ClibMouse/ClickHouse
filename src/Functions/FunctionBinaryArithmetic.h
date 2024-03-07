@@ -1724,29 +1724,7 @@ public:
 
                 if constexpr (!std::is_same_v<ResultDataType, InvalidType>)
                 {
-                    if constexpr (is_int_div || is_int_div_or_zero)
-                        type_res = std::make_shared<ResultDataType>();
-                    else if constexpr (IsDataTypeDecimal<LeftDataType> && IsDataTypeDecimal<RightDataType>)
-                    {
-                        if constexpr (is_division)
-                        {
-                            if (context->getSettingsRef().decimal_check_overflow)
-                            {
-                                /// Check overflow by using operands scale (based on big decimal division implementation details):
-                                /// big decimal arithmetic is based on big integers, decimal operands are converted to big integers
-                                /// i.e. int_operand = decimal_operand*10^scale
-                                /// For division, left operand will be scaled by right operand scale also to do big integer division,
-                                /// BigInt result = left*10^(left_scale + right_scale) / right * 10^right_scale
-                                /// So, we can check upfront possible overflow just by checking max scale used for left operand
-                                /// Note: it doesn't detect all possible overflow during big decimal division
-                                if (left.getScale() + right.getScale() > ResultDataType::maxPrecision())
-                                    throw Exception(ErrorCodes::DECIMAL_OVERFLOW, "Overflow during decimal division");
-                            }
-                        }
-                        ResultDataType result_type = decimalResultType<is_multiply, is_division>(left, right);
-                        type_res = std::make_shared<ResultDataType>(result_type.getPrecision(), result_type.getScale());
-                    }
-                    else if constexpr (((IsDataTypeDecimal<LeftDataType> && IsFloatingPoint<RightDataType>) ||
+                    if constexpr (((IsDataTypeDecimal<LeftDataType> && IsFloatingPoint<RightDataType>) ||
                         (IsDataTypeDecimal<RightDataType> && IsFloatingPoint<LeftDataType>)))
                     {
                         type_res = std::make_shared<DataTypeFloat64>();
@@ -1808,6 +1786,28 @@ public:
 
                         return static_cast<bool>(nested_type);
                     }
+                    else if constexpr (IsDataTypeDecimal<LeftDataType> && IsDataTypeDecimal<RightDataType>)
+                    {
+                        if constexpr (is_division)
+                        {
+                            if (context->getSettingsRef().decimal_check_overflow)
+                            {
+                                /// Check overflow by using operands scale (based on big decimal division implementation details):
+                                /// big decimal arithmetic is based on big integers, decimal operands are converted to big integers
+                                /// i.e. int_operand = decimal_operand*10^scale
+                                /// For division, left operand will be scaled by right operand scale also to do big integer division,
+                                /// BigInt result = left*10^(left_scale + right_scale) / right * 10^right_scale
+                                /// So, we can check upfront possible overflow just by checking max scale used for left operand
+                                /// Note: it doesn't detect all possible overflow during big decimal division
+                                if (left.getScale() + right.getScale() > ResultDataType::maxPrecision())
+                                    throw Exception(ErrorCodes::DECIMAL_OVERFLOW, "Overflow during decimal division");
+                            }
+                        }
+                        ResultDataType result_type = decimalResultType<is_multiply, is_division>(left, right);
+                        type_res = std::make_shared<ResultDataType>(result_type.getPrecision(), result_type.getScale());
+                    }
+                    else if constexpr (is_div_int || is_div_int_or_zero)
+                        type_res = std::make_shared<ResultDataType>();
                     else
                         type_res = std::make_shared<ResultDataType>();
                     return true;

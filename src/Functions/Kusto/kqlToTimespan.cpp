@@ -79,7 +79,7 @@ ColumnPtr FunctionKqlToTimespan::executeImpl(
 
 DataTypePtr FunctionKqlToTimespan::getReturnTypeImpl(const DataTypes &) const
 {
-    return makeNullable(std::make_shared<DataTypeInterval>(IntervalKind::Nanosecond));
+    return makeNullable(std::make_shared<DataTypeInterval>(IntervalKind::Kind::Nanosecond));
 }
 
 REGISTER_FUNCTION(KqlToTimespan)

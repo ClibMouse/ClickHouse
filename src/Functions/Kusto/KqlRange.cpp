@@ -809,7 +809,7 @@ private:
                 total_values = total_elements;
         }
 
-        auto out = ColumnArray::create(std::make_shared<DataTypeInterval>(IntervalKind::Nanosecond)->createColumn());
+        auto out = ColumnArray::create(std::make_shared<DataTypeInterval>(IntervalKind::Kind::Nanosecond)->createColumn());
         IColumn & out_data = out->getData();
         IColumn::Offsets & out_offsets = out->getOffsets();
 

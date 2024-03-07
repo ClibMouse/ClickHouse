@@ -200,7 +200,7 @@ String genHasAnyAllOpExpr(
     auto haystack = tokens.back();
 
     const auto * const logic_op = (kql_op == "has_all") ? " and " : " or ";
-    while (isValidKQLPos(token_pos) && token_pos->type != TokenType::PipeMark && token_pos->type != TokenType::Semicolon)
+    while (isValidKQLPos(token_pos) && token_pos->type != DB::TokenType::PipeMark && token_pos->type != DB::TokenType::Semicolon)
     {
         auto tmp_arg = DB::IParserKQLFunction::getExpression(token_pos);
         if (token_pos->type == DB::TokenType::Comma)
@@ -217,14 +217,14 @@ String genHasAnyAllOpExpr(
     return new_expr;
 }
 
-String genEqOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos, const DB::String & ch_op)
+String genEqOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos, const String & ch_op)
 {
-    DB::String tmp_arg(token_pos->begin, token_pos->end);
+    String tmp_arg(token_pos->begin, token_pos->end);
 
     if (tokens.empty() || tmp_arg != "~")
         return tmp_arg;
 
-    DB::String new_expr;
+    String new_expr;
     new_expr += "lower(" + tokens.back() + ")" + " ";
     new_expr += ch_op + " ";
     ++token_pos;
@@ -240,7 +240,7 @@ String genEqOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
 
 String genBetweenOpExpr(std::vector<std::string> & tokens, DB::IParser::Pos & token_pos, const String & ch_op)
 {
-    DB::String new_expr;
+    String new_expr;
     new_expr += ch_op + "(";
     new_expr += tokens.back() + ",";
     tokens.pop_back();
@@ -289,7 +289,7 @@ String genBetweenOpExpr(std::vector<std::string> & tokens, DB::IParser::Pos & to
     return new_expr;
 }
 
-String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos, const DB::String & kql_op, const DB::String & ch_op)
+String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos, const String & kql_op, const String & ch_op)
 {
     DB::KQLContext kql_context;
     DB::ParserKQLTableFunction kqlfun_p(kql_context);
@@ -297,7 +297,7 @@ String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
 
     DB::ASTPtr select;
     DB::Expected expected;
-    DB::String new_expr;
+    String new_expr;
 
     ++token_pos;
     if (!s_lparen.ignore(token_pos, expected))
@@ -323,7 +323,7 @@ String genInOpExprCis(std::vector<String> & tokens, DB::IParser::Pos & token_pos
     new_expr += ch_op;
     while (isValidKQLPos(token_pos) && token_pos->type != DB::TokenType::PipeMark && token_pos->type != DB::TokenType::Semicolon)
     {
-        auto tmp_arg = DB::String(token_pos->begin, token_pos->end);
+        auto tmp_arg = String(token_pos->begin, token_pos->end);
         if (token_pos->type != DB::TokenType::Comma && token_pos->type != DB::TokenType::ClosingRoundBracket
             && token_pos->type != DB::TokenType::OpeningRoundBracket && token_pos->type != DB::TokenType::OpeningSquareBracket
             && token_pos->type != DB::TokenType::ClosingSquareBracket && tmp_arg != "~" && tmp_arg != "dynamic")

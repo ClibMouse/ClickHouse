@@ -1,12 +1,12 @@
 #include "KQLDateTimeFunctions.h"
 
+#include <Parsers/Kusto/Utilities.h>
 #include <Common/StringUtils/StringUtils.h>
 
 #include <Poco/String.h>
 
 #include <format>
 #include <optional>
-#include <regex>
 #include <unordered_set>
 
 namespace

@@ -15,6 +15,7 @@
 #include <Common/thread_local_rng.h>
 #include <Common/FieldVisitorToString.h>
 #include <Common/getMultipleKeysFromConfig.h>
+#include <Common/getNumberOfPhysicalCPUCores.h>
 #include <Common/callOnce.h>
 #include <Common/SharedLockGuard.h>
 #include <Common/PageCache.h>

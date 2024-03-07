@@ -41,7 +41,7 @@ struct IntervalKind
     Float64 toSeconds() const;
 
     /// Chooses an interval kind based on number of seconds.
-    /// For example, `IntervalKind::fromAvgSeconds(3600)` returns `IntervalKind::Hour`.
+    /// For example, `IntervalKind::fromAvgSeconds(3600)` returns `IntervalKind::Kind::Hour`.
     static IntervalKind fromAvgSeconds(Int64 num_seconds);
 
     /// Returns whether IntervalKind has a fixed number of seconds (e.g. Day) or non-fixed(e.g. Month)
@@ -53,16 +53,16 @@ struct IntervalKind
     const char * toLowercasedKeyword() const;
 
     /// Returns the string which can be passed to the `unit` parameter of the dateDiff() function.
-    /// For example, `IntervalKind{IntervalKind::Day}.getDateDiffParameter()` returns "day".
+    /// For example, `IntervalKind{IntervalKind::Kind::Day}.getDateDiffParameter()` returns "day".
     const char * toDateDiffUnit() const;
 
     /// Returns the name of the function converting a number to the interval data type.
-    /// For example, `IntervalKind{IntervalKind::Day}.getToIntervalDataTypeFunctionName()`
+    /// For example, `IntervalKind{IntervalKind::Kind::Day}.getToIntervalDataTypeFunctionName()`
     /// returns "toIntervalDay".
     const char * toNameOfFunctionToIntervalDataType() const;
 
     /// Returns the name of the function extracting time part from a date or a time.
-    /// For example, `IntervalKind{IntervalKind::Day}.getExtractTimePartFunctionName()`
+    /// For example, `IntervalKind{IntervalKind::Kind::Day}.getExtractTimePartFunctionName()`
     /// returns "toDayOfMonth".
     const char * toNameOfFunctionExtractTimePart() const;
 

@@ -503,14 +503,18 @@ bool ParserKQLQuery::getOperations(Pos & pos, Expected & expected, OperationsPos
 
             if ((kql_operator == "print" || kql_operator == "range") && !operation_pos.empty())
                 throw Exception(ErrorCodes::SYNTAX_ERROR, "{} must be the first operator in the query", kql_operator);
+
+            operation_pos.emplace_back(kql_operator, pos);
         }
         else
             ++pos;
+    }
     return true;
 }
 
 bool ParserKQLQuery::pre_process(String & source, Pos & pos)
 {
+    bool need_preprocess = false;
     auto begin = pos;
     while (isValidKQLPos(pos) && pos->type != TokenType::Semicolon)
     {

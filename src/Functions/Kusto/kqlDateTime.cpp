@@ -95,11 +95,11 @@ ColumnPtr FunctionKqlDateTime<input_policy>::executeImpl(
 
     const ColumnsWithTypeAndName addition_args{
         asArgument(converted, "converted"),
-        createConstColumnWithTypeAndName<DataTypeInterval>(50, "interval_50", IntervalKind::Nanosecond)};
+        createConstColumnWithTypeAndName<DataTypeInterval>(50, "interval_50", IntervalKind::Kind::Nanosecond)};
     const auto sum = executeFunctionCall(context, "plus", addition_args, input_rows_count);
 
     const ColumnsWithTypeAndName to_start_of_interval_args{
-        asArgument(sum, "sum"), createConstColumnWithTypeAndName<DataTypeInterval>(100, "interval_100", IntervalKind::Nanosecond)};
+        asArgument(sum, "sum"), createConstColumnWithTypeAndName<DataTypeInterval>(100, "interval_100", IntervalKind::Kind::Nanosecond)};
     const auto [rounded_column, _] = executeFunctionCall(context, "toStartOfInterval", to_start_of_interval_args, input_rows_count);
 
     return wrapInNullable(rounded_column, conversion_args, result_type, input_rows_count);
