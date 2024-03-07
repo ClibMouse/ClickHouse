@@ -3316,7 +3316,7 @@ private:
                         switch (interval_kind)
                         {
 #define DECLARE_CASE(NAME) \
-    case IntervalKind::NAME: \
+    case IntervalKind::Kind::NAME: \
         return FunctionToInterval##NAME::create();
                             FOR_EACH_INTERVAL_KIND(DECLARE_CASE)
 #undef DECLARE_CASE

@@ -1,9 +1,9 @@
 #include <optional>
 #include <ranges>
-#include <regex>
 #include <Columns/ColumnArray.h>
 #include <Columns/ColumnDecimal.h>
 #include <Columns/ColumnString.h>
+#include <Common/OptimizedRegularExpression.h>
 #include <DataTypes/DataTypeString.h>
 #include <DataTypes/DataTypesNumber.h>
 #include <Functions/FunctionFactory.h>
@@ -397,17 +397,26 @@ public:
             const auto ips = extractIpsFromArguments(arguments, result_type, context, i);
 
             std::string source = arguments[0].column->getDataAt(i).toString();
-            const std::regex ip_finder(Func::regex);
-            std::smatch matches;
 
-            while (!res && std::regex_search(source, matches, ip_finder))
+            OptimizedRegularExpression ip_finder(Func::regex);
+            OptimizedRegularExpression::MatchVec matches;
+            
+            unsigned num_matches;
+            while (!res && (num_matches = ip_finder.match(source, matches)))
             {
-                res = Func::checkRegexMatch(matches[2].str(), result_type, context, ips);
+                if (num_matches <= 3) 
+                    continue;
 
-                source = matches.suffix().str();
+                res = Func::checkRegexMatch(source.substr(matches[2].offset, matches[2].length), result_type, context, ips);
+
+                if (matches[3].length == 0)
+                    source = "";
+                else
+                    source = source.substr(matches[3].offset, source.length());
             }
             result_column.push_back(static_cast<UInt8>(res));
         }
+
         return result;
     }
 

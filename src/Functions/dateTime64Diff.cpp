@@ -92,7 +92,7 @@ DataTypePtr FunctionDateTime64Diff::getReturnTypeImpl(const DataTypes & argument
             rhs->getName(),
             getName());
 
-    return std::make_shared<DataTypeInterval>(IntervalKind::Nanosecond);
+    return std::make_shared<DataTypeInterval>(IntervalKind::Kind::Nanosecond);
 }
 
 REGISTER_FUNCTION(DateTime64Diff)
