@@ -666,3 +666,5 @@ print  @"\a" == "\\a";
 print  @"\a" != @"\\a";
 print @"\\a" != "\\a";
 print "\\a" == @"\\a";
+print @ "hello"; -- { clientError SYNTAX_ERROR }
+print trim_end(@ "\\", @"a\\\\"); -- { clientError SYNTAX_ERROR }

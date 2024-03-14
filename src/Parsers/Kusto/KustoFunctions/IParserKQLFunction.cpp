@@ -440,6 +440,11 @@ String IParserKQLFunction::iterativelyEscapeString(IParser::Pos pos)
                 throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Verbatim string expected a string literal to follow @");
             if (pos->end - pos->begin < 2 || (*(pos->begin) != '\'' && *(pos->begin) != '\"'))
                 throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Internal Error: misformed vertbatim string tokens");
+            // catch disallowed whitespace that can get lost during tokenization 
+            if (*(pos->begin - 1) != '@')
+            {
+                throw DB::Exception(DB::ErrorCodes::SYNTAX_ERROR, "Space cannot folllow @ in verbatim string");
+            }
             String verbatimString = "";
             const bool is_outer_quote_double = (*(pos->begin) == '\"');
             do
