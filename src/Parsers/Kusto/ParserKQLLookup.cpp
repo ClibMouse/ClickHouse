@@ -39,7 +39,7 @@ bool ParserKQLLookup::updatePipeLine(OperationsPos & operations, String & query)
     String prev_query(start_pos->begin, end_pos->end);
 
     String join_kind = "kind=leftouter";
-    ParserKeyword s_kind("kind");
+    ParserKeyword s_kind(Keyword::KIND);
     ParserToken equals(TokenType::Equals);
     start_pos = pos;
     end_pos = pos;
@@ -49,9 +49,9 @@ bool ParserKQLLookup::updatePipeLine(OperationsPos & operations, String & query)
         if (!equals.ignore(pos))
             throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid kind for lookup operator");
 
-        if (ParserKeyword("leftouter").ignore(pos))
+        if (ParserKeyword(Keyword::LEFTOUTER).ignore(pos))
             join_kind = "kind=leftouter";
-        else if (ParserKeyword("inner").ignore(pos))
+        else if (ParserKeyword(Keyword::INNER).ignore(pos))
             join_kind = "kind=inner";
         else
             throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid value of kind for lookup operator");

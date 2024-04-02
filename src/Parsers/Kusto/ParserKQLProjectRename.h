@@ -66,7 +66,7 @@ private:
             rename_expr += (last_pos < pos) ? String(last_pos->begin, pos->end) : "";
 
         Tokens rename_tokens(rename_expr.c_str(), rename_expr.c_str() + rename_expr.size());
-        IParser::Pos rename_pos(rename_tokens, pos.max_depth);
+        IParser::Pos rename_pos(rename_tokens, pos.max_depth, pos.max_backtracks);
         return getExprFromToken(rename_pos);
     }
     KQLContext & kql_context;

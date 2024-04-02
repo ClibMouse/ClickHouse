@@ -175,7 +175,9 @@ public:
     using ResultDataType = Switch<
         /// Result must be Integer
         Case<IsOperation<Operation>::int_div || IsOperation<Operation>::int_div_or_zero,
-            std::conditional_t<IsDataTypeDecimalOrNumber<LeftDataType> && IsDataTypeDecimalOrNumber<RightDataType>, DataTypeFromFieldType<typename Op::ResultType>, InvalidType>>,
+            std::conditional_t<
+                (IsDataTypeDecimalOrNumber<LeftDataType> && IsDataTypeDecimalOrNumber<RightDataType>) || 
+                (IsDataTypeInterval<LeftDataType> && IsDataTypeInterval<RightDataType>), DataTypeFromFieldType<typename Op::ResultType>, InvalidType>>,
         /// Decimal cases
         Case<IsDataTypeDecimal<LeftDataType> || IsDataTypeDecimal<RightDataType>, DecimalResultDataType>,
         Case<
@@ -1806,7 +1808,7 @@ public:
                         ResultDataType result_type = decimalResultType<is_multiply, is_division>(left, right);
                         type_res = std::make_shared<ResultDataType>(result_type.getPrecision(), result_type.getScale());
                     }
-                    else if constexpr (is_div_int || is_div_int_or_zero)
+                    else if constexpr (is_int_div || is_int_div_or_zero)
                         type_res = std::make_shared<ResultDataType>();
                     else
                         type_res = std::make_shared<ResultDataType>();

@@ -45,13 +45,13 @@ public:
                 arguments.size());
 
         FunctionArgumentDescriptors mandatory_args{
-            {"time_series", &isArray<IDataType>, nullptr, "Array"},
+            {"time_series", static_cast<FunctionArgumentDescriptor::TypeValidator>(&isArray), nullptr, "Array"},
         };
 
         FunctionArgumentDescriptors optional_args{
-            {"threshold", &isNativeNumber<IDataType>, isColumnConst, "const positive Float"},
-            {"seasonality", &isNativeInteger<IDataType>, isColumnConst, "const Integer"},
-            {"AD_method", &isString<IDataType>, isColumnConst, "const String"}};
+            {"threshold", static_cast<FunctionArgumentDescriptor::TypeValidator>(&isNativeNumber), isColumnConst, "const positive Float"},
+            {"seasonality", static_cast<FunctionArgumentDescriptor::TypeValidator>(&isNativeInteger), isColumnConst, "const Integer"},
+            {"AD_method", static_cast<FunctionArgumentDescriptor::TypeValidator>(&isString), isColumnConst, "const String"}};
 
         validateFunctionArgumentTypes(*this, arguments, mandatory_args, optional_args);
 

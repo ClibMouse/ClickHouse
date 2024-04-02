@@ -15,7 +15,7 @@ bool ParserKQLProjectRename::parseImpl(Pos & pos, ASTPtr & node, Expected & expe
 {
     const auto projectrename_expr = getRenameExprFromToken(pos);
     Tokens ntokens(projectrename_expr.c_str(), projectrename_expr.c_str() + projectrename_expr.size());
-    IParser::Pos npos(ntokens, pos.max_depth);
+    IParser::Pos npos(ntokens, pos.max_depth, pos.max_backtracks);
 
     ASTPtr expression_list;
     if (!ParserNotEmptyExpressionList(false).parse(npos, expression_list, expected) || !npos->isEnd())

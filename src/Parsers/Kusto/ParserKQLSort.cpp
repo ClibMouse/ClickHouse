@@ -78,7 +78,7 @@ bool ParserKQLSort::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
             sort_dir = "desc";
         if (nulls_position.empty())
             nulls_position = sort_dir == "desc" ? "nulls last" : "nulls first";
-        return std::format("{} {} {}", getExprFromToken(column_expr, pos.max_depth), sort_dir, nulls_position);
+        return std::format("{} {} {}", getExprFromToken(column_expr, pos.max_depth, pos.max_backtracks), sort_dir, nulls_position);
     };
 
     auto paren_count = 0;

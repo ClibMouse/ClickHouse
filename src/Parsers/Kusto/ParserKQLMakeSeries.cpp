@@ -105,10 +105,10 @@ void ParserKQLMakeSeries ::parseSingleAggregationColumn(AggregationColumns & agg
     {
         if (end < begin)
             throw Exception(ErrorCodes::SYNTAX_ERROR, "No aggregation in make-series operator");
-        default_value = getExprFromToken(String(begin->begin, end->end), pos.max_depth);
+        default_value = getExprFromToken(String(begin->begin, end->end), pos.max_depth, pos.max_backtracks);
     }
 
-    auto converted_aggregation_fun = getExprFromToken(aggregation_fun, pos.max_depth);
+    auto converted_aggregation_fun = getExprFromToken(aggregation_fun, pos.max_depth, pos.max_backtracks);
 
     auto agg_fun = String(agg_start_pos->begin, agg_start_pos->end);
     String tmp_alias;

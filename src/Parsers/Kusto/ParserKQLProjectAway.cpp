@@ -77,7 +77,7 @@ bool ParserKQLProjectAway::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expe
     for (size_t i = wildcard_columns_index; i < wildcard_columns.size(); ++i)
     {
         String project_away_query = std::format("(SELECT * EXCEPT {} FROM dummy_input)", wildcard_columns[i]);
-        if (!parseSQLQueryByString(std::make_unique<ParserTablesInSelectQuery>(), project_away_query, sub_query_node, pos.max_depth))
+        if (!parseSQLQueryByString(std::make_unique<ParserTablesInSelectQuery>(), project_away_query, sub_query_node, pos.max_depth, pos.max_backtracks))
             return false;
         if (!setSubQuerySource(sub_query_node, node, true, i != wildcard_columns_index))
             return false;
@@ -86,7 +86,7 @@ bool ParserKQLProjectAway::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expe
 
     String last_away = std::format("SELECT * EXCEPT {} from dummy", regular_columns.empty() ? wildcard_columns[0] : regular_column_str);
 
-    if (!parseSQLQueryByString(std::make_unique<ParserSelectQuery>(), last_away, sub_query_node, pos.max_depth))
+    if (!parseSQLQueryByString(std::make_unique<ParserSelectQuery>(), last_away, sub_query_node, pos.max_depth, pos.max_backtracks))
         return false;
     if (wildcard_columns_index < wildcard_columns.size())
         sub_query_node->as<ASTSelectQuery>()->setExpression(ASTSelectQuery::Expression::TABLES, std::move(node));

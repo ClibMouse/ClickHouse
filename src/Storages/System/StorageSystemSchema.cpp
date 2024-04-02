@@ -24,7 +24,7 @@ namespace ErrorCodes
     extern const int LOGICAL_ERROR;
 }
 
-void StorageSystemSchema::fillData(MutableColumns & res_columns, ContextPtr context, const SelectQueryInfo &) const
+void StorageSystemSchema::fillData(MutableColumns & res_columns, ContextPtr context, const ActionsDAG::Node *, std::vector<UInt8>) const
 {
     if (res_columns.size() != 4)
         throw Exception(ErrorCodes::LOGICAL_ERROR, "Unexpected number of result columns when trying to fill {}", getName());

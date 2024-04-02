@@ -35,7 +35,7 @@ bool ParserKQLJoin::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
     String join_kind = default_join;
     String kql_join_kind = "innerunique";
 
-    ParserKeyword s_kind("kind");
+    ParserKeyword s_kind(Keyword::KIND);
     ParserToken equals(TokenType::Equals);
     ParserToken open_bracket(TokenType::OpeningRoundBracket);
     ParserIdentifier id_right_table;
@@ -219,7 +219,7 @@ bool ParserKQLJoin::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
             distinct_column = distinct_column.empty() ? col : distinct_column + "," + col;
 
         String distinct_query = std::format("(SELECT DISTINCT ON ({}) * FROM dum_tbl)", distinct_column);
-        if (!parseSQLQueryByString(std::make_unique<ParserTablesInSelectQuery>(), distinct_query, sub_query_node, pos.max_depth))
+        if (!parseSQLQueryByString(std::make_unique<ParserTablesInSelectQuery>(), distinct_query, sub_query_node, pos.max_depth, pos.max_backtracks))
             return false;
         if (!setSubQuerySource(sub_query_node, node, true, false))
             return false;
@@ -257,7 +257,7 @@ bool ParserKQLJoin::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
         query_join = std::format("SELECT * FROM tbl {} {} AS right_ USING {}", join_kind, str_right_table, str_attributes);
     }
 
-    if (!parseSQLQueryByString(std::make_unique<ParserSelectQuery>(), query_join, sub_query_node, pos.max_depth))
+    if (!parseSQLQueryByString(std::make_unique<ParserSelectQuery>(), query_join, sub_query_node, pos.max_depth, pos.max_backtracks))
         return false;
 
     ASTPtr table_expr;

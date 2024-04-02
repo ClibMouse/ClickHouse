@@ -29,8 +29,8 @@ protected:
 
     static bool parseSingleTopNestedClause(Pos & begin_pos, Pos & last_pos, TopNestedClause & top_nested_clause, const int layer);
     static bool parseTopNestedClause(Pos & pos, TopNestedClauses & top_nested_clauses);
-    static String calculateTopNestedWithOthers(const TopNestedClauses & top_nested_clauses, const uint32_t max_depth);
-    static String calculateSingleTopNestedWithOthers(const TopNestedClauses & top_nested_clauses, size_t layer, bool has_others, const uint32_t max_depth);
+    static String calculateTopNestedWithOthers(const TopNestedClauses & top_nested_clauses, const uint32_t max_depth, const uint32_t max_backtracks);
+    static String calculateSingleTopNestedWithOthers(const TopNestedClauses & top_nested_clauses, size_t layer, bool has_others, const uint32_t max_depth, const uint32_t max_backtracks);
 };
 
 }

@@ -25,8 +25,8 @@ bool mapToEndOfPeriod(std::string & out, DB::IParser::Pos & pos, const std::stri
         DB::IParserKQLFunction::kqlCallToExpression(
             std::format("startof{}", Poco::toLower(std::string(period))),
             {datetime, std::format("{} + 1", offset.value_or("0"))},
-            pos.max_depth),
-        DB::IParserKQLFunction::kqlCallToExpression("timespan", {"1tick"}, pos.max_depth));
+            pos.max_depth, pos.max_backtracks),
+        DB::IParserKQLFunction::kqlCallToExpression("timespan", {"1tick"}, pos.max_depth, pos.max_backtracks));
     return true;
 }
 
@@ -61,7 +61,7 @@ bool Ago::convertImpl(String & out, IParser::Pos & pos)
 
     const auto offset = getOptionalArgument(function_name, pos, ArgumentState::Raw);
     out = kqlCallToExpression(
-        "now", {std::format("-1 * {}", offset.value_or(kqlCallToExpression("timespan", {"0"}, pos.max_depth)))}, pos.max_depth);
+        "now", {std::format("-1 * {}", offset.value_or(kqlCallToExpression("timespan", {"0"}, pos.max_depth, pos.max_backtracks)))}, pos.max_depth, pos.max_backtracks);
     return true;
 }
 
@@ -198,7 +198,7 @@ bool DayOfWeek::convertImpl(String & out, IParser::Pos & pos)
         return false;
 
     const auto datetime = getArgument(fn_name, pos);
-    out = std::format("(toDayOfWeek({}) % 7) * {}", datetime, kqlCallToExpression("timespan", {"1d"}, pos.max_depth));
+    out = std::format("(toDayOfWeek({}) % 7) * {}", datetime, kqlCallToExpression("timespan", {"1d"}, pos.max_depth, pos.max_backtracks));
 
     return true;
 }
@@ -354,7 +354,7 @@ bool FormatTimeSpan::convertImpl(String & out, IParser::Pos & pos)
             const auto part_length = std::min(streak_length, static_cast<std::ptrdiff_t>(max_length));
             current_streak.erase(current_streak.cbegin(), current_streak.cbegin() + part_length);
 
-            auto expression = std::format("intDiv({}, {})", timespan, kqlCallToExpression("timespan", {timespan_unit}, pos.max_depth));
+            auto expression = std::format("intDiv({}, {})", timespan, kqlCallToExpression("timespan", {timespan_unit}, pos.max_depth, pos.max_backtracks));
             expression = std::format("toString({})", modulus ? std::format("modulo({}, {})", expression, *modulus) : expression);
             if (should_truncate)
                 expression = std::format("substring({}, 1, {})", expression, part_length);
@@ -421,13 +421,13 @@ bool MakeTimeSpan::convertImpl(String & out, IParser::Pos & pos)
     out = std::format(
         "{} * {} + {} * {} + {} * {} + {} * {}",
         day,
-        kqlCallToExpression("timespan", {"1d"}, pos.max_depth),
+        kqlCallToExpression("timespan", {"1d"}, pos.max_depth, pos.max_backtracks),
         hour,
-        kqlCallToExpression("timespan", {"1h"}, pos.max_depth),
+        kqlCallToExpression("timespan", {"1h"}, pos.max_depth, pos.max_backtracks),
         minute,
-        kqlCallToExpression("timespan", {"1m"}, pos.max_depth),
+        kqlCallToExpression("timespan", {"1m"}, pos.max_depth, pos.max_backtracks),
         second,
-        kqlCallToExpression("timespan", {"1s"}, pos.max_depth));
+        kqlCallToExpression("timespan", {"1s"}, pos.max_depth, pos.max_backtracks));
 
     return true;
 }

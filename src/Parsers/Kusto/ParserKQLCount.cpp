@@ -15,10 +15,10 @@ bool ParserKQLCount::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
         throw Exception(ErrorCodes::SYNTAX_ERROR, "Syntax error near count operator");
 
     ASTPtr select_expression_list;
-    String converted_columns =  getExprFromToken("Count = count()", pos.max_depth);
+    String converted_columns =  getExprFromToken("Count = count()", pos.max_depth, pos.max_backtracks);
 
     Tokens token_converted_columns(converted_columns.c_str(), converted_columns.c_str() + converted_columns.size());
-    IParser::Pos pos_converted_columns(token_converted_columns, pos.max_depth);
+    IParser::Pos pos_converted_columns(token_converted_columns, pos.max_depth, pos.max_backtracks);
 
     if (!ParserNotEmptyExpressionList(true).parse(pos_converted_columns, select_expression_list, expected))
         return false;

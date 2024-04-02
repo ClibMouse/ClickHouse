@@ -563,7 +563,7 @@ bool ParserKQLQuery::parseImpl(Pos & original_pos, ASTPtr & node, Expected & exp
     if (pre_processed)
     {
         Tokens tokens(pre_processed_query.data(), pre_processed_query.data() + pre_processed_query.size(), original_pos.max_depth);
-        IParser::Pos n_pos(tokens, original_pos.max_depth);
+        IParser::Pos n_pos(tokens, original_pos.max_depth, original_pos.max_backtracks);
         return executeImpl(n_pos, node, expected);
     }
     return executeImpl(pos, node, expected);
@@ -585,7 +585,7 @@ bool ParserKQLQuery::executeImpl(Pos & pos, ASTPtr & node, Expected & expected)
     kql_operator_p->updatePipeLine(operation_pos, updated_query);
 
     Tokens token_query(updated_query.c_str(), updated_query.c_str() + updated_query.size());
-    IParser::Pos pos_query(token_query, pos.max_depth);
+    IParser::Pos pos_query(token_query, pos.max_depth, pos.max_backtracks);
     if (!updated_query.empty())
     {
         operation_pos.clear();

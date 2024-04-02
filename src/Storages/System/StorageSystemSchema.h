@@ -4,13 +4,13 @@
 
 namespace DB
 {
-class StorageSystemSchema : public IStorageSystemOneBlock<StorageSystemSchema>
+class StorageSystemSchema : public IStorageSystemOneBlock
 {
 public:
-    StorageSystemSchema(StorageID table_id_, ASTPtr query_) : IStorageSystemOneBlock(std::move(table_id_)), query(std::move(query_)) { }
+    StorageSystemSchema(StorageID table_id_, ASTPtr query_) : IStorageSystemOneBlock(std::move(table_id_), getColumnsDescription()), query(std::move(query_)) { }
     ~StorageSystemSchema() override = default;
 
-    void fillData(MutableColumns & res_columns, ContextPtr context, const SelectQueryInfo & query_info) const override;
+    void fillData(MutableColumns & res_columns, ContextPtr context, const ActionsDAG::Node *, std::vector<UInt8>) const override;
     std::string getName() const override { return "SystemSchema"; }
     static ColumnsDescription getColumnsDescription();
 

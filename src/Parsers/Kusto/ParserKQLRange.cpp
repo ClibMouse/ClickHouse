@@ -77,13 +77,13 @@ bool ParserKQLRange::parseImpl(Pos & pos, ASTPtr & node, Expected & /*expected*/
 
     step = String(start_pos->begin, end_pos->end);
 
-    column_name = getExprFromToken(column_name, pos.max_depth);
-    start = getExprFromToken(start, pos.max_depth);
-    stop = getExprFromToken(stop, pos.max_depth);
-    step = getExprFromToken(step, pos.max_depth);
+    column_name = getExprFromToken(column_name, pos.max_depth, pos.max_backtracks);
+    start = getExprFromToken(start, pos.max_depth, pos.max_backtracks);
+    stop = getExprFromToken(stop, pos.max_depth, pos.max_backtracks);
+    step = getExprFromToken(step, pos.max_depth, pos.max_backtracks);
     String query = std::format("SELECT * FROM (SELECT kql_range({0}, {1},{2}) AS {3}) ARRAY JOIN {3}", start, stop, step, column_name);
 
-    if (!parseSQLQueryByString(std::make_unique<ParserSelectQuery>(), query, select_node, pos.max_depth))
+    if (!parseSQLQueryByString(std::make_unique<ParserSelectQuery>(), query, select_node, pos.max_depth, pos.max_backtracks))
         return false;
     node = std::move(select_node);
 

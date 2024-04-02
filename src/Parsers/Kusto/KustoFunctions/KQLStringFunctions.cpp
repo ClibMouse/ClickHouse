@@ -354,7 +354,7 @@ bool IsEmpty::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
     const auto arg = getArgument(fn_name, pos, ArgumentState::Raw);
-    out.append("empty(" + kqlCallToExpression("tostring", {arg}, pos.max_depth) + ")");
+    out.append("empty(" + kqlCallToExpression("tostring", {arg}, pos.max_depth, pos.max_backtracks) + ")");
     return true;
 }
 
@@ -364,7 +364,7 @@ bool IsNotEmpty::convertImpl(String & out, IParser::Pos & pos)
     if (fn_name.empty())
         return false;
     const auto arg = getArgument(fn_name, pos, ArgumentState::Raw);
-    out.append("notEmpty(" + kqlCallToExpression("tostring", {arg}, pos.max_depth) + ")");
+    out.append("notEmpty(" + kqlCallToExpression("tostring", {arg}, pos.max_depth, pos.max_backtracks) + ")");
     return true;
 }
 
@@ -501,7 +501,7 @@ bool Reverse::convertImpl(String & out, IParser::Pos & pos)
         return false;
 
     const auto argument = getArgument(function_name, pos, ArgumentState::Raw);
-    out = std::format("reverse({})", kqlCallToExpression("tostring", {argument}, pos.max_depth));
+    out = std::format("reverse({})", kqlCallToExpression("tostring", {argument}, pos.max_depth, pos.max_backtracks));
 
     return true;
 }
@@ -555,7 +555,7 @@ bool StrCat::convertImpl(String & out, IParser::Pos & pos)
     out.append("concat(");
     for (const auto & argument : arguments)
     {
-        out.append(kqlCallToExpression("tostring", {argument}, pos.max_depth));
+        out.append(kqlCallToExpression("tostring", {argument}, pos.max_depth, pos.max_backtracks));
         out.append(", ");
     }
 
@@ -576,7 +576,7 @@ bool StrCatDelim::convertImpl(String & out, IParser::Pos & pos)
     args = "concat(";
     for (size_t i = 1; i < arguments.size(); i++)
     {
-        args += kqlCallToExpression("tostring", {arguments[i]}, pos.max_depth);
+        args += kqlCallToExpression("tostring", {arguments[i]}, pos.max_depth, pos.max_backtracks);
         if (i < arguments.size() - 1)
             args += ", " + delimiter + ", ";
     }
@@ -627,7 +627,7 @@ bool StrRep::convertImpl(String & out, IParser::Pos & pos)
     {
         const String & delimiter = arguments[2];
         const String repeated_str
-            = "repeat(concat(" + kqlCallToExpression("tostring", {value}, pos.max_depth) + " , " + delimiter + ")," + multiplier + ")";
+            = "repeat(concat(" + kqlCallToExpression("tostring", {value}, pos.max_depth, pos.max_backtracks) + " , " + delimiter + ")," + multiplier + ")";
         out = "substr(" + repeated_str + ", 1, length(" + repeated_str + ") - length(" + delimiter + "))";
     }
     return true;

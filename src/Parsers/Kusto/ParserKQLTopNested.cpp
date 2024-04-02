@@ -18,15 +18,15 @@ namespace ErrorCodes
     extern const int SYNTAX_ERROR;
 }
 
-String ParserKQLTopNested ::calculateSingleTopNestedWithOthers(
-    const TopNestedClauses & top_nested_clauses, size_t layer, bool has_others, const uint32_t max_depth)
+String ParserKQLTopNested::calculateSingleTopNestedWithOthers(
+    const TopNestedClauses & top_nested_clauses, size_t layer, bool has_others, const uint32_t max_depth, const uint32_t max_backtracks)
 {
     const String source_table = "source_table AS (SELECT * FROM StormEvents) ";
-    const String & topn = getExprFromToken(top_nested_clauses[layer].topn, max_depth);
+    const String & topn = getExprFromToken(top_nested_clauses[layer].topn, max_depth, max_backtracks);
     const String & expr_alias = top_nested_clauses[layer].expr_alias;
-    const String & expr = getExprFromToken(top_nested_clauses[layer].expr, max_depth);
+    const String & expr = getExprFromToken(top_nested_clauses[layer].expr, max_depth, max_backtracks);
     const String & agg_alias = top_nested_clauses[layer].agg_alias;
-    const String & agg_expr = getExprFromToken(top_nested_clauses[layer].agg_expr, max_depth);
+    const String & agg_expr = getExprFromToken(top_nested_clauses[layer].agg_expr, max_depth, max_backtracks);
     const String & order_expr = top_nested_clauses[layer].order;
 
     String topn_expr = topn.empty() ? "" : std::format("LIMIT {} ", topn);
@@ -136,7 +136,7 @@ String ParserKQLTopNested ::calculateSingleTopNestedWithOthers(
     return query;
 }
 
-String ParserKQLTopNested ::calculateTopNestedWithOthers(const TopNestedClauses & top_nested_clauses, const uint32_t max_depth)
+String ParserKQLTopNested::calculateTopNestedWithOthers(const TopNestedClauses & top_nested_clauses, const uint32_t max_depth, const uint32_t max_backtracks)
 {
     String query, last_select_list, last_others_list;
     auto size = top_nested_clauses.size();
@@ -152,9 +152,9 @@ String ParserKQLTopNested ::calculateTopNestedWithOthers(const TopNestedClauses 
 
     for (size_t i = 0; i < size; ++i)
     {
-        const String single_query = calculateSingleTopNestedWithOthers(top_nested_clauses, i, has_others, max_depth);
+        const String single_query = calculateSingleTopNestedWithOthers(top_nested_clauses, i, has_others, max_depth, max_backtracks);
         const String others_expr
-            = top_nested_clauses[i].others.empty() ? "NULL" : getExprFromToken(top_nested_clauses[i].others, max_depth);
+            = top_nested_clauses[i].others.empty() ? "NULL" : getExprFromToken(top_nested_clauses[i].others, max_depth, max_backtracks);
         const String others_agg = top_nested_clauses[i].others.empty() ? "NULL" : std::format("{}_value", top_nested_clauses[i].agg_alias);
         if (i == 0)
         {
@@ -207,7 +207,7 @@ String ParserKQLTopNested ::calculateTopNestedWithOthers(const TopNestedClauses 
                     all_others_table = all_others_table
                         + std::format("{} {} AS {} , {}_value AS {}",
                                       separator,
-                                      getExprFromToken(top_nested_clauses[j].others, max_depth),
+                                      getExprFromToken(top_nested_clauses[j].others, max_depth, max_backtracks),
                                       top_nested_clauses[j].expr_alias,
                                       other_values,
                                       top_nested_clauses[j].agg_alias);
@@ -243,7 +243,7 @@ String ParserKQLTopNested ::calculateTopNestedWithOthers(const TopNestedClauses 
     return query;
 }
 
-bool ParserKQLTopNested ::parseSingleTopNestedClause(Pos & begin_pos, Pos & last_pos, TopNestedClause & top_nested_clause, const int layer)
+bool ParserKQLTopNested::parseSingleTopNestedClause(Pos & begin_pos, Pos & last_pos, TopNestedClause & top_nested_clause, const int layer)
 {
     TopNestedClause arg;
     auto pos = begin_pos;
@@ -370,7 +370,7 @@ bool ParserKQLTopNested ::parseSingleTopNestedClause(Pos & begin_pos, Pos & last
     return true;
 }
 
-bool ParserKQLTopNested ::parseTopNestedClause(Pos & pos, TopNestedClauses & top_nested_clauses)
+bool ParserKQLTopNested::parseTopNestedClause(Pos & pos, TopNestedClauses & top_nested_clauses)
 {
     TopNestedClause top_nested_clause;
     auto start_pos = pos;
@@ -404,16 +404,16 @@ bool ParserKQLTopNested ::parseTopNestedClause(Pos & pos, TopNestedClauses & top
     return true;
 }
 
-bool ParserKQLTopNested ::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
+bool ParserKQLTopNested::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
 {
     TopNestedClauses top_nested_clauses;
 
     parseTopNestedClause(pos, top_nested_clauses);
-    String query = calculateTopNestedWithOthers(top_nested_clauses, pos.max_depth);
+    String query = calculateTopNestedWithOthers(top_nested_clauses, pos.max_depth, pos.max_backtracks);
 
     ASTPtr select_node;
     Tokens tokens(query.c_str(), query.c_str() + query.size());
-    IParser::Pos new_pos(tokens, pos.max_depth);
+    IParser::Pos new_pos(tokens, pos.max_depth, pos.max_backtracks);
     if (!ParserSelectQuery().parse(new_pos, select_node, expected))
         return false;
 
