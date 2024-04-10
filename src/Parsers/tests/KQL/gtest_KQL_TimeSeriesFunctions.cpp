@@ -19,6 +19,13 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_TimeSeries, ParserKQLTest,
             "SELECT seriesAnomaliesDetectDecompose([1, 2, 4, 55, 56, 8], 1.5, -1, 'tukey') AS print_0"
         },
         {
+            "print (ad_flag, ad_score, baseline) = series_decompose_anomalies(dynamic([1,2,4,55,56,8]))",
+            "SELECT"
+            "\n    seriesAnomaliesDetectDecompose([1, 2, 4, 55, 56, 8], 1.5, -1, 'ctukey')[1] AS ad_flag,"
+            "\n    seriesAnomaliesDetectDecompose([1, 2, 4, 55, 56, 8], 1.5, -1, 'ctukey')[2] AS ad_score,"
+            "\n    seriesAnomaliesDetectDecompose([1, 2, 4, 55, 56, 8], 1.5, -1, 'ctukey')[3] AS baseline"
+        },
+        {
             "print series_decompose(dynamic([10.1, 20.45, 40.34, 10.1, 20.45, 40.34, 10.1, 20.45, 40.34]),-1)",
             "SELECT seriesDecomposeSTL([10.1, 20.45, 40.34, 10.1, 20.45, 40.34, 10.1, 20.45, 40.34], seriesPeriodDetectFFT([10.1, 20.45, 40.34, 10.1, 20.45, 40.34, 10.1, 20.45, 40.34])) AS print_0"
         },
@@ -27,12 +34,26 @@ INSTANTIATE_TEST_SUITE_P(ParserKQLQuery_TimeSeries, ParserKQLTest,
             "SELECT seriesDecomposeSTL([10.1, 20.45, 40.34, 10.1, 20.45, 40.34, 10.1, 20.45, 40.34], 3) AS print_0"
         },
         {
+            "print (baseline, seasonal, trend, residual) = series_decompose(dynamic([10.1, 20.45, 40.34, 10.1, 20.45, 40.34, 10.1, 20.45, 40.34]),3)",
+            "SELECT"
+            "\n    seriesDecomposeSTL([10.1, 20.45, 40.34, 10.1, 20.45, 40.34, 10.1, 20.45, 40.34], 3)[1] AS baseline,"
+            "\n    seriesDecomposeSTL([10.1, 20.45, 40.34, 10.1, 20.45, 40.34, 10.1, 20.45, 40.34], 3)[2] AS seasonal,"
+            "\n    seriesDecomposeSTL([10.1, 20.45, 40.34, 10.1, 20.45, 40.34, 10.1, 20.45, 40.34], 3)[3] AS trend,"
+            "\n    seriesDecomposeSTL([10.1, 20.45, 40.34, 10.1, 20.45, 40.34, 10.1, 20.45, 40.34], 3)[4] AS residual"
+        },
+        {
+            "print (baseline, seasonal) = series_decompose(dynamic([10.1, 20.45, 40.34, 10.1, 20.45, 40.34, 10.1, 20.45, 40.34]),3)",
+            "SELECT"
+            "\n    seriesDecomposeSTL([10.1, 20.45, 40.34, 10.1, 20.45, 40.34, 10.1, 20.45, 40.34], 3)[1] AS baseline,"
+            "\n    seriesDecomposeSTL([10.1, 20.45, 40.34, 10.1, 20.45, 40.34, 10.1, 20.45, 40.34], 3)[2] AS seasonal"
+        },
+        {
             "print series_periods_detect(dynamic([10.1, 20.45, 40.34, 10.1, 20.45, 40.34, 10.1, 20.45, 40.34]))",
             "SELECT seriesPeriodDetectFFT([10.1, 20.45, 40.34, 10.1, 20.45, 40.34, 10.1, 20.45, 40.34]) AS print_0"
         },
         {
             "print series_outliers(dynamic([-3, 2, 15, 3, 5, 6, 4.50, 5, 12, 45, 12, 3.40, 3, 4, 5, 6]))",
-            "SELECT seriesOutliersDetectTukey([-3, 2, 15, 3, 5, 6, 4.5, 5, 12, 45, 12, 3.4, 3, 4, 5, 6], 10, 90, 1.5) AS print_0"
+            "SELECT seriesOutliersDetectTukey([-3, 2, 15, 3, 5, 6, 4.5, 5, 12, 45, 12, 3.4, 3, 4, 5, 6], 0.1, 0.9, 1.5) AS print_0"
         },
         {
             "print series_outliers(dynamic([-3, 2, 15, 3, 5, 6, 4.50, 5, 12, 45, 12, 3.40, 3, 4, 5, 6]), 'tukey',0,20,80)",

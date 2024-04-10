@@ -79,6 +79,8 @@ class ArraySortAsc : public IParserKQLFunction
 protected:
     const char * getName() const override { return "array_sort_asc()"; }
     bool convertImpl(String & out, IParser::Pos & pos) override;
+    bool isDynamicOutputFunction() const override { return true; }
+    bool isMultiOutputFunction() const override { return true; }
 };
 
 class ArraySortDesc : public IParserKQLFunction
@@ -86,6 +88,8 @@ class ArraySortDesc : public IParserKQLFunction
 protected:
     const char * getName() const override { return "array_sort_desc()"; }
     bool convertImpl(String & out, IParser::Pos & pos) override;
+    bool isDynamicOutputFunction() const override { return true; }
+    bool isMultiOutputFunction() const override { return true; }
 };
 
 class ArraySplit : public IParserKQLFunction

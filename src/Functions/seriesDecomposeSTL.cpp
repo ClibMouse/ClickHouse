@@ -43,7 +43,7 @@ public:
     {
         FunctionArgumentDescriptors args{
             {"time_series", static_cast<FunctionArgumentDescriptor::TypeValidator>(&isArray), nullptr, "Array"},
-            {"period", static_cast<FunctionArgumentDescriptor::TypeValidator>(&isNativeUInt), nullptr, "Unsigned Integer"},
+            {"period", static_cast<FunctionArgumentDescriptor::TypeValidator>(&isNativeNumber), nullptr, "Unsigned Integer"},
         };
         validateFunctionArgumentTypes(*this, arguments, args);
 

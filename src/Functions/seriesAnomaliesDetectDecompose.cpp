@@ -67,8 +67,8 @@ public:
 
         /// Assigning default values for function arguments
         Float64 k_value = 1.50;
-        Float64 min_percentile = 10;
-        Float64 max_percentile = 90;
+        Float64 min_percentile = 0.10;
+        Float64 max_percentile = 0.90;
         Int64 seasonality = -1;
 
         if (arguments.size() > 1)
@@ -86,8 +86,8 @@ public:
             String kind = kind_const_col->getDataAt(0).toString();
             if (kind == "tukey")
             {
-                min_percentile = 25;
-                max_percentile = 75;
+                min_percentile = 0.25;
+                max_percentile = 0.75;
             }
             else if (kind != "ctukey")
                 throw Exception(ErrorCodes::BAD_ARGUMENTS, "The fourth argument of function can only be 'tukey' or 'ctukey', got '{}'", kind);

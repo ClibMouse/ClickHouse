@@ -63,6 +63,9 @@ public:
     bool convert(String & out, IParser::Pos & pos);
     virtual const char * getName() const = 0;
     virtual ~IParserKQLFunction() = default;
+    virtual size_t getExpectedReturnColumnCount() const { return 1; }
+    virtual bool isMultiOutputFunction() const { return false; }
+    virtual bool isDynamicOutputFunction() const { return false; }
 
     static String generateUniqueIdentifier();
     static String getArgument(const String & function_name, DB::IParser::Pos & pos, ArgumentState argument_state = ArgumentState::Parsed);

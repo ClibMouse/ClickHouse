@@ -39,6 +39,7 @@
 
 #include <format>
 #include <ranges>
+#include <vector>
 
 namespace DB
 {
@@ -327,38 +328,56 @@ String ParserKQLBase::getExprFromToken(Pos & pos)
             {
                 String whole_alias(start_pos->begin, equal_pos->end);
 
-                if (function_name != "array_sort_asc" && function_name != "array_sort_desc")
-                    throw Exception(ErrorCodes::SYNTAX_ERROR, "{} is not a valid alias", whole_alias);
+                const auto kql_function = KQLFunctionFactory::get(function_name);
+                if (!kql_function->isMultiOutputFunction())
+                    throw Exception(ErrorCodes::SYNTAX_ERROR, "Function {} does not support multi-alias syntax", function_name);
 
                 if (start_pos->type != TokenType::OpeningRoundBracket && equal_pos->type != TokenType::ClosingRoundBracket)
                     throw Exception(ErrorCodes::SYNTAX_ERROR, "{} is not a valid alias for {}", whole_alias, function_name);
 
+                // Store all aliases in the group
+                std::vector<String> aliases;
                 String alias_inside;
-                bool comma_meet = false;
-                size_t index = 1;
+                bool comma_meet = true;
                 ++start_pos;
                 while (start_pos < equal_pos)
                 {
-                    if (start_pos->type == TokenType::Comma)
+                    switch (start_pos->type)
                     {
-                        alias_inside.clear();
-                        if (comma_meet)
-                            throw Exception(ErrorCodes::SYNTAX_ERROR, "{} has invalid alias for {}", whole_alias, function_name);
-                        comma_meet = true;
-                    }
-                    else
-                    {
-                        if (!alias_inside.empty() || start_pos->type != TokenType::BareWord)
-                            throw Exception(ErrorCodes::SYNTAX_ERROR, "{} has invalid alias for {}", whole_alias, function_name);
-
-                        alias_inside = String(start_pos->begin, start_pos->end);
-                        auto new_column_str = std::format("{0}[{1}] AS {2}", column_str, index, alias_inside);
-                        columns.push_back(new_column_str);
-                        comma_meet = false;
-                        ++index;
+                        case TokenType::Comma:
+                        {
+                            alias_inside.clear();
+                            if (comma_meet)
+                                throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid alias {}", whole_alias);
+                            comma_meet = true;
+                            break;
+                        }
+                        case TokenType::BareWord:
+                        {
+                            if (!alias_inside.empty())
+                                throw Exception(ErrorCodes::SYNTAX_ERROR, "{} has invalid alias for {}", whole_alias, function_name);
+                            comma_meet = false;
+                            alias_inside = String(start_pos->begin, start_pos->end);
+                            aliases.emplace_back(alias_inside);
+                            break;
+                        }
+                        default:
+                        {
+                            const String unexpected_token {start_pos->begin, start_pos->end};
+                            throw Exception(ErrorCodes::SYNTAX_ERROR, "Unexpected token `{}` in alias {}", unexpected_token, whole_alias);
+                        }
                     }
                     ++start_pos;
                 }
+                if (comma_meet)
+                    throw Exception(ErrorCodes::SYNTAX_ERROR, "Invalid alias {}", whole_alias);
+
+                const size_t max_index = kql_function->getExpectedReturnColumnCount();
+                if (!kql_function->isDynamicOutputFunction() && max_index < aliases.size())
+                    throw Exception(ErrorCodes::SYNTAX_ERROR, "Alias mismatch: The function {} returns {} columns, but {} were expected", function_name, max_index, aliases.size());
+
+                for (size_t i = 0; i < aliases.size(); ++i)
+                    columns.push_back(std::format("{0}[{1}] AS {2}", column_str, i + 1, aliases[i]));
             }
         }
         else

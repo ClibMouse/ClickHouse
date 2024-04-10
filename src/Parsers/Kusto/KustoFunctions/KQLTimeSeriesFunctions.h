@@ -23,6 +23,8 @@ class SeriesFitLine : public IParserKQLFunction
 protected:
     const char * getName() const override { return "series_fit_line()"; }
     bool convertImpl(String & out, IParser::Pos & pos) override;
+    bool isMultiOutputFunction() const override { return true; }
+    size_t getExpectedReturnColumnCount() const override { return 6; }
 };
 
 class SeriesFitLineDynamic : public IParserKQLFunction
@@ -37,6 +39,8 @@ class SeriesFit2lines : public IParserKQLFunction
 protected:
     const char * getName() const override { return "series_fit_2lines()"; }
     bool convertImpl(String & out, IParser::Pos & pos) override;
+    bool isMultiOutputFunction() const override { return true; }
+    size_t getExpectedReturnColumnCount() const override { return 15; }
 };
 
 class SeriesFit2linesDynamic : public IParserKQLFunction
@@ -58,6 +62,8 @@ class SeriesPeriodsDetect : public IParserKQLFunction
 protected:
     const char * getName() const override { return "series_periods_detect()"; }
     bool convertImpl(String & out, IParser::Pos & pos) override;
+    bool isMultiOutputFunction() const override { return true; }
+    size_t getExpectedReturnColumnCount() const override { return 2; }
 };
 
 class SeriesPeriodsValidate : public IParserKQLFunction
@@ -65,6 +71,8 @@ class SeriesPeriodsValidate : public IParserKQLFunction
 protected:
     const char * getName() const override { return "series_periods_validate()"; }
     bool convertImpl(String & out, IParser::Pos & pos) override;
+    bool isMultiOutputFunction() const override { return true; }
+    size_t getExpectedReturnColumnCount() const override { return 2; }
 };
 
 class SeriesStatsDynamic : public IParserKQLFunction
@@ -79,6 +87,8 @@ class SeriesStats : public IParserKQLFunction
 protected:
     const char * getName() const override { return "series_stats()"; }
     bool convertImpl(String & out, IParser::Pos & pos) override;
+    bool isMultiOutputFunction() const override { return true; }
+    size_t getExpectedReturnColumnCount() const override { return 7; }
 };
 
 class SeriesFillBackward : public IParserKQLFunction
@@ -114,6 +124,8 @@ class SeriesDecomposeAnomalies : public IParserKQLFunction
 protected:
     const char * getName() const override { return "series_decompose_anomalies()"; }
     bool convertImpl(String & out, IParser::Pos & pos) override;
+    bool isMultiOutputFunction() const override { return true; }
+    size_t getExpectedReturnColumnCount() const override { return 3; }
 };
 
 class SeriesDecompose : public IParserKQLFunction
@@ -121,6 +133,8 @@ class SeriesDecompose : public IParserKQLFunction
 protected:
     const char * getName() const override { return "series_decompose()"; }
     bool convertImpl(String & out, IParser::Pos & pos) override;
+    bool isMultiOutputFunction() const override { return true; }
+    size_t getExpectedReturnColumnCount() const override { return 4; }
 };
 
 }

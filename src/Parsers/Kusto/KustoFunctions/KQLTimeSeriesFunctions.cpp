@@ -70,8 +70,8 @@ bool SeriesOutliers::convertImpl(String & out, IParser::Pos & pos)
     else {
         out = std::format("seriesOutliersDetectTukey({0},{1},{2},1.50)", 
         series,
-        min_percentile.value_or("10"),
-        max_percentile.value_or("90"));
+        min_percentile.value_or("0.10"),
+        max_percentile.value_or("0.90"));
     }
 
     return true;
