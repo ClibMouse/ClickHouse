@@ -2142,12 +2142,14 @@ ASTPtr InterpreterSelectQuery::pkOptimization(
         }
     }
 
-    return analyze_where_ast(where_ast, proj_pks, primary_keys);
+    ASTs primary_key_predicates;
+    return analyze_where_ast(where_ast, proj_pks, primary_key_predicates, primary_keys);
 }
 
 ASTPtr InterpreterSelectQuery::analyze_where_ast(
     const ASTPtr & ast,
     NameSet & proj_pks,
+    ASTs & primary_key_predicates,
     const Names & primary_keys) const
 {
     bool contains_pk = false;
@@ -2168,7 +2170,7 @@ ASTPtr InterpreterSelectQuery::analyze_where_ast(
 
             if (proj_pks.contains(col_name) && !contains_pk)
             {
-                ASTPtr rewrite_ast = create_proj_optimized_ast(ast, primary_keys);
+                ASTPtr rewrite_ast = create_proj_optimized_ast(ast, primary_key_predicates, primary_keys);
                 auto and_func = makeASTFunction("and", std::move(rewrite_ast), ast->clone());
                 return and_func;
             }
@@ -2207,19 +2209,31 @@ ASTPtr InterpreterSelectQuery::analyze_where_ast(
 
                 if (proj_pks_contains && !contains_pk)
                 {
-                    rewrite_ast = create_proj_optimized_ast(ast, primary_keys);
+                    rewrite_ast = create_proj_optimized_ast(ast, primary_key_predicates, primary_keys);
                     auto and_func = makeASTFunction("and", std::move(rewrite_ast), ast->clone());
                     return and_func;
                 }
             }
         }
-        else if (ast_function_node->name == "and" || ast_function_node->name == "or")
+        else if (ast_function_node->name == "and")
+        {
+            findPrimaryKeyPredicates(ast, primary_key_predicates, primary_keys);
+            auto current_func = makeASTFunction(ast_function_node->name);
+            for (size_t i = 0; i < arg_size; i++)
+            {
+                auto argument = ast_function_node->arguments->children[i];
+                auto new_ast = analyze_where_ast(argument, proj_pks, primary_key_predicates, primary_keys);
+                current_func->arguments->children.push_back(std::move(new_ast));
+            }
+            return current_func;
+        }
+        else if (ast_function_node->name == "or")
         {
             auto current_func = makeASTFunction(ast_function_node->name);
             for (size_t i = 0; i < arg_size; i++)
             {
                 auto argument = ast_function_node->arguments->children[i];
-                auto new_ast = analyze_where_ast(argument, proj_pks, primary_keys);
+                auto new_ast = analyze_where_ast(argument, proj_pks, primary_key_predicates, primary_keys);
                 current_func->arguments->children.push_back(std::move(new_ast));
             }
             return current_func;
@@ -2243,7 +2257,7 @@ ASTPtr InterpreterSelectQuery::analyze_where_ast(
  * The following code will convert this select query to the following
  * select * from test_a where src in (select src from test_a where dst='-42') and dst='-42';
  */
-ASTPtr InterpreterSelectQuery::create_proj_optimized_ast(const ASTPtr & ast, const Names & primary_keys) const
+ASTPtr InterpreterSelectQuery::create_proj_optimized_ast(const ASTPtr & ast, ASTs & primary_key_predicates, const Names & primary_keys) const
 {
     auto select_query = std::make_shared<ASTSelectQuery>();
     select_query->setExpression(ASTSelectQuery::Expression::SELECT, std::make_shared<ASTExpressionList>());
@@ -2262,7 +2276,19 @@ ASTPtr InterpreterSelectQuery::create_proj_optimized_ast(const ASTPtr & ast, con
     auto tables_in_select = std::make_shared<ASTTablesInSelectQuery>();
     tables_in_select->children.push_back(std::move(tables_elem));
     select_query->setExpression(ASTSelectQuery::Expression::TABLES, tables_in_select);
-    select_query->setExpression(ASTSelectQuery::Expression::WHERE, ast->clone());
+
+    if (primary_key_predicates.size() >=1)
+    {
+        auto new_where_predicates = makeASTFunction("and");
+        for (auto predicates : primary_key_predicates)
+            new_where_predicates->arguments->children.push_back(predicates);
+        new_where_predicates->arguments->children.push_back(ast->clone());
+        select_query->setExpression(ASTSelectQuery::Expression::WHERE, std::move(new_where_predicates));
+    }
+    else
+    {
+        select_query->setExpression(ASTSelectQuery::Expression::WHERE, ast->clone());
+    }
 
     select_with_union_query->list_of_selects->children.push_back(select_query);
     select_with_union_query->children.push_back(select_with_union_query->list_of_selects);
@@ -2289,6 +2315,47 @@ ASTPtr InterpreterSelectQuery::create_proj_optimized_ast(const ASTPtr & ast, con
     in_function->arguments->children.push_back(subquery);
 
     return makeASTFunction("indexHint", std::move(in_function));
+}
+
+void InterpreterSelectQuery::findPrimaryKeyPredicates(const ASTPtr & where_predicate, ASTs & primary_key_predicates, const Names & primary_keys) const
+{
+    auto func = where_predicate->as<ASTFunction>();
+    if (!func)
+        return;
+
+    const static std::unordered_set<String> supported_predicates_relations = {
+        "equals",
+        "notEquals",
+        "less",
+        "greater",
+        "lessOrEquals",
+        "greaterOrEquals",
+    };
+
+    auto arg_size = func->arguments ? func->arguments->children.size() : 0;
+    if (supported_predicates_relations.contains(func->name) && arg_size == 2)
+    {
+        auto lhs_argument = func->arguments->children.at(0);
+        auto rhs_argument = func->arguments->children.at(1);
+        String lhs = getIdentifier(lhs_argument);
+        String rhs = getIdentifier(rhs_argument);
+        auto col_name = (!lhs.empty()) ? lhs:rhs;
+        bool contains_pk = false;
+        if (std::find(primary_keys.begin(), primary_keys.end(), col_name) != primary_keys.end())
+            contains_pk = true;
+        if (contains_pk)
+        {
+            primary_key_predicates.push_back(where_predicate->clone());
+        }
+
+    }
+    else if (func->name == "and")
+    {
+        for (size_t i = 0; i < arg_size; i++)
+        {
+            findPrimaryKeyPredicates(func->arguments->children.at(i), primary_key_predicates, primary_keys);
+        }
+    }
 }
 
 /// Note that this is const and accepts the analysis ref to be able to use it to do analysis for parallel replicas
@@ -3494,7 +3561,7 @@ String InterpreterSelectQuery::getIdentifier(ASTPtr & argument) const
 {
     if (const auto * id = argument->as<ASTIdentifier>())
         return id->name();
-    else if (argument->as<ASTLiteral>())
+    else if (argument->as<ASTLiteral>() || argument->children.size() == 0)
         return "";
     else
         return getIdentifier(argument->children.at(0));
